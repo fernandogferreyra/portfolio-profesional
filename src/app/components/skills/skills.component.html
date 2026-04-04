@@ -1,0 +1,117 @@
+<section class="skills-page">
+  <section class="surface-card skills-hero" aria-labelledby="skills-title">
+    <div class="skills-hero__copy">
+      <p class="section-eyebrow">{{ ui().eyebrow }}</p>
+      <h1 id="skills-title">{{ ui().title }}</h1>
+      <p class="skills-hero__lead">{{ ui().intro }}</p>
+    </div>
+
+    <div class="skills-stats" aria-label="Skills summary">
+      <article class="skills-stat">
+        <strong>{{ totalSkills }}</strong>
+        <span>{{ ui().skillStatLabel }}</span>
+      </article>
+      <article class="skills-stat">
+        <strong>{{ totalCategories }}</strong>
+        <span>{{ ui().categoryStatLabel }}</span>
+      </article>
+      <article class="skills-stat">
+        <strong>{{ featuredCount }}</strong>
+        <span>{{ ui().featuredStatLabel }}</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="surface-card skills-shell">
+    <div class="skills-shell__header">
+      <div class="section-heading">
+        <h2>{{ ui().overviewTitle }}</h2>
+        <p>{{ ui().overviewDescription }}</p>
+      </div>
+
+      <div class="skills-filters" role="toolbar" [attr.aria-label]="ui().filtersAriaLabel">
+        <button
+          type="button"
+          class="skills-filter"
+          *ngFor="let filter of filterOptions()"
+          [class.is-active]="isFilterActive(filter.id)"
+          [attr.aria-pressed]="isFilterActive(filter.id)"
+          (click)="setFilter(filter.id)"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+    </div>
+
+    <div class="skills-featured-grid">
+      <article
+        class="featured-skill-card"
+        *ngFor="let skill of featuredSkills(); trackBy: trackBySkillId"
+        [style.--skill-accent]="skillIcons[skill.icon].accent"
+        [style.--skill-surface]="skillIcons[skill.icon].surface"
+        [style.--skill-border]="skillIcons[skill.icon].border"
+      >
+        <span class="featured-skill-icon" aria-hidden="true">
+          <svg
+            [attr.viewBox]="skillIcons[skill.icon].viewBox"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path *ngFor="let path of skillIcons[skill.icon].paths" [attr.d]="path"></path>
+          </svg>
+        </span>
+
+        <div class="featured-skill-copy">
+          <span class="featured-skill-category">{{ skill.categoryLabel }}</span>
+          <h3>{{ skill.name }}</h3>
+          <p>{{ skill.description }}</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="skills-groups">
+      <section
+        class="skills-group"
+        *ngFor="let category of visibleCategories(); trackBy: trackByCategoryId"
+        [attr.aria-labelledby]="'skills-group-' + category.id"
+      >
+        <div class="skills-group__header">
+          <h2 [id]="'skills-group-' + category.id">{{ category.label }}</h2>
+          <p>{{ category.description }}</p>
+        </div>
+
+        <div class="skills-grid">
+          <article
+            class="skill-card"
+            *ngFor="let skill of category.skills; trackBy: trackBySkillId"
+            [style.--skill-accent]="skillIcons[skill.icon].accent"
+            [style.--skill-surface]="skillIcons[skill.icon].surface"
+            [style.--skill-border]="skillIcons[skill.icon].border"
+          >
+            <span class="skill-card__icon" aria-hidden="true">
+              <svg
+                [attr.viewBox]="skillIcons[skill.icon].viewBox"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path *ngFor="let path of skillIcons[skill.icon].paths" [attr.d]="path"></path>
+              </svg>
+            </span>
+
+            <div class="skill-card__copy">
+              <span class="skill-card__category">{{ skill.categoryLabel }}</span>
+              <h3>{{ skill.name }}</h3>
+              <p>{{ skill.description }}</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+  </section>
+</section>

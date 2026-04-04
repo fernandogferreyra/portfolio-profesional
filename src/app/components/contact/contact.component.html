@@ -1,0 +1,61 @@
+<section class="contact-page">
+  <section class="surface-card contact-hero" aria-labelledby="contact-title">
+    <div class="contact-hero__copy">
+      <p class="section-eyebrow">{{ ui().eyebrow }}</p>
+      <h1 id="contact-title">{{ ui().title }}</h1>
+      <p>{{ ui().intro }}</p>
+    </div>
+
+    <div class="contact-hero__availability">
+      <p class="contact-hero__availability-label">{{ ui().availabilityTitle }}</p>
+      <div class="contact-chip-list">
+        <span class="contact-chip" *ngFor="let item of availability()">{{ item }}</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="contact-grid">
+    <section class="surface-card contact-card" aria-labelledby="contact-channels-title">
+      <div class="section-heading">
+        <h2 id="contact-channels-title">{{ ui().channelsTitle }}</h2>
+      </div>
+
+      <div class="contact-channel-list">
+        <article class="contact-channel" *ngFor="let channel of channels()">
+          <span class="contact-channel__badge" aria-hidden="true">{{ channel.badge }}</span>
+
+          <div class="contact-channel__copy">
+            <p class="contact-channel__label">{{ channel.label }}</p>
+            <a
+              [href]="channel.href"
+              [attr.target]="channel.href.startsWith('mailto:') ? null : '_blank'"
+              [attr.rel]="channel.href.startsWith('mailto:') ? null : 'noopener'"
+            >
+              {{ channel.value }}
+            </a>
+            <p class="contact-channel__note">{{ channel.note }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="surface-card contact-card contact-card--form" aria-labelledby="contact-form-title">
+      <div class="section-heading">
+        <h2 id="contact-form-title">{{ ui().formTitle }}</h2>
+        <p>{{ ui().formDescription }}</p>
+      </div>
+
+      <div class="contact-form-shell" aria-describedby="contact-form-note">
+        <article class="contact-guide-item" *ngFor="let item of briefItems()">
+          <span>{{ item.label }}</span>
+          <p>{{ item.value }}</p>
+        </article>
+
+        <a class="contact-form-cta" [href]="emailHref">
+          {{ ui().formButtonLabel }}
+        </a>
+        <p id="contact-form-note" class="contact-form-note">{{ ui().formNote }}</p>
+      </div>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,77 @@
+<section class="home-page">
+  <section class="home-hero" aria-labelledby="home-hero-title">
+    <div class="home-hero__content">
+      <p class="home-hero__eyebrow">{{ ui().eyebrow }}</p>
+      <h1 id="home-hero-title" class="home-hero__title">Fernando G. Ferreyra</h1>
+      <p class="home-hero__subtitle">{{ ui().role }}</p>
+      <p class="home-hero__lead">{{ ui().lead }}</p>
+
+      <div class="home-hero__actions" aria-label="Home actions">
+        <a class="home-hero__button home-hero__button--primary" routerLink="/projects">
+          {{ ui().primaryAction }}
+        </a>
+        <a
+          class="home-hero__button home-hero__button--secondary"
+          [href]="resumeUrl"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ ui().secondaryAction }}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-dashboard">
+    <app-home-project-showcase
+      [projects]="featuredProjects()"
+      [sectionEyebrow]="ui().showcaseEyebrow"
+      [selectorAriaLabel]="ui().selectorAriaLabel"
+    />
+
+    <article class="surface-card dashboard-card dashboard-card--map">
+      <div class="dashboard-card__header">
+        <p class="dashboard-card__eyebrow">{{ ui().sectionsTitle }}</p>
+        <h2 class="dashboard-card__title">{{ ui().sectionsTitle }}</h2>
+        <p class="dashboard-card__subtitle">{{ ui().sectionsDescription }}</p>
+      </div>
+
+      <div class="section-card-list">
+        <a class="section-card" *ngFor="let section of sectionCards()" [routerLink]="section.routerLink">
+          <h3>{{ section.title }}</h3>
+          <p>{{ section.description }}</p>
+        </a>
+      </div>
+    </article>
+
+    <article class="surface-card dashboard-card dashboard-card--themes">
+      <div class="dashboard-card__header">
+        <p class="dashboard-card__eyebrow">{{ ui().themesTitle }}</p>
+        <h2 class="dashboard-card__title">{{ ui().themesTitle }}</h2>
+        <p class="dashboard-card__subtitle">{{ ui().themesDescription }}</p>
+      </div>
+
+      <div class="theme-card-list">
+        <article
+          class="theme-card"
+          *ngFor="let theme of themePresets()"
+          [class.is-active]="theme.active"
+        >
+          <div class="theme-card__swatches">
+            <span [style.background]="theme.preview.surface"></span>
+            <span [style.background]="theme.preview.accentSoft"></span>
+            <span [style.background]="theme.preview.accent"></span>
+          </div>
+
+          <div class="theme-card__copy">
+            <div class="theme-card__topline">
+              <strong>{{ theme.shortLabel }}</strong>
+              <span *ngIf="theme.active">{{ ui().activeThemeLabel }}</span>
+            </div>
+            <p>{{ theme.description }}</p>
+          </div>
+        </article>
+      </div>
+    </article>
+  </section>
+</section>

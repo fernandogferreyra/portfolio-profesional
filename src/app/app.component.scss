@@ -1,0 +1,73 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.app-ambient-grid {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    linear-gradient(var(--ambient-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ambient-grid-line) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: var(--ambient-grid-mask);
+}
+
+.app-ambient-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.28;
+}
+
+.app-ambient-orb--one {
+  top: 5%;
+  left: 8%;
+  width: 420px;
+  height: 420px;
+  background: var(--ambient-orb-one);
+}
+
+.app-ambient-orb--two {
+  right: 5%;
+  top: 20%;
+  width: 360px;
+  height: 360px;
+  background: var(--ambient-orb-two);
+}
+
+.app-ambient-orb--three {
+  left: 25%;
+  bottom: -6%;
+  width: 500px;
+  height: 500px;
+  background: var(--ambient-orb-three);
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+}
+
+.app-shell > * {
+  position: relative;
+  z-index: 1;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  width: min(1140px, 92%);
+  margin: 1.75rem auto 0;
+}

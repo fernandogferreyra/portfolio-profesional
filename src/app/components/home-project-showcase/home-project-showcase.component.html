@@ -1,0 +1,55 @@
+<article class="project-showcase-card" *ngIf="activeProject as project">
+  <div class="project-showcase-card__header">
+    <div class="project-showcase-card__topbar">
+      <p class="project-showcase-card__eyebrow">{{ sectionEyebrow }}</p>
+
+      <div class="project-showcase-tabs" role="tablist" [attr.aria-label]="selectorAriaLabel">
+        <button
+          *ngFor="let item of projects; trackBy: trackByProjectId"
+          type="button"
+          class="project-showcase-tab"
+          [class.is-active]="item.id === project.id"
+          [attr.aria-selected]="item.id === project.id"
+          (click)="selectProject(item.id)"
+        >
+          {{ item.name }}
+        </button>
+      </div>
+    </div>
+
+    <p class="project-showcase-card__meta">{{ project.meta }}</p>
+    <h2 class="project-showcase-card__title">{{ project.name }}</h2>
+    <p class="project-showcase-card__summary">{{ project.description }}</p>
+  </div>
+
+  <div class="project-showcase-card__chips" [attr.aria-label]="project.stackAriaLabel">
+    <span class="project-showcase-chip" *ngFor="let tech of project.technologies">
+      {{ tech }}
+    </span>
+  </div>
+
+  <div class="project-showcase-card__actions">
+    <ng-container *ngFor="let action of project.actions">
+      <a
+        *ngIf="action.routerLink; else externalProjectAction"
+        class="project-showcase-button"
+        [class.project-showcase-button--primary]="action.primary"
+        [routerLink]="action.routerLink"
+      >
+        {{ action.label }}
+      </a>
+
+      <ng-template #externalProjectAction>
+        <a
+          class="project-showcase-button"
+          [class.project-showcase-button--primary]="action.primary"
+          [href]="action.url"
+          target="_blank"
+          rel="noopener"
+        >
+          {{ action.label }}
+        </a>
+      </ng-template>
+    </ng-container>
+  </div>
+</article>

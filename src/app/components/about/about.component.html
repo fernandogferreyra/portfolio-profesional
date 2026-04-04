@@ -1,0 +1,113 @@
+<section class="about-page">
+  <section class="surface-card about-hero" aria-labelledby="about-title">
+    <div class="about-hero-copy">
+      <p class="section-eyebrow">{{ content().eyebrow }}</p>
+      <h1 id="about-title">{{ content().heroTitle }}</h1>
+      <p class="hero-lead">{{ content().heroLead }}</p>
+
+      <div class="hero-badges">
+        <span class="hero-badge" *ngFor="let badge of content().heroBadges">{{ badge }}</span>
+      </div>
+    </div>
+
+    <div class="about-hero-aside">
+      <article class="portrait-panel">
+        <p class="section-eyebrow">{{ portraitContent().eyebrow }}</p>
+
+        <div class="portrait-frame" aria-hidden="true">
+          <span class="portrait-frame__halo"></span>
+          <span class="portrait-frame__shape"></span>
+        </div>
+
+        <div class="portrait-copy">
+          <h2>{{ portraitContent().title }}</h2>
+          <p>{{ portraitContent().description }}</p>
+        </div>
+
+        <div class="portrait-tags">
+          <span class="portrait-tag" *ngFor="let tag of portraitContent().tags">{{ tag }}</span>
+        </div>
+      </article>
+
+      <aside class="summary-panel">
+        <p class="summary-label">{{ content().summaryTitle }}</p>
+        <p class="summary-copy">{{ content().summaryDescription }}</p>
+
+        <div class="stats-grid">
+          <article class="stat-card" *ngFor="let stat of content().stats">
+            <strong>{{ stat.value }}</strong>
+            <span>{{ stat.label }}</span>
+          </article>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="about-capabilities">
+    <article class="surface-card capability-card" *ngFor="let capability of capabilityCards()">
+      <h2>{{ capability.title }}</h2>
+      <p>{{ capability.description }}</p>
+    </article>
+  </section>
+
+  <section class="about-split">
+    <section class="surface-card story-section" aria-labelledby="story-title">
+      <div class="section-heading">
+        <h2 id="story-title">{{ content().storyTitle }}</h2>
+        <p>{{ content().storyDescription }}</p>
+      </div>
+
+      <div class="story-grid">
+        <div class="story-copy">
+          <p *ngFor="let paragraph of content().paragraphs">{{ paragraph }}</p>
+        </div>
+
+        <div class="journey-panel">
+          <article class="journey-step" *ngFor="let step of content().journey">
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-card spotlight-section" aria-labelledby="project-title">
+      <p class="section-eyebrow">{{ content().projectEyebrow }}</p>
+      <h2 id="project-title">{{ content().projectTitle }}</h2>
+      <p class="spotlight-copy">{{ content().projectDescription }}</p>
+
+      <ul class="spotlight-list">
+        <li *ngFor="let highlight of content().projectHighlights">{{ highlight }}</li>
+      </ul>
+    </section>
+  </section>
+
+  <section class="about-bottom-grid">
+    <section class="surface-card" aria-labelledby="strengths-title">
+      <div class="section-heading section-heading--compact">
+        <h2 id="strengths-title">{{ content().strengthsTitle }}</h2>
+        <p>{{ content().strengthsDescription }}</p>
+      </div>
+
+      <div class="strengths-grid">
+        <article class="strength-card" *ngFor="let strength of content().professionalStrengths">
+          <h3>{{ strength.title }}</h3>
+          <p>{{ strength.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="surface-card" aria-labelledby="interests-title">
+      <div class="section-heading section-heading--compact">
+        <h2 id="interests-title">{{ content().interestsTitle }}</h2>
+        <p>{{ content().interestsDescription }}</p>
+      </div>
+
+      <div class="interest-cloud">
+        <span class="interest-chip" *ngFor="let interest of content().technicalInterests">
+          {{ interest }}
+        </span>
+      </div>
+    </section>
+  </section>
+</section>
