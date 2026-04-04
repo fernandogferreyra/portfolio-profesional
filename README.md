@@ -2,6 +2,35 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
 
+## CI/CD base
+
+This repository includes a simple GitHub Actions workflow in `.github/workflows/ci.yml`.
+
+What it does:
+
+- Runs on `push` to `main`
+- Runs on `pull_request` targeting `main`
+- Installs dependencies with `npm ci`
+- Builds the Angular app in production mode with `npm run build:ci`
+- Fails the workflow if the build fails
+- Uploads the generated `dist/portfolio-ferchuz/browser` folder as an artifact named `portfolio-build`
+
+This leaves the repository ready for a future automatic deploy step. To add that later, the usual next step is a second job that depends on `build`, downloads the `portfolio-build` artifact, and publishes it to the selected platform such as GitHub Pages, Netlify, Vercel, Firebase Hosting, or a custom server.
+
+How to verify it locally:
+
+```bash
+npm ci
+npm run build:ci
+```
+
+How to verify it on GitHub:
+
+1. Push a branch to GitHub
+2. Open a pull request against `main`, or push directly to `main`
+3. Check the `CI` workflow in the repository Actions tab
+4. Confirm the `Build Angular App` job finishes successfully
+
 ## Development server
 
 To start a local development server, run:
@@ -35,6 +64,12 @@ ng build
 ```
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+For CI usage, this repository also includes:
+
+```bash
+npm run build:ci
+```
 
 ## Running unit tests
 
