@@ -19,24 +19,29 @@ export interface ThemeDefinition {
 export type SkillCategoryId =
   | 'backend'
   | 'frontend'
-  | 'databases'
-  | 'testing'
+  | 'data'
   | 'tools'
-  | 'architecture-security'
   | 'ai';
 
 export type SkillIconId =
   | 'java'
+  | 'cplusplus'
+  | 'python'
   | 'spring'
   | 'dotnet'
   | 'angular'
   | 'typescript'
   | 'frontend'
+  | 'openapi'
   | 'postgresql'
   | 'database'
   | 'testing'
   | 'docker'
   | 'git'
+  | 'github'
+  | 'ide'
+  | 'arduino'
+  | 'automation'
   | 'microservices'
   | 'architecture'
   | 'security'
@@ -99,7 +104,6 @@ export interface PortfolioProject {
   name: string;
   year: string;
   category: LocalizedText;
-  status: LocalizedText;
   summary: LocalizedText;
   description: LocalizedText;
   stack: string[];

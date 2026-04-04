@@ -1,7 +1,8 @@
-<footer class="site-footer">
+<footer class="site-footer" appRevealOnScroll [revealDelay]="80">
   <p class="footer-copy">&copy; {{ currentYear }} Fernando G. Ferreyra. {{ content().rightsLabel }}</p>
   <nav class="footer-links" [attr.aria-label]="content().socialAriaLabel">
     <a
+      class="motion-control"
       href="https://github.com/fernandogferreyra"
       target="_blank"
       rel="noopener"
@@ -9,6 +10,7 @@
       GitHub
     </a>
     <a
+      class="motion-control"
       href="https://www.linkedin.com/in/fernando-ferreyra-40a126328"
       target="_blank"
       rel="noopener"

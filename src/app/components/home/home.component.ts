@@ -1,15 +1,14 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 
-import { PORTFOLIO_PROJECTS, PORTFOLIO_THEMES } from '../../data/portfolio.data';
-import { localizeText } from '../../data/portfolio.models';
 import { LanguageService } from '../../services/language.service';
-import { ThemeService } from '../../services/theme.service';
-import type { HomeFeaturedProject } from '../home-project-showcase/home-project-showcase.component';
+import { MotionService } from '../../services/motion.service';
 
-interface HomeSectionCard {
-  title: string;
+type TechnicalBaseCategoryId = 'electronics' | 'it' | 'development';
+
+interface WorkArea {
+  label: string;
+  level: number;
   description: string;
-  routerLink: string;
 }
 
 @Component({
@@ -20,170 +19,274 @@ interface HomeSectionCard {
 })
 export class HomeComponent {
   private readonly languageService = inject(LanguageService);
-  private readonly themeService = inject(ThemeService);
+  private readonly motionService = inject(MotionService);
 
   readonly currentLanguage = this.languageService.language;
-  readonly activeTheme = this.themeService.activeTheme;
+  readonly activeBaseCategoryId = signal<TechnicalBaseCategoryId>('electronics');
+  readonly profileImageAvailable = signal(true);
+  readonly profileImageUrl = 'images/profile-photo.jpg';
+
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Portfolio tecnico',
-          role: 'Backend Developer | APIs, microservicios y sistemas escalables',
+          eyebrow: 'Fernando G. Ferreyra',
+          title: 'Fullstack Developer',
+          subtitle: 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
           lead:
-            'Desarrollo APIs, microservicios e integraciones para productos que necesitan backend claro, mantenible y pensado para escalar con criterio tecnico.',
-          primaryAction: 'Ver proyectos',
-          secondaryAction: 'Ver CV',
-          sectionsTitle: 'Recorrido del portfolio',
-          sectionsDescription:
-            'La home funciona como una entrada clara al portfolio y conecta cada bloque con la profundidad tecnica que corresponde.',
-          themesTitle: 'Themes visuales',
-          themesDescription:
-            'Tres direcciones visuales conviven sobre el mismo sistema de tokens y mantienen consistencia en toda la interfaz.',
-          showcaseEyebrow: 'Proyectos seleccionados',
-          selectorAriaLabel: 'Seleccion de proyectos destacados',
-          stackAriaLabel: 'Tecnologias destacadas del proyecto',
-          activeThemeLabel: 'Theme activo',
+            'Desarrollo aplicaciones de punta a punta, con especial foco en backend, arquitectura y diseno de APIs escalables.',
         }
       : {
-          eyebrow: 'Technical portfolio',
-          role: 'Backend Developer | APIs, microservices, and scalable systems',
+          eyebrow: 'Fernando G. Ferreyra',
+          title: 'Fullstack Developer',
+          subtitle: 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
           lead:
-            'I build APIs, microservices, and integrations for products that need clear, maintainable backend systems designed to scale with sound technical judgment.',
-          primaryAction: 'View projects',
-          secondaryAction: 'View resume',
-          sectionsTitle: 'Portfolio flow',
-          sectionsDescription:
-            'Home works as a clear portfolio entry point and connects each block with the right level of technical depth.',
-          themesTitle: 'Visual themes',
-          themesDescription:
-            'Three visual directions share the same token system and keep the interface consistent across the portfolio.',
-          showcaseEyebrow: 'Selected projects',
-          selectorAriaLabel: 'Featured project selection',
-          stackAriaLabel: 'Featured project technologies',
-          activeThemeLabel: 'Active theme',
+            'I build end-to-end applications with a strong focus on backend development, architecture, and scalable API design.',
         },
   );
-  readonly featuredProjects = computed<HomeFeaturedProject[]>(() => {
-    const language = this.currentLanguage();
 
-    return PORTFOLIO_PROJECTS.map((project) => {
-      if (project.id === 'obrasmart') {
-        return {
-          id: project.id,
-          name: project.name,
-          meta: `${localizeText(project.status, language)} | ${project.year}`,
-          description: localizeText(project.summary, language),
-          stackAriaLabel: this.ui().stackAriaLabel,
-          technologies: project.stack.slice(0, 5),
-          actions: [
+  readonly profile = computed(() =>
+    this.currentLanguage() === 'es'
+      ? {
+          alt: 'Foto personal de Fernando G. Ferreyra',
+          fallbackLabel: 'FGF',
+        }
+      : {
+          alt: 'Portrait of Fernando G. Ferreyra',
+          fallbackLabel: 'FGF',
+        },
+  );
+
+  readonly about = computed(() =>
+    this.currentLanguage() === 'es'
+      ? {
+          eyebrow: 'Sobre mi',
+          title: 'Recorrido y perfil actual',
+          lead:
+            'Mi recorrido profesional comenzo en electronica, informatica y diagnostico de sistemas. Esa base tecnica hoy se traduce en una forma de trabajar orientada al analisis, la integracion y el desarrollo fullstack con foco backend.',
+          paragraphs: [
+            'Durante anos trabaje con hardware, reparacion, mantenimiento, soporte tecnico y puesta a punto de equipos. Esa experiencia me dio criterio para diagnosticar fallas, entender sistemas completos y resolver problemas de forma practica.',
+            'Con esa base avance hacia el desarrollo de software, complete la Tecnicatura Universitaria en Programacion en UTN FRC y empece a trabajar con Java, Spring Boot, .NET, Angular y bases de datos relacionales y no relacionales.',
+            'Hoy trabajo como fullstack developer con foco en backend, APIs y microservicios, manteniendo una mirada integral para conectar frontend, datos, servicios y herramientas de despliegue.',
+          ],
+        }
+      : {
+          eyebrow: 'About',
+          title: 'Background and current profile',
+          lead:
+            'My professional path started in electronics, IT, and systems diagnostics. That technical base now translates into a way of working focused on analysis, integration, and fullstack development with a backend focus.',
+          paragraphs: [
+            'For years I worked with hardware, repair, maintenance, technical support, and system setup. That experience gave me judgment to diagnose failures, understand complete systems, and solve problems in a practical way.',
+            'With that foundation I moved into software development, completed the University Programming Technician degree at UTN FRC, and started working with Java, Spring Boot, .NET, Angular, and both relational and non-relational databases.',
+            'Today I work as a fullstack developer with a backend focus on APIs and microservices, while keeping the broader view needed to connect frontend, data, services, and delivery tooling.',
+          ],
+        },
+  );
+
+  readonly technicalBase = computed(() =>
+    this.currentLanguage() === 'es'
+      ? {
+          eyebrow: 'Recorrido tecnico',
+          title: 'Trayectoria tecnica',
+          description:
+            'Una base construida en electronica, informatica y desarrollo, con experiencia practica en diagnostico, mantenimiento e integracion de sistemas.',
+          ariaLabel: 'Categorias de recorrido tecnico',
+          categories: [
             {
-              id: 'case',
-              label: language === 'es' ? 'Ver caso' : 'View case',
-              primary: true,
-              routerLink: '/projects',
+              id: 'electronics' as const,
+              label: 'Electronica',
+              description:
+                'Trabajo sobre diagnostico, reparacion, mantenimiento y analisis de fallas en equipos y hardware.',
+              items: ['Diagnostico', 'Reparacion', 'Mantenimiento', 'Hardware'],
             },
             {
-              id: 'repo',
-              label: language === 'es' ? 'Codigo' : 'Code',
-              url: this.obraSmartRepoUrl,
+              id: 'it' as const,
+              label: 'Informatica',
+              description:
+                'Soporte tecnico y puesta a punto de equipos, sistemas operativos y entornos de usuario.',
+              items: [
+                'Instalacion de sistemas operativos',
+                'Formateos',
+                'Redes basicas',
+                'Mantenimiento',
+                'Arquitectura de PC',
+              ],
             },
             {
-              id: 'doc',
-              label: language === 'es' ? 'Monografia' : 'Monograph',
-              url: this.obraSmartMonographUrl,
+              id: 'development' as const,
+              label: 'Desarrollo',
+              description:
+                'Trabajo actual centrado en backend, integracion entre servicios y desarrollo fullstack.',
+              items: ['Backend', 'APIs', 'Microservicios', 'Integracion', 'Desarrollo fullstack'],
             },
           ],
-        };
-      }
+        }
+      : {
+          eyebrow: 'Technical path',
+          title: 'Technical background',
+          description:
+            'A foundation built in electronics, IT, and software, with practical experience in diagnostics, maintenance, and systems integration.',
+          ariaLabel: 'Technical background categories',
+          categories: [
+            {
+              id: 'electronics' as const,
+              label: 'Electronics',
+              description:
+                'Hands-on work around diagnostics, repair, maintenance, and hardware fault analysis.',
+              items: ['Diagnostics', 'Repair', 'Maintenance', 'Hardware'],
+            },
+            {
+              id: 'it' as const,
+              label: 'IT',
+              description:
+                'Technical support and system setup across operating systems and end-user environments.',
+              items: [
+                'Operating system installation',
+                'Formatting',
+                'Basic networking',
+                'Maintenance',
+                'PC architecture',
+              ],
+            },
+            {
+              id: 'development' as const,
+              label: 'Development',
+              description:
+                'Current work centered on backend, service integration, and fullstack delivery.',
+              items: ['Backend', 'APIs', 'Microservices', 'Integration', 'Fullstack development'],
+            },
+          ],
+        },
+  );
 
-      return {
-        id: project.id,
-        name: project.name,
-        meta: `${localizeText(project.status, language)} | ${project.year}`,
-        description: localizeText(project.summary, language),
-        stackAriaLabel: this.ui().stackAriaLabel,
-        technologies: project.stack.slice(0, 5),
-        actions: [
-          {
-            id: 'overview',
-            label: language === 'es' ? 'Ver detalle' : 'View detail',
-            primary: true,
-            routerLink: '/projects',
-          },
-          {
-            id: 'skills',
-            label: language === 'es' ? 'Ver skills' : 'View skills',
-            routerLink: '/skills',
-          },
-          {
-            id: 'contact',
-            label: language === 'es' ? 'Contacto' : 'Contact',
-            routerLink: '/contact',
-          },
-        ],
-      };
-    });
-  });
-  readonly sectionCards = computed<HomeSectionCard[]>(() =>
+  readonly credentials = computed(() =>
+    this.currentLanguage() === 'es'
+      ? {
+          eyebrow: 'Formacion y certificaciones',
+          title: 'Base academica y credenciales tecnicas',
+          description:
+            'Resumen pensado para reunir formacion formal y futuras certificaciones con referencia institucional y contexto tecnico.',
+          highlights: [
+            {
+              label: 'Formacion base',
+              value: 'Tecnicatura Universitaria en Programacion - UTN FRC.',
+            },
+            {
+              label: 'Perfil actual',
+              value: 'Backend, APIs, arquitectura e integracion de sistemas.',
+            },
+            {
+              label: 'Proxima incorporacion',
+              value: 'Credenciales y certificados tecnicos con institucion, imagen y descripcion breve.',
+            },
+          ],
+          actionLabel: 'Ver formacion y certificaciones',
+        }
+      : {
+          eyebrow: 'Education and certifications',
+          title: 'Academic foundation and technical credentials',
+          description:
+            'A structured summary intended to gather formal education and future certifications with institutional reference and technical context.',
+          highlights: [
+            {
+              label: 'Core education',
+              value: 'University Programming Technician degree - UTN FRC.',
+            },
+            {
+              label: 'Current profile',
+              value: 'Backend, APIs, architecture, and systems integration.',
+            },
+            {
+              label: 'Next addition',
+              value: 'Technical credentials and certificates with institution, image, and concise description.',
+            },
+          ],
+          actionLabel: 'View education and certifications',
+        },
+  );
+
+  readonly workAreasSection = computed(() =>
+    this.currentLanguage() === 'es'
+      ? {
+          eyebrow: 'Areas de trabajo',
+          title: 'Foco actual',
+          description:
+            'Distribucion estimada de mi perfil tecnico segun el tipo de trabajo que hoy realizo con mayor frecuencia.',
+        }
+      : {
+          eyebrow: 'Work areas',
+          title: 'Current focus',
+          description:
+            'Estimated distribution of my technical profile based on the type of work I currently do most often.',
+        },
+  );
+
+  readonly workAreas = computed<WorkArea[]>(() =>
     this.currentLanguage() === 'es'
       ? [
           {
-            title: 'Sobre mi',
-            description: 'Perfil, recorrido tecnico, fortalezas y presentacion personal integrada al layout.',
-            routerLink: '/about',
+            label: 'Backend',
+            level: 90,
+            description:
+              'Java, Spring Boot, .NET, APIs REST, seguridad, microservicios e integracion entre servicios.',
           },
           {
-            title: 'Proyectos',
-            description: 'Casos tecnicos compactos con stack, decisiones y detalle expandido por proyecto.',
-            routerLink: '/projects',
+            label: 'Fullstack',
+            level: 76,
+            description:
+              'Desarrollo end-to-end conectando backend, frontend Angular, datos y flujo funcional.',
           },
           {
-            title: 'Skills',
-            description: 'Stack principal y categorias tecnicas en una vista unica, concreta y facil de recorrer.',
-            routerLink: '/skills',
-          },
-          {
-            title: 'Contacto',
-            description: 'Canales profesionales claros y acceso directo para iniciar una conversacion.',
-            routerLink: '/contact',
+            label: 'Tools / Infraestructura',
+            level: 72,
+            description:
+              'Docker, Git, Maven, bases de datos, testing y entornos reproducibles para desarrollo.',
           },
         ]
       : [
           {
-            title: 'About',
-            description: 'Profile, technical path, strengths, and personal presentation integrated into the layout.',
-            routerLink: '/about',
+            label: 'Backend',
+            level: 90,
+            description:
+              'Java, Spring Boot, .NET, REST APIs, security, microservices, and service integration.',
           },
           {
-            title: 'Projects',
-            description: 'Compact technical cases with stack, decisions, and expanded detail per project.',
-            routerLink: '/projects',
+            label: 'Fullstack',
+            level: 76,
+            description:
+              'End-to-end development connecting backend, Angular frontend, data, and functional flow.',
           },
           {
-            title: 'Skills',
-            description: 'Core stack and technical categories in one clear, concrete browsing experience.',
-            routerLink: '/skills',
-          },
-          {
-            title: 'Contact',
-            description: 'Clear professional channels and direct access to start a conversation.',
-            routerLink: '/contact',
+            label: 'Tools / Infrastructure',
+            level: 72,
+            description:
+              'Docker, Git, Maven, databases, testing, and reproducible environments for development work.',
           },
         ],
   );
-  readonly themePresets = computed(() =>
-    PORTFOLIO_THEMES.map((theme) => ({
-      id: theme.id,
-      shortLabel: theme.shortLabel,
-      label: localizeText(theme.label, this.currentLanguage()),
-      description: localizeText(theme.description, this.currentLanguage()),
-      preview: theme.preview,
-      active: this.activeTheme() === theme.id,
-    })),
-  );
 
-  readonly resumeUrl = '/docs/cv-fernando-ferreyra.pdf';
-  readonly obraSmartRepoUrl =
-    'https://github.com/114320-FERREYRA-FERNANDO-GABRIEL/obrasmart-platform.git';
-  readonly obraSmartMonographUrl = '/docs/MonografiaObraSmart.pdf';
+  readonly activeBaseCategory = computed(() => {
+    const selectedCategoryId = this.activeBaseCategoryId();
+    return (
+      this.technicalBase().categories.find((category) => category.id === selectedCategoryId) ??
+      this.technicalBase().categories[0]
+    );
+  });
+
+  setBaseCategory(categoryId: TechnicalBaseCategoryId): void {
+    if (categoryId === this.activeBaseCategoryId()) {
+      return;
+    }
+
+    this.motionService.runWithViewTransition(() => {
+      this.activeBaseCategoryId.set(categoryId);
+    });
+  }
+
+  isBaseCategoryActive(categoryId: TechnicalBaseCategoryId): boolean {
+    return this.activeBaseCategoryId() === categoryId;
+  }
+
+  onProfileImageError(): void {
+    this.profileImageAvailable.set(false);
+  }
 }

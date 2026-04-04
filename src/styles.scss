@@ -43,6 +43,11 @@
   --selection-bg: rgba(45, 212, 191, 0.25);
   --selection-text: #f0fdfa;
   --link-hover: #5eead4;
+  --motion-fast: 160ms;
+  --motion-base: 250ms;
+  --motion-slow: 620ms;
+  --lift-translate: -6px;
+  --lift-scale: 1.009;
 }
 
 :root[data-theme='themeEX'] {
@@ -144,6 +149,9 @@ body {
   color: var(--color-text);
   line-height: 1.6;
   overflow-x: hidden;
+  transition:
+    background 240ms var(--ease-out),
+    color 180ms var(--ease-out);
 }
 
 ::selection {
@@ -200,6 +208,11 @@ h3 {
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition:
+    background var(--motion-base) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    backdrop-filter var(--motion-base) var(--ease-out);
 }
 
 .surface-card::before {
@@ -226,4 +239,260 @@ h3 {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.project-showcase-card,
+.site-header,
+.site-footer,
+.project-modal {
+  transition:
+    background 180ms var(--ease-out),
+    border-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    backdrop-filter 180ms var(--ease-out),
+    color 180ms var(--ease-out);
+}
+
+.motion-panel,
+.motion-control,
+.motion-chip {
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.motion-panel {
+  transition:
+    transform var(--motion-base) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    background var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
+}
+
+.motion-control {
+  transition:
+    transform var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    background var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out),
+    opacity var(--motion-fast) var(--ease-out);
+}
+
+.motion-chip {
+  transition:
+    transform var(--motion-fast) var(--ease-out),
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out),
+    background var(--motion-fast) var(--ease-out),
+    color var(--motion-fast) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .motion-panel:hover {
+    transform: translate3d(0, var(--lift-translate), 0) scale(var(--lift-scale));
+    border-color: var(--color-border-hover);
+    box-shadow:
+      var(--shadow-card),
+      0 0 0 1px color-mix(in srgb, var(--color-primary-glow) 26%, transparent),
+      0 22px 40px -32px var(--color-primary-glow);
+  }
+
+  .motion-control:hover {
+    transform: translate3d(0, -1px, 0) scale(1.01);
+    border-color: var(--color-border-hover);
+    box-shadow: 0 14px 28px -24px var(--color-primary-glow);
+  }
+
+  .motion-chip:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-border-hover);
+    box-shadow: 0 10px 22px -20px var(--color-primary-glow);
+  }
+}
+
+.motion-control:active,
+.motion-chip:active {
+  transform: scale(0.985);
+}
+
+.motion-control:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.motion-drift-shell {
+  --drift-x: 10px;
+  --drift-y: 12px;
+  --drift-duration: 18s;
+  --drift-delay: 0s;
+  --drift-opacity: 0.14;
+  --drift-blur: 22px;
+  display: grid;
+  height: 100%;
+  position: relative;
+  isolation: isolate;
+}
+
+.motion-drift-shell::before {
+  content: '';
+  position: absolute;
+  inset: -8% 5%;
+  border-radius: 28px;
+  background: radial-gradient(circle, var(--color-primary-glow), transparent 68%);
+  opacity: var(--drift-opacity);
+  filter: blur(var(--drift-blur));
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform, opacity;
+}
+
+.motion-drift-shell > :only-child {
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.motion-drift-shell--soft {
+  --drift-x: 6px;
+  --drift-y: 8px;
+  --drift-duration: 20s;
+  --drift-opacity: 0.1;
+}
+
+.motion-drift-shell--wide {
+  --drift-x: 12px;
+  --drift-y: 14px;
+  --drift-duration: 16s;
+  --drift-opacity: 0.18;
+  --drift-blur: 28px;
+}
+
+.motion-drift-shell--reverse {
+  animation-direction: reverse;
+}
+
+.motion-swap {
+  animation: content-swap calc(var(--motion-base) + 20ms) var(--ease-out);
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-y, 34px), 0);
+  transition:
+    opacity calc(var(--motion-slow) - 40ms) var(--ease-out),
+    transform var(--motion-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+@keyframes content-swap {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes drift-diagonal {
+  0% {
+    transform: translate3d(calc(var(--drift-x) * -0.45), calc(var(--drift-y) * 0.35), 0);
+  }
+
+  24% {
+    transform: translate3d(calc(var(--drift-x) * 0.45), calc(var(--drift-y) * -0.5), 0);
+  }
+
+  52% {
+    transform: translate3d(calc(var(--drift-x) * 0.12), calc(var(--drift-y) * -0.9), 0);
+  }
+
+  76% {
+    transform: translate3d(calc(var(--drift-x) * -0.7), calc(var(--drift-y) * 0.05), 0);
+  }
+
+  100% {
+    transform: translate3d(calc(var(--drift-x) * -0.45), calc(var(--drift-y) * 0.35), 0);
+  }
+}
+
+::view-transition-group(root) {
+  animation-duration: 260ms;
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 260ms;
+  animation-timing-function: var(--ease-out);
+}
+
+::view-transition-old(selected-project-card),
+::view-transition-new(selected-project-card),
+::view-transition-old(selected-project-detail),
+::view-transition-new(selected-project-detail),
+::view-transition-old(skills-results),
+::view-transition-new(skills-results),
+::view-transition-old(project-preview-panel),
+::view-transition-new(project-preview-panel),
+::view-transition-old(technical-base-detail),
+::view-transition-new(technical-base-detail) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .motion-drift-shell {
+    overflow: visible;
+  }
+
+  .motion-drift-shell::before {
+    animation: drift-diagonal var(--drift-duration) var(--ease-out) infinite;
+    animation-delay: var(--drift-delay);
+  }
+
+  .motion-drift-shell:hover::before,
+  .motion-drift-shell:focus-within::before {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+
+  .motion-panel:hover,
+  .motion-control:hover,
+  .motion-chip:hover,
+  .motion-drift-shell,
+  .motion-control:active,
+  .motion-chip:active {
+    transform: none;
+    box-shadow: none;
+  }
 }

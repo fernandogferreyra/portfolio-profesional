@@ -1,40 +1,94 @@
 <section class="projects-page">
-  <section class="surface-card projects-hero" aria-labelledby="projects-title">
+  <section class="surface-card projects-hero" aria-labelledby="projects-title" appRevealOnScroll>
     <div class="projects-hero__copy">
       <p class="section-eyebrow">{{ ui().eyebrow }}</p>
       <h1 id="projects-title">{{ ui().title }}</h1>
       <p class="projects-hero__lead">{{ ui().intro }}</p>
-    </div>
-
-    <div class="projects-hero__side">
-      <span class="projects-hero__note">{{ ui().moreProjectsLabel }}</span>
+      <p class="projects-hero__lead">{{ ui().supportingIntro }}</p>
     </div>
   </section>
 
-  <section class="project-selector" [attr.aria-label]="ui().selectorAriaLabel">
-    <button
-      type="button"
-      class="project-entry"
-      *ngFor="let project of projects()"
-      [class.is-active]="project.id === selectedProjectId()"
-      [attr.aria-pressed]="project.id === selectedProjectId()"
-      (click)="selectProject(project.id)"
+  <section class="projects-grid" [attr.aria-label]="ui().cardsAriaLabel">
+    <div
+      class="project-card-shell motion-drift-shell"
+      *ngFor="let project of projects(); let i = index; trackBy: trackByProjectId"
+      [class.motion-drift-shell--reverse]="i % 2 === 1"
+      [class.motion-drift-shell--soft]="i % 3 === 0"
+      [style.--drift-duration]="(15 + i * 1.4) + 's'"
+      [style.--drift-delay]="(-2 - i * 1.35) + 's'"
+      appRevealOnScroll
+      [revealDelay]="280 + i * 120"
+      [revealDistance]="44"
     >
-      <span class="project-entry__status">{{ project.status }}</span>
-      <h2>{{ project.name }}</h2>
-      <p>{{ project.summary }}</p>
+      <button
+        type="button"
+        class="project-card motion-panel"
+        [class.is-active]="project.id === selectedProjectId()"
+        [attr.aria-expanded]="project.id === selectedProjectId()"
+        aria-controls="project-detail-panel"
+        (click)="selectProject(project.id)"
+      >
+        <div class="project-card__header">
+          <span
+            class="project-card__icon"
+            aria-hidden="true"
+            [style.--project-accent]="skillIcons[project.icon].accent"
+            [style.--project-surface]="skillIcons[project.icon].surface"
+            [style.--project-border]="skillIcons[project.icon].border"
+          >
+            <svg
+              [attr.viewBox]="skillIcons[project.icon].viewBox"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path *ngFor="let path of skillIcons[project.icon].paths" [attr.d]="path"></path>
+            </svg>
+          </span>
 
-      <div class="project-entry__chips" aria-hidden="true">
-        <span *ngFor="let tech of project.stack | slice: 0 : 4">{{ tech }}</span>
-      </div>
-    </button>
+          <div class="project-card__copy">
+            <p class="project-card__meta">{{ project.category }} | {{ project.year }}</p>
+            <h2>{{ project.name }}</h2>
+          </div>
+        </div>
+
+        <p class="project-card__summary">{{ project.summary }}</p>
+
+        <div class="project-card__stack" aria-hidden="true">
+          <span class="project-tech project-tech--compact" *ngFor="let tech of project.stack | slice: 0 : 4">
+            <span class="project-tech__icon">
+              <svg
+                [attr.viewBox]="skillIcons[tech.icon].viewBox"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path *ngFor="let path of skillIcons[tech.icon].paths" [attr.d]="path"></path>
+              </svg>
+            </span>
+            <span>{{ tech.name }}</span>
+          </span>
+        </div>
+      </button>
+    </div>
   </section>
 
-  <section class="surface-card project-detail" *ngIf="activeProject() as project" aria-labelledby="project-detail-title">
-    <div class="project-detail__hero">
+  <section
+    id="project-detail-panel"
+    class="surface-card project-detail motion-swap"
+    *ngIf="activeProject() as project"
+    aria-labelledby="project-detail-title"
+    appRevealOnScroll
+  >
+    <div class="project-detail__overview">
       <div class="project-detail__copy">
-        <p class="section-eyebrow">{{ project.category }} | {{ project.year }}</p>
+        <p class="section-eyebrow">{{ ui().detailEyebrow }}</p>
         <h2 id="project-detail-title">{{ project.name }}</h2>
+        <p class="project-detail__meta">{{ project.category }} | {{ project.year }}</p>
         <p class="project-detail__lead">{{ project.description }}</p>
 
         <div class="project-actions">
@@ -42,7 +96,7 @@
             <button
               *ngIf="isActionType(action, 'modal')"
               type="button"
-              class="project-action"
+              class="project-action motion-control"
               [class.project-action--primary]="action.primary"
               (click)="openProjectDemo($event)"
             >
@@ -51,7 +105,7 @@
 
             <a
               *ngIf="isActionType(action, 'external')"
-              class="project-action"
+              class="project-action motion-control"
               [class.project-action--primary]="action.primary"
               [href]="action.url"
               target="_blank"
@@ -62,7 +116,7 @@
 
             <a
               *ngIf="isActionType(action, 'internal')"
-              class="project-action"
+              class="project-action motion-control"
               [class.project-action--primary]="action.primary"
               [routerLink]="action.routerLink"
             >
@@ -72,8 +126,8 @@
         </div>
       </div>
 
-      <div class="project-preview">
-        <p class="project-preview__label">{{ ui().activePreviewLabel }}</p>
+      <div class="project-preview motion-drift-shell motion-drift-shell--reverse motion-drift-shell--soft">
+        <p class="project-preview__label">{{ ui().previewLabel }}</p>
 
         <div class="project-preview__media" *ngIf="project.media?.thumbnailUrl; else projectPreviewFallback">
           <img [src]="project.media?.thumbnailUrl" [alt]="project.media?.alt || project.name" loading="lazy" />
@@ -81,35 +135,81 @@
 
         <ng-template #projectPreviewFallback>
           <div class="project-preview__fallback">
-            <span *ngFor="let tech of project.stack | slice: 0 : 6">{{ tech }}</span>
+            <span class="project-tech" *ngFor="let tech of project.stack | slice: 0 : 6; trackBy: trackByTechnologyName">
+              <span class="project-tech__icon">
+                <svg
+                  [attr.viewBox]="skillIcons[tech.icon].viewBox"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.65"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path *ngFor="let path of skillIcons[tech.icon].paths" [attr.d]="path"></path>
+                </svg>
+              </span>
+              <span>{{ tech.name }}</span>
+            </span>
           </div>
         </ng-template>
       </div>
     </div>
 
     <div class="project-metrics">
-      <article class="project-metric" *ngFor="let metric of project.metrics">
+      <article
+        class="project-metric motion-panel"
+        *ngFor="let metric of project.metrics; let i = index"
+        appRevealOnScroll
+        [revealDelay]="80 + i * 40"
+      >
         <strong>{{ metric.value }}</strong>
         <span>{{ metric.label }}</span>
       </article>
     </div>
 
     <div class="project-details-grid">
-      <article class="project-detail-card" *ngFor="let section of project.sections">
+      <article
+        class="project-detail-card motion-panel"
+        *ngFor="let section of project.sections; let i = index"
+        appRevealOnScroll
+        [revealDelay]="120 + i * 45"
+      >
         <h3>{{ section.title }}</h3>
         <ul class="project-list">
           <li *ngFor="let item of section.items">{{ item }}</li>
         </ul>
       </article>
 
-      <article class="project-detail-card">
+      <article
+        class="project-detail-card motion-panel"
+        appRevealOnScroll
+        [revealDelay]="120 + project.sections.length * 45"
+      >
         <h3>{{ ui().stackTitle }}</h3>
         <div class="project-stack">
-          <span *ngFor="let tech of project.stack">{{ tech }}</span>
+          <span class="project-tech" *ngFor="let tech of project.stack; trackBy: trackByTechnologyName">
+            <span class="project-tech__icon">
+              <svg
+                [attr.viewBox]="skillIcons[tech.icon].viewBox"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path *ngFor="let path of skillIcons[tech.icon].paths" [attr.d]="path"></path>
+              </svg>
+            </span>
+            <span>{{ tech.name }}</span>
+          </span>
         </div>
       </article>
 
-      <article class="project-detail-card">
+      <article
+        class="project-detail-card motion-panel"
+        appRevealOnScroll
+        [revealDelay]="165 + project.sections.length * 45"
+      >
         <h3>{{ ui().featuresTitle }}</h3>
         <ul class="project-list">
           <li *ngFor="let feature of project.features">{{ feature }}</li>
@@ -130,7 +230,7 @@
       <button
         #projectCloseButton
         type="button"
-        class="modal-close"
+        class="modal-close motion-control"
         [attr.aria-label]="ui().demoModalClose"
         (click)="closeProjectDemo()"
       >
@@ -152,13 +252,6 @@
         >
         </iframe>
       </div>
-
-      <article class="project-detail-card project-detail-card--modal">
-        <h4>{{ ui().featuresTitle }}</h4>
-        <ul class="project-list">
-          <li *ngFor="let feature of project.features">{{ feature }}</li>
-        </ul>
-      </article>
     </section>
   </div>
 </section>

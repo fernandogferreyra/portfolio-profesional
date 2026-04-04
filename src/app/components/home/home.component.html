@@ -1,77 +1,163 @@
-<section class="home-page">
+  <section id="home-top" class="home-page">
   <section class="home-hero" aria-labelledby="home-hero-title">
     <div class="home-hero__content">
-      <p class="home-hero__eyebrow">{{ ui().eyebrow }}</p>
-      <h1 id="home-hero-title" class="home-hero__title">Fernando G. Ferreyra</h1>
-      <p class="home-hero__subtitle">{{ ui().role }}</p>
-      <p class="home-hero__lead">{{ ui().lead }}</p>
+      <p class="home-hero__eyebrow" appRevealOnScroll [revealDelay]="40" [revealDistance]="26">{{ ui().eyebrow }}</p>
+      <h1 id="home-hero-title" class="home-hero__title" appRevealOnScroll [revealDelay]="170" [revealDistance]="42">
+        {{ ui().title }}
+      </h1>
+      <p class="home-hero__subtitle" appRevealOnScroll [revealDelay]="300" [revealDistance]="34">{{ ui().subtitle }}</p>
+      <p class="home-hero__lead" appRevealOnScroll [revealDelay]="430" [revealDistance]="38">{{ ui().lead }}</p>
+    </div>
 
-      <div class="home-hero__actions" aria-label="Home actions">
-        <a class="home-hero__button home-hero__button--primary" routerLink="/projects">
-          {{ ui().primaryAction }}
-        </a>
-        <a
-          class="home-hero__button home-hero__button--secondary"
-          [href]="resumeUrl"
-          target="_blank"
-          rel="noopener"
+    <aside
+      class="home-hero__media motion-drift-shell motion-drift-shell--reverse"
+      style="--drift-duration: 15.5s; --drift-delay: -6s; --drift-x: 12px; --drift-y: 14px;"
+      appRevealOnScroll="right"
+      [revealDelay]="240"
+      [revealDistance]="46"
+    >
+      <div class="home-hero__portrait motion-panel">
+        <img
+          *ngIf="profileImageAvailable()"
+          [src]="profileImageUrl"
+          [alt]="profile().alt"
+          loading="lazy"
+          (error)="onProfileImageError()"
+        />
+
+        <div class="home-hero__portrait-fallback" *ngIf="!profileImageAvailable()" aria-hidden="true">
+          <span>{{ profile().fallbackLabel }}</span>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="home-overview">
+    <div class="home-about-shell">
+      <article
+        id="about-overview"
+        class="surface-card home-about motion-panel"
+        aria-labelledby="home-about-title"
+        appRevealOnScroll
+      >
+        <div class="home-section-heading">
+          <p class="section-eyebrow">{{ about().eyebrow }}</p>
+          <h2 id="home-about-title" class="home-section-title">{{ about().title }}</h2>
+          <p class="home-section-intro">{{ about().lead }}</p>
+        </div>
+
+        <div class="home-about__content">
+          <p *ngFor="let paragraph of about().paragraphs">{{ paragraph }}</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="home-side-column">
+      <div class="home-side-block">
+        <aside
+          class="surface-card home-work-areas"
+          aria-labelledby="work-areas-title"
+          appRevealOnScroll="right"
         >
-          {{ ui().secondaryAction }}
-        </a>
+          <div class="home-section-heading">
+            <p class="section-eyebrow">{{ workAreasSection().eyebrow }}</p>
+            <h2 id="work-areas-title" class="home-section-title">{{ workAreasSection().title }}</h2>
+            <p class="home-section-intro">{{ workAreasSection().description }}</p>
+          </div>
+
+          <div class="work-area-list">
+            <article
+              class="work-area motion-panel"
+              *ngFor="let area of workAreas(); let i = index"
+              appRevealOnScroll="right"
+              [revealDelay]="80 + i * 45"
+            >
+              <div class="work-area__topline">
+                <h3>{{ area.label }}</h3>
+                <span>{{ area.level }}%</span>
+              </div>
+
+              <div class="work-area__bar" aria-hidden="true">
+                <span class="work-area__fill" [style.width.%]="area.level"></span>
+              </div>
+
+              <p>{{ area.description }}</p>
+            </article>
+          </div>
+        </aside>
+      </div>
+
+      <div class="home-side-block">
+        <section
+          class="surface-card home-credentials"
+          aria-labelledby="home-credentials-title"
+          appRevealOnScroll="right"
+          [revealDelay]="100"
+        >
+          <div class="home-section-heading">
+            <p class="section-eyebrow">{{ credentials().eyebrow }}</p>
+            <h2 id="home-credentials-title" class="home-section-title">{{ credentials().title }}</h2>
+            <p class="home-section-intro">{{ credentials().description }}</p>
+          </div>
+
+          <div class="home-credentials__list">
+            <article
+              class="home-credentials__item motion-panel"
+              *ngFor="let item of credentials().highlights; let i = index"
+              appRevealOnScroll="right"
+              [revealDelay]="130 + i * 40"
+            >
+              <span>{{ item.label }}</span>
+              <p>{{ item.value }}</p>
+            </article>
+          </div>
+
+          <a class="home-credentials__link motion-control" routerLink="/credentials" appRevealOnScroll [revealDelay]="240">
+            {{ credentials().actionLabel }}
+          </a>
+        </section>
       </div>
     </div>
   </section>
 
-  <section class="home-dashboard">
-    <app-home-project-showcase
-      [projects]="featuredProjects()"
-      [sectionEyebrow]="ui().showcaseEyebrow"
-      [selectorAriaLabel]="ui().selectorAriaLabel"
-    />
-
-    <article class="surface-card dashboard-card dashboard-card--map">
-      <div class="dashboard-card__header">
-        <p class="dashboard-card__eyebrow">{{ ui().sectionsTitle }}</p>
-        <h2 class="dashboard-card__title">{{ ui().sectionsTitle }}</h2>
-        <p class="dashboard-card__subtitle">{{ ui().sectionsDescription }}</p>
+  <div class="home-technical-base-shell">
+    <section
+      id="technical-base"
+      class="surface-card home-technical-base"
+      aria-labelledby="technical-base-title"
+      appRevealOnScroll
+    >
+      <div class="home-section-heading">
+        <p class="section-eyebrow">{{ technicalBase().eyebrow }}</p>
+        <h2 id="technical-base-title" class="home-section-title">{{ technicalBase().title }}</h2>
+        <p class="home-section-intro">{{ technicalBase().description }}</p>
       </div>
 
-      <div class="section-card-list">
-        <a class="section-card" *ngFor="let section of sectionCards()" [routerLink]="section.routerLink">
-          <h3>{{ section.title }}</h3>
-          <p>{{ section.description }}</p>
-        </a>
-      </div>
-    </article>
-
-    <article class="surface-card dashboard-card dashboard-card--themes">
-      <div class="dashboard-card__header">
-        <p class="dashboard-card__eyebrow">{{ ui().themesTitle }}</p>
-        <h2 class="dashboard-card__title">{{ ui().themesTitle }}</h2>
-        <p class="dashboard-card__subtitle">{{ ui().themesDescription }}</p>
-      </div>
-
-      <div class="theme-card-list">
-        <article
-          class="theme-card"
-          *ngFor="let theme of themePresets()"
-          [class.is-active]="theme.active"
+      <div class="base-category-list" role="tablist" [attr.aria-label]="technicalBase().ariaLabel">
+        <button
+          type="button"
+          class="base-category-button motion-control"
+          *ngFor="let category of technicalBase().categories; let i = index"
+          [class.is-active]="isBaseCategoryActive(category.id)"
+          [attr.aria-pressed]="isBaseCategoryActive(category.id)"
+          appRevealOnScroll
+          [revealDelay]="90 + i * 35"
+          (click)="setBaseCategory(category.id)"
         >
-          <div class="theme-card__swatches">
-            <span [style.background]="theme.preview.surface"></span>
-            <span [style.background]="theme.preview.accentSoft"></span>
-            <span [style.background]="theme.preview.accent"></span>
-          </div>
-
-          <div class="theme-card__copy">
-            <div class="theme-card__topline">
-              <strong>{{ theme.shortLabel }}</strong>
-              <span *ngIf="theme.active">{{ ui().activeThemeLabel }}</span>
-            </div>
-            <p>{{ theme.description }}</p>
-          </div>
-        </article>
+          {{ category.label }}
+        </button>
       </div>
-    </article>
-  </section>
+
+      <article class="base-category-detail motion-panel motion-swap" *ngIf="activeBaseCategory() as category">
+        <div class="base-category-detail__header">
+          <h3>{{ category.label }}</h3>
+          <p>{{ category.description }}</p>
+        </div>
+
+        <ul class="base-category-detail__list">
+          <li *ngFor="let item of category.items">{{ item }}</li>
+        </ul>
+      </article>
+    </section>
+  </div>
 </section>
