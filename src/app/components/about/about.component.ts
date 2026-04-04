@@ -20,26 +20,89 @@ export class AboutComponent {
     return language === 'es'
       ? {
           ...baseContent,
-          eyebrow: 'Backend Developer | APIs, microservicios y sistemas escalables',
+          eyebrow: 'Fullstack Developer | Backend-focused',
+          heroTitle:
+            'Experiencia tecnica construida desde electronica, hardware y diagnostico de sistemas, hoy aplicada al desarrollo fullstack con foco en backend.',
           heroLead:
-            'Desarrollador backend con formacion universitaria en programacion y mas de 15 anos de experiencia tecnica. Combino software, infraestructura y pensamiento sistemico para construir soluciones mantenibles y escalables.',
+            'Desarrollador fullstack con foco en backend. Mi recorrido en electronica, hardware y diagnostico me dio una base tecnica que hoy aplico en APIs, integraciones, arquitectura y desarrollo de software.',
+          summaryDescription:
+            'Combino formacion en programacion, experiencia tecnica de campo y foco actual en backend para construir servicios, APIs e integraciones con criterio de mantenimiento.',
+          storyTitle: 'Base tecnica y transicion al software',
+          storyDescription:
+            'Mi recorrido profesional comenzo en electronica, hardware y diagnostico de sistemas. Esa experiencia fue la base desde la que pase al desarrollo de software.',
+          paragraphs: [
+            'Durante anos trabaje en electronica, reparacion de hardware, soporte tecnico y diagnostico de fallas. Esa etapa me dio precision tecnica, metodo de analisis y una forma practica de resolver problemas complejos.',
+            'Con esa base avance hacia el desarrollo de software, complete la Tecnicatura Universitaria en Programacion en UTN FRC y empece a trabajar con Java, Spring Boot, .NET, Angular y bases de datos relacionales y no relacionales.',
+            'Hoy me posiciono como desarrollador fullstack con foco en backend. Trabajo en APIs, microservicios, integraciones y aplicaciones end-to-end, priorizando claridad tecnica, mantenibilidad y escalabilidad.',
+          ],
+          journey: [
+            {
+              title: 'Electronica y hardware',
+              description:
+                'Experiencia tecnica en reparacion, configuracion y trabajo directo con hardware y equipos reales.',
+            },
+            {
+              title: 'Diagnostico de sistemas',
+              description:
+                'Analisis de fallas, deteccion de causas y resolucion de problemas con enfoque practico y metodico.',
+            },
+            {
+              title: 'Formacion en software',
+              description:
+                'Tecnicatura Universitaria en Programacion en UTN FRC y consolidacion del paso hacia el desarrollo profesional.',
+            },
+            {
+              title: 'Fullstack con foco backend',
+              description:
+                'Trabajo con Java, Spring Boot, .NET, Angular, APIs REST, seguridad, bases de datos e integracion entre sistemas.',
+            },
+          ],
+          projectDescription:
+            'Plataforma de gestion de mantenimientos y reparaciones desarrollada con Java 17 y Spring Boot sobre arquitectura de microservicios. Me permitio consolidar experiencia en backend, seguridad, integracion y diseno de servicios distribuidos.',
           interestsDescription:
             'Temas que sigo explorando porque amplian mi mirada como profesional del software.',
         }
       : {
           ...baseContent,
-          eyebrow: 'Backend Developer | APIs, microservices, and scalable systems',
+          eyebrow: 'Fullstack Developer | Backend-focused',
           heroTitle:
-            'Solid backend development, clean architecture, and a technical profile shaped in real environments.',
+            'Technical experience built through electronics, hardware, and systems diagnostics, now applied to fullstack development with a backend focus.',
           heroLead:
-            'Backend developer with university-level programming training and more than 15 years of technical experience. I combine software, infrastructure, and systems thinking to build maintainable and scalable solutions.',
+            'Fullstack developer with a backend focus. My background in electronics, hardware, and diagnostics gave me a technical foundation that I now apply to APIs, integrations, architecture, and software development.',
+          summaryDescription:
+            'I combine programming training, field technical experience, and a current backend focus to build services, APIs, and integrations with maintainability in mind.',
+          storyTitle: 'Technical foundation and transition into software',
+          storyDescription:
+            'My professional path started in electronics, hardware, and systems diagnostics. That experience became the foundation for my transition into software development.',
           paragraphs: [
-            baseContent.paragraphs[0],
-            baseContent.paragraphs[1],
-            'Today my main focus is backend development, microservices architecture, REST APIs, and systems integration. I am especially interested in building scalable solutions that remain clear to maintain and aligned with practices such as SOLID, Clean Architecture, and testing.',
+            'I spent years working in electronics, hardware repair, technical support, and system diagnostics. That stage gave me technical precision, analytical discipline, and a practical way to approach complex problems.',
+            'With that foundation I moved into software development, completed the University Programming Technician degree at UTN FRC, and started building applications with Java, Spring Boot, .NET, Angular, and both relational and non-relational databases.',
+            'Today I work as a fullstack developer with a backend focus. I build APIs, microservices, integrations, and end-to-end applications while prioritizing technical clarity, maintainability, and scalability.',
+          ],
+          journey: [
+            {
+              title: 'Electronics and hardware',
+              description:
+                'Technical experience in repair, configuration, and hands-on work with real hardware and equipment.',
+            },
+            {
+              title: 'Systems diagnostics',
+              description:
+                'Failure analysis, root cause detection, and problem solving with a practical and methodical approach.',
+            },
+            {
+              title: 'Software training',
+              description:
+                'University Programming Technician degree at UTN FRC and a solid transition into professional software development.',
+            },
+            {
+              title: 'Fullstack with backend focus',
+              description:
+                'Work centered on Java, Spring Boot, .NET, Angular, REST APIs, security, databases, and systems integration.',
+            },
           ],
           projectDescription:
-            'Maintenance and repair management platform built with Java 17 and Spring Boot on top of a microservices architecture. It became a key project to consolidate my experience in backend development, integration, and distributed systems design.',
+            'Maintenance and repair management platform built with Java 17 and Spring Boot on top of a microservices architecture. It helped consolidate my experience in backend development, security, integration, and distributed service design.',
           interestsDescription:
             'Topics I keep exploring because they broaden my perspective as a software professional.',
         };
@@ -47,54 +110,54 @@ export class AboutComponent {
   readonly portraitContent = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Perfil visual',
-          title: 'Retrato profesional integrado al portfolio',
+          eyebrow: 'Base tecnica',
+          title: 'Experiencia previa aplicada al desarrollo actual',
           description:
-            'El bloque visual acompana la narrativa tecnica del perfil y refuerza la presencia profesional dentro del portfolio.',
-          tags: ['Identidad profesional', 'Presencia personal', 'Perfil tecnico'],
+            'Electronica, hardware y diagnostico de sistemas forman parte de la base tecnica que hoy traslado al desarrollo de software.',
+          tags: ['Electronica', 'Hardware', 'Diagnostico'],
         }
       : {
-          eyebrow: 'Visual profile',
-          title: 'Professional portrait integrated into the portfolio',
+          eyebrow: 'Technical foundation',
+          title: 'Previous experience applied to current development work',
           description:
-            'This visual block supports the technical narrative and reinforces professional presence throughout the portfolio.',
-          tags: ['Professional identity', 'Personal presence', 'Technical profile'],
+            'Electronics, hardware, and systems diagnostics are part of the technical foundation I now bring into software development.',
+          tags: ['Electronics', 'Hardware', 'Diagnostics'],
         },
   );
   readonly capabilityCards = computed(() =>
     this.currentLanguage() === 'es'
       ? [
           {
-            title: 'Backend especializado',
+            title: 'Backend',
             description:
-              'El perfil comunica con claridad experiencia en APIs, microservicios, integraciones y mantenimiento de servicios.',
+              'Experiencia en APIs, microservicios, seguridad, logica de negocio y mantenimiento de servicios.',
           },
           {
-            title: 'Vision de sistema',
+            title: 'Integracion fullstack',
             description:
-              'La narrativa muestra criterio tecnico para relacionar dominio, arquitectura, datos, seguridad y operacion.',
+              'Capacidad para conectar backend, frontend, bases de datos y flujo funcional dentro de una misma solucion.',
           },
           {
-            title: 'Perfil tecnico',
+            title: 'Diagnostico tecnico',
             description:
-              'Cada seccion aporta una capa distinta del perfil profesional sin repetir informacion ni perder foco.',
+              'Base previa en hardware y diagnostico que aporta criterio para analizar fallas y entender sistemas completos.',
           },
         ]
       : [
           {
-            title: 'Backend specialization',
+            title: 'Backend',
             description:
-              'The profile communicates clear experience in APIs, microservices, integrations, and service maintainability.',
+              'Experience in APIs, microservices, security, business logic, and service maintainability.',
           },
           {
-            title: 'Systems perspective',
+            title: 'Fullstack integration',
             description:
-              'The narrative shows technical judgment across domain design, architecture, data, security, and operations.',
+              'Ability to connect backend, frontend, databases, and functional flow inside the same solution.',
           },
           {
-            title: 'Technical profile',
+            title: 'Technical diagnostics',
             description:
-              'Each section adds a distinct layer to the professional profile without repeating information or losing focus.',
+              'Previous hardware and diagnostics background that adds judgment when analyzing failures and complete systems.',
           },
         ],
   );

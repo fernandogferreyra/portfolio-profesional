@@ -1,34 +1,92 @@
 <header class="site-header">
-  <a class="brand" routerLink="/">Fernando G. Ferreyra</a>
+  <a class="brand motion-control" routerLink="/" fragment="home-top">
+    <span class="brand__avatar" aria-hidden="true">
+      <span class="brand__avatar-frame">
+        <img
+          *ngIf="brandAvatarVisible()"
+          [src]="brandAvatarUrl"
+          alt=""
+          loading="eager"
+          decoding="async"
+          (error)="onBrandAvatarError()"
+        />
+        <span class="brand__avatar-fallback" *ngIf="!brandAvatarVisible()">FG</span>
+      </span>
+    </span>
+    <span class="brand__label">Fernando G. Ferreyra</span>
+  </a>
 
   <nav class="site-nav" [attr.aria-label]="content().navigationAriaLabel">
-    <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="active">
-      {{ content().homeLabel }}
-    </a>
-    <a routerLink="/about" routerLinkActive="active">{{ content().aboutLabel }}</a>
-    <a routerLink="/projects" routerLinkActive="active">{{ content().projectsLabel }}</a>
-    <a routerLink="/skills" routerLinkActive="active">{{ content().skillsLabel }}</a>
-    <a routerLink="/contact" routerLinkActive="active">{{ content().contactLabel }}</a>
+    <button type="button" class="site-nav__home motion-control" [attr.aria-label]="homeShortcutLabel()" (click)="goToHome()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="5.8"></circle>
+        <path d="M12 4.2v2.1"></path>
+        <path d="M19.8 12h-2.1"></path>
+        <path d="M12 19.8v-2.1"></path>
+        <path d="M4.2 12h2.1"></path>
+        <circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"></circle>
+      </svg>
+    </button>
+    <a class="motion-control" routerLink="/projects" routerLinkActive="active">{{ content().projectsLabel }}</a>
+    <a class="motion-control" routerLink="/skills" routerLinkActive="active">{{ content().skillsLabel }}</a>
+    <a class="motion-control" routerLink="/contact" routerLinkActive="active">{{ content().contactLabel }}</a>
   </nav>
 
   <div class="header-actions">
     <div class="header-controls">
-      <div class="theme-switcher" role="group" [attr.aria-label]="themeSwitcherLabel()">
+      <div class="theme-menu" [class.is-open]="themeMenuOpen()">
         <button
           type="button"
-          *ngFor="let theme of themes()"
-          [class.is-active]="activeTheme() === theme.id"
-          [attr.aria-pressed]="activeTheme() === theme.id"
-          [attr.aria-label]="theme.label"
-          (click)="setTheme(theme.id)"
+          class="theme-menu__trigger motion-control"
+          [attr.aria-expanded]="themeMenuOpen()"
+          aria-haspopup="menu"
+          [attr.aria-label]="themeSwitcherLabel()"
+          (click)="toggleThemeMenu()"
         >
-          {{ theme.shortLabel }}
+          <span class="theme-menu__palette" aria-hidden="true">
+            <span class="theme-menu__swatch" [style.--swatch-color]="activeThemeOption().preview.surface"></span>
+            <span class="theme-menu__swatch" [style.--swatch-color]="activeThemeOption().preview.accentSoft"></span>
+            <span class="theme-menu__swatch" [style.--swatch-color]="activeThemeOption().preview.accent"></span>
+          </span>
+          <span class="theme-menu__label">{{ activeThemeOption().label }}</span>
+          <svg class="theme-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m7 10 5 5 5-5"></path>
+          </svg>
         </button>
+
+        <div
+          class="theme-menu__panel surface-card"
+          *ngIf="themeMenuOpen()"
+          role="menu"
+          [attr.aria-label]="themeMenuOptionsLabel()"
+        >
+          <button
+            type="button"
+            class="theme-menu__option motion-control"
+            *ngFor="let theme of themes()"
+            role="menuitemradio"
+            [class.is-active]="activeTheme() === theme.id"
+            [attr.aria-checked]="activeTheme() === theme.id"
+            [attr.aria-label]="theme.label"
+            (click)="selectTheme(theme.id)"
+          >
+            <span class="theme-menu__option-copy">
+              <span class="theme-menu__option-name">{{ theme.label }}</span>
+              <span class="theme-menu__option-note">{{ theme.description }}</span>
+            </span>
+
+            <span class="theme-menu__palette" aria-hidden="true">
+              <span class="theme-menu__swatch" [style.--swatch-color]="theme.preview.surface"></span>
+              <span class="theme-menu__swatch" [style.--swatch-color]="theme.preview.accentSoft"></span>
+              <span class="theme-menu__swatch" [style.--swatch-color]="theme.preview.accent"></span>
+            </span>
+          </button>
+        </div>
       </div>
 
       <button
         type="button"
-        class="language-toggle"
+        class="language-toggle motion-control"
         [attr.aria-label]="content().languageToggleAriaLabel"
         [attr.aria-pressed]="currentLanguage() === 'en'"
         (click)="toggleLanguage()"
@@ -40,6 +98,7 @@
 
     <nav class="site-social" [attr.aria-label]="content().socialAriaLabel">
       <a
+        class="motion-control"
         href="https://github.com/fernandogferreyra"
         target="_blank"
         rel="noopener"
@@ -47,6 +106,7 @@
         GitHub
       </a>
       <a
+        class="motion-control"
         href="https://www.linkedin.com/in/fernando-ferreyra-40a126328"
         target="_blank"
         rel="noopener"

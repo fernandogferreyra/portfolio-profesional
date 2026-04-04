@@ -1,18 +1,22 @@
 import { DOCUMENT } from '@angular/common';
-import { effect, Inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Inject, Injectable, signal } from '@angular/core';
 
 import { ThemeId } from '../data/portfolio.models';
+import { MotionService } from './motion.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
+  private readonly motionService = inject(MotionService);
   private readonly storageKey = 'portfolio-theme';
   private readonly availableThemes: ThemeId[] = ['themeNeon', 'themeEX', 'themeLight'];
 
   readonly activeTheme = signal<ThemeId>(this.readStoredTheme());
 
   constructor(@Inject(DOCUMENT) private readonly document: Document) {
+    this.document.documentElement.dataset['theme'] = this.activeTheme();
+
     effect(() => {
       const theme = this.activeTheme();
       this.document.documentElement.dataset['theme'] = theme;
@@ -21,7 +25,13 @@ export class ThemeService {
   }
 
   setTheme(theme: ThemeId): void {
-    this.activeTheme.set(theme);
+    if (theme === this.activeTheme()) {
+      return;
+    }
+
+    this.motionService.runWithViewTransition(() => {
+      this.activeTheme.set(theme);
+    });
   }
 
   private readStoredTheme(): ThemeId {

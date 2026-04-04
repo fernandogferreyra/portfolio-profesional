@@ -1,57 +1,102 @@
 <section class="contact-page">
   <section class="surface-card contact-hero" aria-labelledby="contact-title">
     <div class="contact-hero__copy">
-      <p class="section-eyebrow">{{ ui().eyebrow }}</p>
-      <h1 id="contact-title">{{ ui().title }}</h1>
-      <p>{{ ui().intro }}</p>
+      <p class="section-eyebrow" appRevealOnScroll [revealDelay]="0">{{ ui().eyebrow }}</p>
+      <h1 id="contact-title" appRevealOnScroll [revealDelay]="60">{{ ui().title }}</h1>
+      <p appRevealOnScroll [revealDelay]="120">{{ ui().intro }}</p>
     </div>
 
-    <div class="contact-hero__availability">
+    <div class="contact-hero__availability" appRevealOnScroll="right" [revealDelay]="120">
       <p class="contact-hero__availability-label">{{ ui().availabilityTitle }}</p>
       <div class="contact-chip-list">
-        <span class="contact-chip" *ngFor="let item of availability()">{{ item }}</span>
+        <span
+          class="contact-chip motion-chip"
+          *ngFor="let item of availability(); let i = index"
+          appRevealOnScroll
+          [revealDelay]="150 + i * 45"
+        >
+          {{ item }}
+        </span>
       </div>
     </div>
   </section>
 
   <div class="contact-grid">
-    <section class="surface-card contact-card" aria-labelledby="contact-channels-title">
+    <section class="surface-card contact-card" aria-labelledby="contact-channels-title" appRevealOnScroll="left" [revealDelay]="90">
       <div class="section-heading">
         <h2 id="contact-channels-title">{{ ui().channelsTitle }}</h2>
       </div>
 
       <div class="contact-channel-list">
-        <article class="contact-channel" *ngFor="let channel of channels()">
-          <span class="contact-channel__badge" aria-hidden="true">{{ channel.badge }}</span>
+        <article
+          class="contact-channel motion-panel"
+          *ngFor="let channel of channels(); let i = index"
+          appRevealOnScroll
+          [revealDelay]="110 + i * 50"
+        >
+          <span
+            class="contact-channel__icon"
+            aria-hidden="true"
+            [style.--channel-accent]="channel.accent"
+            [style.--channel-surface]="channel.accent + '22'"
+          >
+            <svg
+              [attr.viewBox]="channelIcons[channel.icon].viewBox"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path *ngFor="let path of channelIcons[channel.icon].paths" [attr.d]="path"></path>
+            </svg>
+          </span>
 
           <div class="contact-channel__copy">
             <p class="contact-channel__label">{{ channel.label }}</p>
+
             <a
+              *ngIf="hasHref(channel); else plainChannelValue"
               [href]="channel.href"
-              [attr.target]="channel.href.startsWith('mailto:') ? null : '_blank'"
-              [attr.rel]="channel.href.startsWith('mailto:') ? null : 'noopener'"
+              [attr.target]="channel.newTab ? '_blank' : null"
+              [attr.rel]="channel.newTab ? 'noopener' : null"
             >
               {{ channel.value }}
             </a>
+
+            <ng-template #plainChannelValue>
+              <span class="contact-channel__value">{{ channel.value }}</span>
+            </ng-template>
+
             <p class="contact-channel__note">{{ channel.note }}</p>
           </div>
         </article>
       </div>
     </section>
 
-    <section class="surface-card contact-card contact-card--form" aria-labelledby="contact-form-title">
+    <section
+      class="surface-card contact-card contact-card--form"
+      aria-labelledby="contact-form-title"
+      appRevealOnScroll="right"
+      [revealDelay]="120"
+    >
       <div class="section-heading">
         <h2 id="contact-form-title">{{ ui().formTitle }}</h2>
         <p>{{ ui().formDescription }}</p>
       </div>
 
       <div class="contact-form-shell" aria-describedby="contact-form-note">
-        <article class="contact-guide-item" *ngFor="let item of briefItems()">
+        <article
+          class="contact-guide-item motion-panel"
+          *ngFor="let item of briefItems(); let i = index"
+          appRevealOnScroll
+          [revealDelay]="140 + i * 50"
+        >
           <span>{{ item.label }}</span>
           <p>{{ item.value }}</p>
         </article>
 
-        <a class="contact-form-cta" [href]="emailHref">
+        <a class="contact-form-cta motion-control" [href]="emailHref" appRevealOnScroll [revealDelay]="240">
           {{ ui().formButtonLabel }}
         </a>
         <p id="contact-form-note" class="contact-form-note">{{ ui().formNote }}</p>

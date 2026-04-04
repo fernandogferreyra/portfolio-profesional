@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { PORTFOLIO_SKILLS, SKILL_CATEGORIES, SKILL_ICONS } from '../../data/portfolio.data';
 import { SkillCategoryId, SkillIconId, localizeText } from '../../data/portfolio.models';
 import { LanguageService } from '../../services/language.service';
+import { MotionService } from '../../services/motion.service';
 
 type SkillsFilterId = 'all' | SkillCategoryId;
 
@@ -31,6 +32,7 @@ interface CategoryView {
 })
 export class SkillsComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly motionService = inject(MotionService);
 
   readonly currentLanguage = this.languageService.language;
   readonly activeFilter = signal<SkillsFilterId>('all');
@@ -43,31 +45,31 @@ export class SkillsComponent {
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Skills',
-          title: 'Skills organizadas como un mapa tecnico claro y consistente.',
+          title: 'Stack tecnico organizado por areas de trabajo.',
           intro:
-            'Tecnologias principales y stack ampliado conviven en una sola experiencia ordenada por categorias, sin duplicar informacion.',
-          overviewTitle: 'Mapa tecnico',
+            'Tecnologias y herramientas utilizadas en backend, frontend, data y flujo de desarrollo.',
+          overviewTitle: 'Stack profesional',
           overviewDescription:
-            'Cada skill se presenta con icono, categoria y una descripcion tecnica concreta, manteniendo el lenguaje visual actual.',
+            'Conjunto de tecnologias con las que trabajo en desarrollo fullstack, con foco principal en backend.',
           filtersAriaLabel: 'Filtrar skills por categoria',
           allLabel: 'Todas',
-          skillStatLabel: 'skills mapeadas',
-          categoryStatLabel: 'categorias visibles',
-          featuredStatLabel: 'skills destacadas',
+          skillStatLabel: 'tecnologias',
+          categoryStatLabel: 'areas',
+          featuredStatLabel: 'skills foco',
         }
       : {
           eyebrow: 'Skills',
-          title: 'Skills organized as a clear and consistent technical map.',
+          title: 'Technical stack organized by work area.',
           intro:
-            'Core technologies and the extended stack live in one category-based experience without duplicating information.',
-          overviewTitle: 'Technical map',
+            'Technologies and tools used across backend, frontend, data, and the development workflow.',
+          overviewTitle: 'Professional stack',
           overviewDescription:
-            'Each skill is presented with an icon, category, and concrete technical description while preserving the current visual language.',
+            'Set of technologies I use in fullstack development, with a primary focus on backend work.',
           filtersAriaLabel: 'Filter skills by category',
           allLabel: 'All',
-          skillStatLabel: 'mapped skills',
-          categoryStatLabel: 'visible categories',
-          featuredStatLabel: 'featured skills',
+          skillStatLabel: 'technologies',
+          categoryStatLabel: 'areas',
+          featuredStatLabel: 'focus skills',
         },
   );
 
@@ -95,6 +97,7 @@ export class SkillsComponent {
       .flatMap((category) => category.skills)
       .filter((skill) => skill.featured),
   );
+  readonly showFeaturedSkills = computed(() => this.activeFilter() === 'all');
 
   readonly filterOptions = computed(() => [
     {
@@ -115,7 +118,13 @@ export class SkillsComponent {
   });
 
   setFilter(filter: SkillsFilterId): void {
-    this.activeFilter.set(filter);
+    if (filter === this.activeFilter()) {
+      return;
+    }
+
+    this.motionService.runWithViewTransition(() => {
+      this.activeFilter.set(filter);
+    });
   }
 
   isFilterActive(filter: SkillsFilterId): boolean {

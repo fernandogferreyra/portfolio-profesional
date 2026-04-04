@@ -1,21 +1,21 @@
 import { DOCUMENT } from '@angular/common';
 import {
   Component,
-  computed,
   ElementRef,
   HostListener,
   Inject,
-  inject,
-  OnDestroy,
   Renderer2,
   ViewChild,
+  computed,
+  inject,
   signal,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
-import { PORTFOLIO_PROJECTS } from '../../data/portfolio.data';
-import { ProjectActionType, localizeText } from '../../data/portfolio.models';
+import { PORTFOLIO_PROJECTS, SKILL_ICONS } from '../../data/portfolio.data';
+import { ProjectActionType, SkillIconId, localizeText } from '../../data/portfolio.models';
 import { LanguageService } from '../../services/language.service';
+import { MotionService } from '../../services/motion.service';
 
 interface ProjectActionView {
   id: string;
@@ -26,15 +26,20 @@ interface ProjectActionView {
   routerLink?: string;
 }
 
+interface ProjectTechnologyView {
+  name: string;
+  icon: SkillIconId;
+}
+
 interface ProjectView {
   id: string;
+  icon: SkillIconId;
   name: string;
   year: string;
   category: string;
-  status: string;
   summary: string;
   description: string;
-  stack: string[];
+  stack: ProjectTechnologyView[];
   metrics: Array<{
     value: string;
     label: string;
@@ -53,89 +58,120 @@ interface ProjectView {
   };
 }
 
+const STACK_ICON_RULES: Array<{ pattern: RegExp; icon: SkillIconId }> = [
+  { pattern: /java/i, icon: 'java' },
+  { pattern: /spring/i, icon: 'spring' },
+  { pattern: /\.net|dotnet/i, icon: 'dotnet' },
+  { pattern: /angular|pwa/i, icon: 'angular' },
+  { pattern: /typescript/i, icon: 'typescript' },
+  { pattern: /scss|html|css|frontend/i, icon: 'frontend' },
+  { pattern: /postgres/i, icon: 'postgresql' },
+  { pattern: /mysql|sql|mongo/i, icon: 'database' },
+  { pattern: /docker/i, icon: 'docker' },
+  { pattern: /git/i, icon: 'git' },
+  { pattern: /test|junit/i, icon: 'testing' },
+  { pattern: /microservice/i, icon: 'microservices' },
+  { pattern: /jwt|security|auth/i, icon: 'security' },
+  { pattern: /\bia\b|\bai\b/i, icon: 'ai' },
+  { pattern: /openapi|swagger|api|architecture|gateway|signal|theme|router/i, icon: 'architecture' },
+];
+
 @Component({
   selector: 'app-projects',
   standalone: false,
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })
-export class ProjectsComponent implements OnDestroy {
+export class ProjectsComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly motionService = inject(MotionService);
 
   @ViewChild('projectDialog') projectDialog?: ElementRef<HTMLElement>;
   @ViewChild('projectCloseButton') projectCloseButton?: ElementRef<HTMLButtonElement>;
 
   readonly currentLanguage = this.languageService.language;
   readonly selectedProjectId = signal(PORTFOLIO_PROJECTS[0].id);
+  readonly skillIcons = SKILL_ICONS;
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Proyectos',
-          title: 'Proyectos presentados como casos tecnicos, con detalle expandido cuando importa.',
+          title: 'Proyectos',
           intro:
-            'Cada proyecto resume su valor tecnico desde la entrada y mantiene un patron consistente para profundizar stack, decisiones y alcance.',
+            'Proyectos reales donde aplico arquitectura, backend y desarrollo fullstack.',
+          supportingIntro:
+            'Podes ver el stack, decisiones tecnicas y como esta pensado cada sistema.',
+          cardsAriaLabel: 'Listado de proyectos',
+          detailEyebrow: 'Detalle del proyecto',
           stackTitle: 'Stack',
           featuresTitle: 'Puntos destacados',
-          selectorAriaLabel: 'Seleccionar proyecto',
+          previewLabel: 'Vista del proyecto',
           demoModalClose: 'Cerrar demo del proyecto',
-          demoEyebrow: 'Demo seleccionada',
-          activePreviewLabel: 'Detalle activo',
-          moreProjectsLabel: 'Casos tecnicos organizados para comparar alcance, arquitectura y stack.',
+          demoEyebrow: 'Demo del proyecto',
         }
       : {
           eyebrow: 'Projects',
-          title: 'Projects presented as technical cases, with expanded detail when it matters.',
+          title: 'Projects',
           intro:
-            'Each project states its technical value upfront and follows a consistent pattern for stack, decisions, and scope.',
+            'Real projects where I apply architecture, backend development, and fullstack delivery.',
+          supportingIntro:
+            'You can review the stack, technical decisions, and how each system is structured.',
+          cardsAriaLabel: 'Project list',
+          detailEyebrow: 'Project detail',
           stackTitle: 'Stack',
           featuresTitle: 'Highlights',
-          selectorAriaLabel: 'Select project',
+          previewLabel: 'Project preview',
           demoModalClose: 'Close project demo',
-          demoEyebrow: 'Selected demo',
-          activePreviewLabel: 'Active detail',
-          moreProjectsLabel: 'Technical cases organized to compare scope, architecture, and stack.',
+          demoEyebrow: 'Project demo',
         },
   );
   readonly projects = computed<ProjectView[]>(() => {
     const language = this.currentLanguage();
 
-    return PORTFOLIO_PROJECTS.map((project) => ({
-      id: project.id,
-      name: project.name,
-      year: project.year,
-      category: localizeText(project.category, language),
-      status: localizeText(project.status, language),
-      summary: localizeText(project.summary, language),
-      description: localizeText(project.description, language),
-      stack: project.stack,
-      metrics: project.metrics.map((metric) => ({
-        value: metric.value,
-        label: localizeText(metric.label, language),
-      })),
-      sections: project.sections.map((section) => ({
-        title: localizeText(section.title, language),
-        items: section.items.map((item) => localizeText(item, language)),
-      })),
-      features: project.features.map((feature) => localizeText(feature, language)),
-      actions: project.actions.map((action) => ({
-        id: action.id,
-        type: action.type,
-        label: localizeText(action.label, language),
-        primary: Boolean(action.primary),
-        url: action.url,
-        routerLink: action.routerLink,
-      })),
-      media: project.media
-        ? {
-            thumbnailUrl: project.media.thumbnailUrl,
-            embedUrl: project.media.embedUrl,
-            alt: localizeText(project.media.alt, language),
-            iframeTitle: project.media.iframeTitle
-              ? localizeText(project.media.iframeTitle, language)
-              : undefined,
-          }
-        : undefined,
-    }));
+    return PORTFOLIO_PROJECTS.map((project) => {
+      const stack = project.stack.map((technology) => ({
+        name: technology,
+        icon: this.resolveTechnologyIcon(technology),
+      }));
+
+      return {
+        id: project.id,
+        icon: stack[0]?.icon ?? 'architecture',
+        name: project.name,
+        year: project.year,
+        category: localizeText(project.category, language),
+        summary: localizeText(project.summary, language),
+        description: localizeText(project.description, language),
+        stack,
+        metrics: project.metrics.map((metric) => ({
+          value: metric.value,
+          label: localizeText(metric.label, language),
+        })),
+        sections: project.sections.map((section) => ({
+          title: localizeText(section.title, language),
+          items: section.items.map((item) => localizeText(item, language)),
+        })),
+        features: project.features.map((feature) => localizeText(feature, language)),
+        actions: project.actions.map((action) => ({
+          id: action.id,
+          type: action.type,
+          label: localizeText(action.label, language),
+          primary: Boolean(action.primary),
+          url: action.url,
+          routerLink: action.routerLink,
+        })),
+        media: project.media
+          ? {
+              thumbnailUrl: project.media.thumbnailUrl,
+              embedUrl: project.media.embedUrl,
+              alt: localizeText(project.media.alt, language),
+              iframeTitle: project.media.iframeTitle
+                ? localizeText(project.media.iframeTitle, language)
+                : undefined,
+            }
+          : undefined,
+      };
+    });
   });
   readonly activeProject = computed(
     () =>
@@ -157,7 +193,13 @@ export class ProjectsComponent implements OnDestroy {
   ) {}
 
   selectProject(projectId: string): void {
-    this.selectedProjectId.set(projectId);
+    if (projectId === this.selectedProjectId()) {
+      return;
+    }
+
+    this.motionService.runWithViewTransition(() => {
+      this.selectedProjectId.set(projectId);
+    });
   }
 
   openProjectDemo(event?: Event): void {
@@ -200,6 +242,14 @@ export class ProjectsComponent implements OnDestroy {
 
   isActionType(action: ProjectActionView, type: ProjectActionType): boolean {
     return action.type === type;
+  }
+
+  trackByProjectId(_index: number, project: ProjectView): string {
+    return project.id;
+  }
+
+  trackByTechnologyName(_index: number, technology: ProjectTechnologyView): string {
+    return technology.name;
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -248,7 +298,8 @@ export class ProjectsComponent implements OnDestroy {
     }
   }
 
-  ngOnDestroy(): void {
-    this.renderer.removeStyle(this.document.body, 'overflow');
+  private resolveTechnologyIcon(technology: string): SkillIconId {
+    const matchedRule = STACK_ICON_RULES.find((rule) => rule.pattern.test(technology));
+    return matchedRule?.icon ?? 'architecture';
   }
 }

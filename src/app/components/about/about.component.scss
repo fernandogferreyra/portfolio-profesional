@@ -78,7 +78,6 @@
   background: var(--color-surface);
   color: var(--color-text);
   font-size: 0.88rem;
-  transition: all 0.25s var(--ease-out);
 }
 
 .hero-badge:hover {
@@ -130,6 +129,7 @@
   background: radial-gradient(circle, var(--color-primary-glow), transparent 70%);
   filter: blur(18px);
   opacity: 0.9;
+  animation: portrait-halo 5.4s ease-in-out infinite;
 }
 
 .portrait-frame__shape {
@@ -142,6 +142,7 @@
   box-shadow:
     inset 0 0 0 1px var(--glass-border),
     0 24px 40px rgba(0, 0, 0, 0.18);
+  animation: portrait-drift 6.6s ease-in-out infinite;
 }
 
 .portrait-frame__shape::before,
@@ -331,7 +332,6 @@
   border-radius: 16px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--glass-border);
-  transition: transform 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
 }
 
 .strengths-grid {
@@ -355,7 +355,6 @@
   background: var(--color-primary-soft);
   color: var(--color-text);
   font-size: 0.85rem;
-  transition: all 0.25s var(--ease-out);
 }
 
 .interest-chip:hover {
@@ -363,35 +362,34 @@
   border-color: var(--color-border-hover);
 }
 
-.surface-card,
-.journey-step,
-.spotlight-list li,
-.capability-card,
-.strength-card {
-  animation: rise-in 0.7s var(--ease-out) both;
-}
-
-.about-page > :nth-child(2) {
-  animation-delay: 0.08s;
-}
-
-.about-page > :nth-child(3) {
-  animation-delay: 0.16s;
-}
-
-.about-page > :nth-child(4) {
-  animation-delay: 0.24s;
-}
-
-@keyframes rise-in {
+@keyframes portrait-halo {
   from {
-    opacity: 0;
-    transform: translateY(18px);
+    opacity: 0.82;
+    transform: translateY(0) scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.03);
   }
 
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 0.82;
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+@keyframes portrait-drift {
+  from {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-6px);
+  }
+
+  to {
+    transform: translateX(-50%) translateY(0);
   }
 }
 

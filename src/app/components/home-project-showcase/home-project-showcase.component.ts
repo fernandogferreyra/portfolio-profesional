@@ -1,4 +1,6 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges } from '@angular/core';
+
+import { MotionService } from '../../services/motion.service';
 
 export interface HomeFeaturedProject {
   id: string;
@@ -23,6 +25,8 @@ export interface HomeFeaturedProject {
   styleUrl: './home-project-showcase.component.scss',
 })
 export class HomeProjectShowcaseComponent implements OnChanges {
+  private readonly motionService = inject(MotionService);
+
   @Input({ required: true }) projects: HomeFeaturedProject[] = [];
   @Input({ required: true }) sectionEyebrow = '';
   @Input({ required: true }) selectorAriaLabel = '';
@@ -33,6 +37,11 @@ export class HomeProjectShowcaseComponent implements OnChanges {
     return (
       this.projects.find((project) => project.id === this.selectedProjectId) ?? this.projects[0]
     );
+  }
+
+  get activeProjectCards(): HomeFeaturedProject[] {
+    const project = this.activeProject;
+    return project ? [project] : [];
   }
 
   ngOnChanges(): void {
@@ -47,7 +56,13 @@ export class HomeProjectShowcaseComponent implements OnChanges {
   }
 
   selectProject(projectId: string): void {
-    this.selectedProjectId = projectId;
+    if (projectId === this.selectedProjectId) {
+      return;
+    }
+
+    this.motionService.runWithViewTransition(() => {
+      this.selectedProjectId = projectId;
+    });
   }
 
   trackByProjectId(_index: number, project: HomeFeaturedProject): string {

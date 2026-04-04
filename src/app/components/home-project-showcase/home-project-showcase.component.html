@@ -1,4 +1,7 @@
-<article class="project-showcase-card" *ngIf="activeProject as project">
+<article
+  class="project-showcase-card motion-swap"
+  *ngFor="let project of activeProjectCards; trackBy: trackByProjectId"
+>
   <div class="project-showcase-card__header">
     <div class="project-showcase-card__topbar">
       <p class="project-showcase-card__eyebrow">{{ sectionEyebrow }}</p>
@@ -7,7 +10,7 @@
         <button
           *ngFor="let item of projects; trackBy: trackByProjectId"
           type="button"
-          class="project-showcase-tab"
+          class="project-showcase-tab motion-control"
           [class.is-active]="item.id === project.id"
           [attr.aria-selected]="item.id === project.id"
           (click)="selectProject(item.id)"
@@ -23,7 +26,7 @@
   </div>
 
   <div class="project-showcase-card__chips" [attr.aria-label]="project.stackAriaLabel">
-    <span class="project-showcase-chip" *ngFor="let tech of project.technologies">
+    <span class="project-showcase-chip motion-chip" *ngFor="let tech of project.technologies">
       {{ tech }}
     </span>
   </div>
@@ -32,7 +35,7 @@
     <ng-container *ngFor="let action of project.actions">
       <a
         *ngIf="action.routerLink; else externalProjectAction"
-        class="project-showcase-button"
+        class="project-showcase-button motion-control"
         [class.project-showcase-button--primary]="action.primary"
         [routerLink]="action.routerLink"
       >
@@ -41,7 +44,7 @@
 
       <ng-template #externalProjectAction>
         <a
-          class="project-showcase-button"
+          class="project-showcase-button motion-control"
           [class.project-showcase-button--primary]="action.primary"
           [href]="action.url"
           target="_blank"
