@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: portfolio-backend
+  profiles:
+    default: dev
+  datasource:
+    url: ${PORTFOLIO_DB_URL:jdbc:postgresql://localhost:5432/portfolio_db}
+    username: ${PORTFOLIO_DB_USERNAME:postgres}
+    password: ${PORTFOLIO_DB_PASSWORD:123456}
+    hikari:
+      initialization-fail-timeout: -1
+      connection-timeout: 3000
+      maximum-pool-size: 5
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+        boot:
+          allow_jdbc_metadata_access: false
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+info:
+  app:
+    name: Portfolio Backend
+    description: Backend phase 2 for Fernando Ferreyra professional portfolio
+    version: 0.2.0
+
+app:
+  cors:
+    allowed-origins: ${PORTFOLIO_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
+  security:
+    jwt:
+      secret: ${PORTFOLIO_JWT_SECRET:change-this-development-secret-key-before-production-use-1234567890}
+      issuer: portfolio-backend
+      expiration: PT8H
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
