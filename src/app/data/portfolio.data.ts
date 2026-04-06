@@ -4,6 +4,7 @@ import {
   SkillCategoryDefinition,
   SkillIconDefinition,
   SkillIconId,
+  SkillLevelId,
   ThemeDefinition,
 } from './portfolio.models';
 
@@ -13,7 +14,7 @@ export const PORTFOLIO_THEMES: ThemeDefinition[] = [
     shortLabel: 'NEON',
     label: { es: 'themeNeon', en: 'themeNeon' },
     description: {
-      es: 'La base actual refinada: vidrio, cian electrico y profundidad controlada.',
+      es: 'La base actual refinada: vidrio, cian eléctrico y profundidad controlada.',
       en: 'The refined current base: glass, electric cyan, and controlled depth.',
     },
     preview: {
@@ -41,7 +42,7 @@ export const PORTFOLIO_THEMES: ThemeDefinition[] = [
     shortLabel: 'LIGHT',
     label: { es: 'themeLight', en: 'themeLight' },
     description: {
-      es: 'Escala de grises suave, mas editorial, pensada para lectura y claridad.',
+      es: 'Escala de grises suave, más editorial, pensada para lectura y claridad.',
       en: 'Soft grayscale, more editorial, focused on readability and clarity.',
     },
     preview: {
@@ -79,18 +80,26 @@ export const SKILL_CATEGORIES: SkillCategoryDefinition[] = [
   },
   {
     id: 'tools',
-    label: { es: 'Tools', en: 'Tools' },
+    label: { es: 'Herramientas', en: 'Tools' },
     description: {
-      es: 'Versionado, IDEs, automatizacion, build y herramientas de trabajo diario.',
+      es: 'Versionado, IDEs, automatización, build y herramientas de trabajo diario.',
       en: 'Version control, IDEs, automation, build, and day-to-day tooling.',
     },
   },
   {
     id: 'ai',
-    label: { es: 'AI', en: 'AI' },
+    label: { es: 'AI / Desarrollo asistido', en: 'AI / Assisted development' },
     description: {
-      es: 'Herramientas y modelos usados para asistencia de desarrollo, automatizacion y exploracion tecnica.',
-      en: 'Tools and models used for development assistance, automation, and technical exploration.',
+      es: 'Herramientas orientadas a desarrollo asistido, automatización, productividad y exploración de workflows técnicos.',
+      en: 'Tools focused on assisted development, automation, productivity, and technical workflow exploration.',
+    },
+  },
+  {
+    id: 'soft',
+    label: { es: 'Soft Skills', en: 'Soft Skills' },
+    description: {
+      es: 'Capacidades personales aplicadas al trabajo técnico, la colaboración y la resolución de problemas.',
+      en: 'Personal capabilities applied to technical work, collaboration, and problem solving.',
     },
   },
 ];
@@ -107,6 +116,13 @@ export const SKILL_ICONS: Record<SkillIconId, SkillIconDefinition> = {
     accent: '#f89820',
     surface: 'rgba(248, 152, 32, 0.14)',
     border: 'rgba(248, 152, 32, 0.28)',
+  },
+  javascript: {
+    viewBox: '0 0 24 24',
+    paths: ['M4 4h16v16H4Z', 'M10 8v7c0 1.3-.8 2-2.1 2-1 0-1.7-.3-2.4-1', 'M13.5 15.6c.7 1 1.5 1.4 2.7 1.4 1.1 0 1.8-.5 1.8-1.3 0-.9-.7-1.2-2-1.8l-.7-.3c-1.9-.8-3.1-1.8-3.1-3.8 0-1.9 1.4-3.4 3.8-3.4 1.6 0 2.8.6 3.6 2'],
+    accent: '#f7df1e',
+    surface: 'rgba(247, 223, 30, 0.14)',
+    border: 'rgba(247, 223, 30, 0.3)',
   },
   cplusplus: {
     viewBox: '0 0 24 24',
@@ -289,48 +305,485 @@ export const SKILL_ICONS: Record<SkillIconId, SkillIconDefinition> = {
     surface: 'rgba(234, 179, 8, 0.14)',
     border: 'rgba(234, 179, 8, 0.28)',
   },
+  problemSolving: {
+    viewBox: '0 0 24 24',
+    paths: ['M12 4a6 6 0 0 1 6 6c0 2.2-1.1 3.6-2.4 4.8-.9.8-1.6 1.6-1.6 2.7V19H10v-1.5c0-1.1-.7-1.9-1.6-2.7C7.1 13.6 6 12.2 6 10a6 6 0 0 1 6-6Z', 'M10 22h4', 'M9.5 19.5h5', 'M10.5 10.5 12 12l2.8-3'],
+    accent: '#22c55e',
+    surface: 'rgba(34, 197, 94, 0.14)',
+    border: 'rgba(34, 197, 94, 0.28)',
+  },
+  analyticalThinking: {
+    viewBox: '0 0 24 24',
+    paths: ['M5 18h14', 'M7 15v-3', 'M12 15V8', 'M17 15v-5', 'M4 8.5 8.2 5 12.2 9 18.5 4.5', 'M18.5 4.5v4', 'M18.5 4.5h-4'],
+    accent: '#38bdf8',
+    surface: 'rgba(56, 189, 248, 0.14)',
+    border: 'rgba(56, 189, 248, 0.28)',
+  },
+  adaptability: {
+    viewBox: '0 0 24 24',
+    paths: ['M8 7h8l-2.4-2.4', 'M16 7l-2.4 2.4', 'M16 17H8l2.4 2.4', 'M8 17l2.4-2.4', 'M7 8.5a6 6 0 0 0 0 7', 'M17 15.5a6 6 0 0 0 0-7'],
+    accent: '#f97316',
+    surface: 'rgba(249, 115, 22, 0.14)',
+    border: 'rgba(249, 115, 22, 0.28)',
+  },
+  teamwork: {
+    viewBox: '0 0 24 24',
+    paths: ['M8 11a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M16 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M4.5 18a3.5 3.5 0 0 1 7 0', 'M12.5 18a3.5 3.5 0 0 1 7 0'],
+    accent: '#14b8a6',
+    surface: 'rgba(20, 184, 166, 0.14)',
+    border: 'rgba(20, 184, 166, 0.28)',
+  },
+  autonomy: {
+    viewBox: '0 0 24 24',
+    paths: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'M12 12 16.5 7.5', 'M12 12l-2.5 5.5', 'M12 12h.01'],
+    accent: '#a78bfa',
+    surface: 'rgba(167, 139, 250, 0.14)',
+    border: 'rgba(167, 139, 250, 0.28)',
+  },
+  continuousLearning: {
+    viewBox: '0 0 24 24',
+    paths: ['M5 6.5A2.5 2.5 0 0 1 7.5 4H19v14H7.5A2.5 2.5 0 0 0 5 20.5V6.5Z', 'M5 6.5V20', 'M9 8h6', 'M9 12h5', 'M13 20.5 15 22l4-4'],
+    accent: '#f59e0b',
+    surface: 'rgba(245, 158, 11, 0.14)',
+    border: 'rgba(245, 158, 11, 0.28)',
+  },
 };
 
 export const PORTFOLIO_SKILLS: PortfolioSkill[] = [
-  { id: 'java', icon: 'java', name: 'Java', category: 'backend', featured: true, description: { es: 'Desarrollo de servicios, logica de negocio y aplicaciones orientadas a capas mantenibles.', en: 'Development of services, business logic, and applications built around maintainable layers.' } },
-  { id: 'cplusplus', icon: 'cplusplus', name: 'C++', category: 'backend', description: { es: 'Base de programacion cercana a hardware y logica de bajo nivel aplicada en practicas tecnicas.', en: 'Programming foundation close to hardware and low-level logic applied in technical practice.' } },
-  { id: 'csharp', icon: 'dotnet', name: 'C#', category: 'backend', description: { es: 'Desarrollo de logica de negocio y servicios sobre ecosistema .NET.', en: 'Business logic and service development on the .NET ecosystem.' } },
-  { id: 'python', icon: 'python', name: 'Python', category: 'backend', description: { es: 'Scripting, automatizacion tecnica e integraciones de apoyo para desarrollo y tooling.', en: 'Scripting, technical automation, and supporting integrations for development and tooling.' } },
-  { id: 'spring-boot', icon: 'spring', name: 'Spring Boot', category: 'backend', featured: true, description: { es: 'Construccion de APIs, configuracion de servicios, persistencia y despliegue de aplicaciones backend.', en: 'Building APIs, service configuration, persistence, and backend application delivery.' } },
-  { id: 'dotnet-core', icon: 'dotnet', name: '.NET', category: 'backend', featured: true, description: { es: 'Desarrollo de servicios HTTP, capas aplicativas y soluciones empresariales con DI y Entity Framework.', en: 'Development of HTTP services, application layers, and business solutions with DI and Entity Framework.' } },
-  { id: 'rest-api-design', icon: 'architecture', name: 'REST API Design', category: 'backend', featured: true, description: { es: 'Diseno de contratos HTTP, versionado, validacion de payloads y manejo consistente de errores.', en: 'Design of HTTP contracts, versioning, payload validation, and consistent error handling.' } },
-  { id: 'swagger-openapi', icon: 'openapi', name: 'Swagger / OpenAPI', category: 'backend', description: { es: 'Documentacion de endpoints y contratos a partir de especificaciones claras y mantenibles.', en: 'Endpoint and contract documentation based on clear and maintainable specifications.' } },
-  { id: 'spring-security', icon: 'security', name: 'Spring Security', category: 'backend', description: { es: 'Seguridad de APIs, autenticacion, autorizacion y control de acceso en aplicaciones Spring.', en: 'API security, authentication, authorization, and access control in Spring applications.' } },
-  { id: 'jwt', icon: 'security', name: 'JWT', category: 'backend', description: { es: 'Autenticacion stateless, emision y validacion de tokens, y proteccion de endpoints.', en: 'Stateless authentication, token issuance and validation, and endpoint protection.' } },
-  { id: 'microservices', icon: 'microservices', name: 'Microservices', category: 'backend', description: { es: 'Separacion por dominio, comunicacion entre servicios y evolucion independiente de modulos.', en: 'Domain-driven separation, service-to-service communication, and independent module evolution.' } },
-  { id: 'clean-architecture', icon: 'architecture', name: 'Clean Architecture', category: 'backend', description: { es: 'Separacion entre dominio, aplicacion e infraestructura para reducir acoplamiento y facilitar mantenimiento.', en: 'Separation between domain, application, and infrastructure to reduce coupling and ease maintenance.' } },
-  { id: 'junit', icon: 'testing', name: 'JUnit / Integration Testing', category: 'backend', description: { es: 'Pruebas de servicios, validacion de reglas de negocio y cobertura de integracion.', en: 'Service testing, business rule validation, and integration coverage.' } },
-  { id: 'angular', icon: 'angular', name: 'Angular', category: 'frontend', featured: true, description: { es: 'Desarrollo de interfaces modulares con routing, consumo de APIs, formularios y componentes reutilizables.', en: 'Development of modular interfaces with routing, API consumption, forms, and reusable components.' } },
-  { id: 'typescript', icon: 'typescript', name: 'TypeScript', category: 'frontend', description: { es: 'Tipado estricto, modelos de dominio y menor margen de error en frontend y servicios.', en: 'Strict typing, domain models, and lower error rates across frontend code and services.' } },
-  { id: 'html-scss', icon: 'frontend', name: 'HTML / SCSS', category: 'frontend', description: { es: 'Maquetacion semantica, estilos reutilizables y adaptacion responsive.', en: 'Semantic layout, reusable styling, and responsive adaptation.' } },
-  { id: 'postgresql', icon: 'postgresql', name: 'PostgreSQL', category: 'data', featured: true, description: { es: 'Modelado relacional, consultas complejas, indices y persistencia para aplicaciones transaccionales.', en: 'Relational modeling, complex queries, indexing, and persistence for transactional applications.' } },
-  { id: 'mysql-sql', icon: 'database', name: 'MySQL / SQL', category: 'data', description: { es: 'Modelado de tablas, joins, normalizacion y consultas operativas.', en: 'Table modeling, joins, normalization, and operational querying.' } },
-  { id: 'mongodb', icon: 'database', name: 'MongoDB', category: 'data', description: { es: 'Persistencia documental para modulos con esquemas flexibles y consultas acotadas.', en: 'Document persistence for modules with flexible schemas and bounded queries.' } },
-  { id: 'docker', icon: 'docker', name: 'Docker', category: 'tools', featured: true, description: { es: 'Contenerizacion de servicios y entornos reproducibles entre desarrollo, testing y despliegue.', en: 'Service containerization and reproducible environments across development, testing, and deployment.' } },
-  { id: 'git', icon: 'git', name: 'Git', category: 'tools', featured: true, description: { es: 'Versionado, trabajo por ramas, revision de cambios y colaboracion sobre repositorios compartidos.', en: 'Version control, branch-based work, change review, and collaboration on shared repositories.' } },
-  { id: 'github', icon: 'github', name: 'GitHub', category: 'tools', description: { es: 'Repositorios remotos, seguimiento de issues y colaboracion sobre codigo publicado.', en: 'Remote repositories, issue tracking, and collaboration around published code.' } },
-  { id: 'github-actions', icon: 'automation', name: 'GitHub Actions', category: 'tools', description: { es: 'Automatizacion de build y validaciones para mantener un flujo de integracion simple y claro.', en: 'Build automation and validation workflows to keep integration simple and clear.' } },
-  { id: 'maven', icon: 'architecture', name: 'Maven', category: 'tools', description: { es: 'Gestion de dependencias, build, perfiles y empaquetado de aplicaciones Java.', en: 'Dependency management, build lifecycle, profiles, and packaging for Java applications.' } },
-  { id: 'postman-api-qa', icon: 'testing', name: 'Postman', category: 'tools', description: { es: 'Pruebas manuales de endpoints, validacion de contratos y soporte para debugging de APIs.', en: 'Manual endpoint testing, contract validation, and support for API debugging.' } },
-  { id: 'intellij-idea', icon: 'ide', name: 'IntelliJ IDEA', category: 'tools', description: { es: 'IDE principal para trabajo con Java, Spring Boot y navegacion estructurada del codigo.', en: 'Primary IDE for Java, Spring Boot, and structured code navigation.' } },
-  { id: 'visual-studio', icon: 'ide', name: 'Visual Studio', category: 'tools', description: { es: 'Entorno de trabajo para proyectos .NET, debugging y desarrollo de soluciones empresariales.', en: 'Work environment for .NET projects, debugging, and business solution development.' } },
-  { id: 'visual-studio-code', icon: 'ide', name: 'Visual Studio Code', category: 'tools', description: { es: 'Editor liviano para frontend, scripting, configuraciones y trabajo diario multiproposito.', en: 'Lightweight editor for frontend, scripting, configuration, and multipurpose daily work.' } },
-  { id: 'arduino-ide', icon: 'arduino', name: 'Arduino IDE', category: 'tools', description: { es: 'Uso vinculado a practicas de electronica, microcontroladores y pruebas de integracion basicas.', en: 'Used in electronics practice, microcontrollers, and basic integration testing.' } },
-  { id: 'jira-taiga', icon: 'architecture', name: 'Jira / Taiga', category: 'tools', description: { es: 'Seguimiento de tareas, backlog y coordinacion de entregas tecnicas.', en: 'Task tracking, backlog management, and coordination of technical deliveries.' } },
-  { id: 'claude-code', icon: 'ai', name: 'Claude Code', category: 'ai', description: { es: 'Uso asistido para navegacion de codigo, refactors acotados y ejecucion guiada de tareas tecnicas.', en: 'Assisted use for code navigation, bounded refactors, and guided technical tasks.' } },
-  { id: 'opencode', icon: 'ai', name: 'OpenCode', category: 'ai', description: { es: 'Exploracion de flujos agentic y automatizacion liviana orientada a desarrollo.', en: 'Exploration of agentic flows and lightweight automation for development work.' } },
-  { id: 'codex', icon: 'ai', name: 'Codex', category: 'ai', description: { es: 'Asistencia sobre codigo, revision tecnica y cambios acotados dentro del flujo de trabajo.', en: 'Support for code changes, technical review, and bounded implementation tasks in the workflow.' } },
-  { id: 'chatgpt', icon: 'ai', name: 'ChatGPT', category: 'ai', description: { es: 'Apoyo para analisis, documentacion tecnica y validacion rapida de enfoques.', en: 'Support for analysis, technical documentation, and quick validation of approaches.' } },
-  { id: 'openclaw', icon: 'ai', name: 'OpenClaw', category: 'ai', description: { es: 'Uso exploratorio de herramientas basadas en agentes para tareas operativas y de desarrollo.', en: 'Exploratory use of agent-based tools for operational and development tasks.' } },
-  { id: 'ollama', icon: 'llm', name: 'Ollama', category: 'ai', description: { es: 'Ejecucion local de modelos para pruebas, asistentes y flujos offline.', en: 'Local model runtime for experimentation, assistants, and offline workflows.' } },
-  { id: 'mistral', icon: 'llm', name: 'Mistral', category: 'ai', description: { es: 'Exploracion de modelos para asistentes tecnicos y tareas de soporte al desarrollo.', en: 'Model exploration for technical assistants and development support tasks.' } },
-  { id: 'deepseek', icon: 'llm', name: 'DeepSeek', category: 'ai', description: { es: 'Uso exploratorio para asistencia tecnica, razonamiento y comparacion de resultados.', en: 'Exploratory use for technical assistance, reasoning, and result comparison.' } },
+  {
+    id: 'java',
+    icon: 'java',
+    name: 'Java',
+    category: 'backend',
+    description: {
+      es: 'Desarrollo backend orientado a APIs, lógica de negocio y servicios mantenibles.',
+      en: 'Backend development focused on APIs, business logic, and maintainable services.',
+    },
+    tags: [
+      { es: 'Spring Boot', en: 'Spring Boot' },
+      { es: 'REST', en: 'REST' },
+      { es: 'Security', en: 'Security' },
+    ],
+  },
+  {
+    id: 'cplusplus',
+    icon: 'cplusplus',
+    name: 'C++',
+    category: 'backend',
+    description: {
+      es: 'Base técnica cercana a hardware y resolución estructurada de problemas.',
+      en: 'Technical foundation close to hardware and structured problem solving.',
+    },
+    tags: [
+      { es: 'Hardware', en: 'Hardware' },
+      { es: 'Low level', en: 'Low level' },
+    ],
+  },
+  {
+    id: 'csharp',
+    icon: 'dotnet',
+    name: 'C#',
+    category: 'backend',
+    description: {
+      es: 'Implementación de servicios y capas de negocio dentro del ecosistema .NET.',
+      en: 'Service and business layer implementation within the .NET ecosystem.',
+    },
+    tags: [
+      { es: 'Services', en: 'Services' },
+      { es: 'APIs', en: 'APIs' },
+      { es: 'OOP', en: 'OOP' },
+    ],
+  },
+  {
+    id: 'dotnet-core',
+    icon: 'dotnet',
+    name: '.NET Core',
+    category: 'backend',
+    description: {
+      es: 'Construcción de APIs y aplicaciones backend con ASP.NET Core y persistencia integrada.',
+      en: 'Backend API and application development with ASP.NET Core and integrated persistence.',
+    },
+    tags: [
+      { es: 'ASP.NET Core', en: 'ASP.NET Core' },
+      { es: 'Entity Framework', en: 'Entity Framework' },
+      { es: 'DI', en: 'DI' },
+    ],
+  },
+  {
+    id: 'python',
+    icon: 'python',
+    name: 'Python',
+    category: 'backend',
+    description: {
+      es: 'Uso puntual en scripting y automatizaciones de apoyo al desarrollo.',
+      en: 'Used selectively for scripting and development-support automation.',
+    },
+    tags: [
+      { es: 'Scripting', en: 'Scripting' },
+      { es: 'Automation', en: 'Automation' },
+    ],
+  },
+  {
+    id: 'javascript',
+    icon: 'javascript',
+    name: 'JavaScript',
+    category: 'frontend',
+    description: {
+      es: 'Base práctica para interacción, comportamiento de UI y lógica web en cliente.',
+      en: 'Practical foundation for interaction, UI behavior, and client-side web logic.',
+    },
+    tags: [
+      { es: 'DOM', en: 'DOM' },
+      { es: 'Events', en: 'Events' },
+      { es: 'Async', en: 'Async' },
+    ],
+  },
+  {
+    id: 'typescript',
+    icon: 'typescript',
+    name: 'TypeScript',
+    category: 'frontend',
+    description: {
+      es: 'Tipado, modelos y organización del código para frontend más claro y predecible.',
+      en: 'Typing, models, and code organization for clearer and more predictable frontend work.',
+    },
+    tags: [
+      { es: 'Typing', en: 'Typing' },
+      { es: 'Models', en: 'Models' },
+      { es: 'API clients', en: 'API clients' },
+    ],
+  },
+  {
+    id: 'angular',
+    icon: 'angular',
+    name: 'Angular',
+    category: 'frontend',
+    description: {
+      es: 'Interfaces modulares con routing, formularios y consumo de APIs.',
+      en: 'Modular interfaces with routing, forms, and API consumption.',
+    },
+    tags: [
+      { es: 'Router', en: 'Router' },
+      { es: 'Forms', en: 'Forms' },
+      { es: 'Signals', en: 'Signals' },
+    ],
+  },
+  {
+    id: 'html-scss',
+    icon: 'frontend',
+    name: 'HTML / SCSS',
+    category: 'frontend',
+    description: {
+      es: 'Maquetación semántica, responsive y jerarquía visual consistente.',
+      en: 'Semantic layout, responsive adaptation, and consistent visual hierarchy.',
+    },
+    tags: [
+      { es: 'Layout', en: 'Layout' },
+      { es: 'Responsive', en: 'Responsive' },
+      { es: 'UI', en: 'UI' },
+    ],
+  },
+  {
+    id: 'postgresql',
+    icon: 'postgresql',
+    name: 'PostgreSQL',
+    category: 'data',
+    description: {
+      es: 'Modelado y persistencia relacional para aplicaciones transaccionales.',
+      en: 'Relational modeling and persistence for transactional applications.',
+    },
+    tags: [
+      { es: 'Queries', en: 'Queries' },
+      { es: 'Modeling', en: 'Modeling' },
+      { es: 'Transactions', en: 'Transactions' },
+    ],
+  },
+  {
+    id: 'mysql-sql',
+    icon: 'database',
+    name: 'MySQL / SQL',
+    category: 'data',
+    description: {
+      es: 'Trabajo sólido sobre tablas, joins y consultas operativas en bases relacionales.',
+      en: 'Solid work with tables, joins, and operational queries in relational databases.',
+    },
+    tags: [
+      { es: 'Joins', en: 'Joins' },
+      { es: 'Reporting', en: 'Reporting' },
+      { es: 'Optimization', en: 'Optimization' },
+    ],
+  },
+  {
+    id: 'mongodb',
+    icon: 'database',
+    name: 'MongoDB',
+    category: 'data',
+    description: {
+      es: 'Persistencia documental para escenarios acotados y esquemas flexibles.',
+      en: 'Document persistence for bounded scenarios and flexible schemas.',
+    },
+    tags: [
+      { es: 'Documents', en: 'Documents' },
+      { es: 'Queries', en: 'Queries' },
+    ],
+  },
+  {
+    id: 'docker',
+    icon: 'docker',
+    name: 'Docker',
+    category: 'tools',
+    description: {
+      es: 'Entornos reproducibles y despliegue consistente mediante contenedores.',
+      en: 'Reproducible environments and consistent delivery through containers.',
+    },
+    tags: [
+      { es: 'Containers', en: 'Containers' },
+      { es: 'Compose', en: 'Compose' },
+      { es: 'Deploy', en: 'Deploy' },
+    ],
+  },
+  {
+    id: 'git',
+    icon: 'git',
+    name: 'Git',
+    category: 'tools',
+    description: {
+      es: 'Control de versiones como base del flujo técnico diario.',
+      en: 'Version control as the foundation of day-to-day technical flow.',
+    },
+    tags: [
+      { es: 'Branches', en: 'Branches' },
+      { es: 'Review', en: 'Review' },
+      { es: 'History', en: 'History' },
+    ],
+  },
+  {
+    id: 'github-actions',
+    icon: 'automation',
+    name: 'GitHub Actions',
+    category: 'tools',
+    description: {
+      es: 'Automatización de build y validaciones dentro del flujo de integración.',
+      en: 'Build automation and validation inside the integration workflow.',
+    },
+    tags: [
+      { es: 'CI', en: 'CI' },
+      { es: 'Build', en: 'Build' },
+      { es: 'Validation', en: 'Validation' },
+    ],
+  },
+  {
+    id: 'postman-api-qa',
+    icon: 'testing',
+    name: 'Postman',
+    category: 'tools',
+    description: {
+      es: 'Pruebas manuales de endpoints y debugging rápido de APIs.',
+      en: 'Manual endpoint testing and quick API debugging.',
+    },
+    tags: [
+      { es: 'Collections', en: 'Collections' },
+      { es: 'Testing', en: 'Testing' },
+      { es: 'Debug', en: 'Debug' },
+    ],
+  },
+  {
+    id: 'intellij-idea',
+    icon: 'ide',
+    name: 'IntelliJ IDEA',
+    category: 'tools',
+    description: {
+      es: 'IDE principal para Java y Spring Boot con debugging y navegación estructurada.',
+      en: 'Primary IDE for Java and Spring Boot with debugging and structured navigation.',
+    },
+    tags: [
+      { es: 'Java', en: 'Java' },
+      { es: 'Spring', en: 'Spring' },
+      { es: 'Debug', en: 'Debug' },
+    ],
+  },
+  {
+    id: 'visual-studio-code',
+    icon: 'ide',
+    name: 'Visual Studio Code',
+    category: 'tools',
+    description: {
+      es: 'Editor central para frontend, scripting y edición rápida en flujo fullstack.',
+      en: 'Core editor for frontend, scripting, and quick edits in the fullstack workflow.',
+    },
+    tags: [
+      { es: 'Frontend', en: 'Frontend' },
+      { es: 'Config', en: 'Config' },
+      { es: 'Refactor', en: 'Refactor' },
+    ],
+  },
+  {
+    id: 'claude-code',
+    icon: 'ai',
+    name: 'Claude Code',
+    category: 'ai',
+    description: {
+      es: 'Asistencia para navegar código y acelerar cambios concretos de implementación.',
+      en: 'Used to navigate code and accelerate concrete implementation changes.',
+    },
+    tags: [
+      { es: 'Code nav', en: 'Code nav' },
+      { es: 'Edits', en: 'Edits' },
+      { es: 'Automation', en: 'Automation' },
+    ],
+  },
+  {
+    id: 'opencode',
+    icon: 'ai',
+    name: 'OpenCode',
+    category: 'ai',
+    description: {
+      es: 'Exploración de flujos agentic y automatización liviana aplicada al desarrollo.',
+      en: 'Exploration of agentic flows and lightweight automation applied to development.',
+    },
+    tags: [
+      { es: 'Agentic', en: 'Agentic' },
+      { es: 'Workflows', en: 'Workflows' },
+      { es: 'Automation', en: 'Automation' },
+    ],
+  },
+  {
+    id: 'codex',
+    icon: 'ai',
+    name: 'Codex',
+    category: 'ai',
+    description: {
+      es: 'Soporte para edición guiada, revisión técnica y ejecución controlada.',
+      en: 'Support for guided editing, technical review, and controlled execution.',
+    },
+    tags: [
+      { es: 'Review', en: 'Review' },
+      { es: 'Implementation', en: 'Implementation' },
+      { es: 'Repo work', en: 'Repo work' },
+    ],
+  },
+  {
+    id: 'chatgpt',
+    icon: 'ai',
+    name: 'ChatGPT',
+    category: 'ai',
+    description: {
+      es: 'Apoyo para análisis, documentación e ideación rápida de soluciones técnicas.',
+      en: 'Support for analysis, documentation, and quick ideation of technical solutions.',
+    },
+    tags: [
+      { es: 'Analysis', en: 'Analysis' },
+      { es: 'Docs', en: 'Docs' },
+      { es: 'Ideation', en: 'Ideation' },
+    ],
+  },
+  {
+    id: 'ollama',
+    icon: 'llm',
+    name: 'Ollama',
+    category: 'ai',
+    description: {
+      es: 'Ejecución local de modelos para pruebas de asistentes y flujos offline.',
+      en: 'Local model runtime for assistant testing and offline workflows.',
+    },
+    tags: [
+      { es: 'Local models', en: 'Local models' },
+      { es: 'Offline', en: 'Offline' },
+    ],
+  },
+  {
+    id: 'teamwork',
+    icon: 'teamwork',
+    name: 'Trabajo en equipo',
+    category: 'soft',
+    showLevel: false,
+    description: {
+      es: 'Colaboración sostenida y comunicación clara dentro del trabajo técnico.',
+      en: 'Steady collaboration and clear communication in technical work.',
+    },
+  },
+  {
+    id: 'problem-solving',
+    icon: 'problemSolving',
+    name: 'Resolución de problemas',
+    category: 'soft',
+    showLevel: false,
+    description: {
+      es: 'Capacidad para diagnosticar, desarmar y resolver problemas complejos.',
+      en: 'Ability to diagnose, break down, and solve complex problems.',
+    },
+  },
+  {
+    id: 'analytical-thinking',
+    icon: 'analyticalThinking',
+    name: 'Pensamiento analítico',
+    category: 'soft',
+    showLevel: false,
+    description: {
+      es: 'Lectura estructurada de fallas, causas y alternativas de solución.',
+      en: 'Structured reading of failures, causes, and solution alternatives.',
+    },
+  },
+  {
+    id: 'adaptability',
+    icon: 'adaptability',
+    name: 'Adaptabilidad',
+    category: 'soft',
+    showLevel: false,
+    description: {
+      es: 'Transición fluida entre herramientas, contextos y tipos de problema.',
+      en: 'Smooth transition across tools, contexts, and problem types.',
+    },
+  },
+  {
+    id: 'autonomy',
+    icon: 'autonomy',
+    name: 'Trabajo autónomo',
+    category: 'soft',
+    showLevel: false,
+    description: {
+      es: 'Capacidad de avanzar con criterio propio y mantener foco técnico.',
+      en: 'Ability to move forward with sound judgment and sustained technical focus.',
+    },
+  },
+  {
+    id: 'continuous-learning',
+    icon: 'continuousLearning',
+    name: 'Aprendizaje continuo',
+    category: 'soft',
+    showLevel: false,
+    description: {
+      es: 'Actualización constante de herramientas, prácticas y formas de trabajo.',
+      en: 'Continuous update of tools, practices, and ways of working.',
+    },
+  },
 ];
+
+export const SKILL_LEVELS: Record<string, SkillLevelId> = {
+  java: 'advanced',
+  cplusplus: 'intermediate',
+  csharp: 'advanced',
+  python: 'basic',
+  'dotnet-core': 'advanced',
+  javascript: 'intermediate',
+  angular: 'intermediate',
+  typescript: 'intermediate',
+  'html-scss': 'intermediate',
+  postgresql: 'intermediate',
+  'mysql-sql': 'advanced',
+  mongodb: 'basic',
+  docker: 'intermediate',
+  git: 'advanced',
+  'github-actions': 'intermediate',
+  'postman-api-qa': 'advanced',
+  'intellij-idea': 'advanced',
+  'visual-studio-code': 'advanced',
+  'claude-code': 'advanced',
+  opencode: 'intermediate',
+  codex: 'advanced',
+  chatgpt: 'advanced',
+  ollama: 'intermediate',
+};
 
 export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
   {
@@ -338,8 +791,14 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     name: 'ObraSmart',
     year: '2025',
     category: { es: 'Plataforma distribuida', en: 'Distributed platform' },
-    summary: { es: 'Plataforma distribuida para gestion operativa, seguridad centralizada e integracion frontend.', en: 'Distributed platform for operations management, centralized security, and frontend integration.' },
-    description: { es: 'Plataforma orientada a procesos reales, con servicios por dominio, autenticacion JWT y trazabilidad operativa sobre una arquitectura distribuida.', en: 'Platform built around real workflows, with domain-based services, JWT authentication, and operational traceability across a distributed architecture.' },
+    summary: {
+      es: 'Plataforma de gestión de mantenimiento para obras privadas con control operativo y trazabilidad.',
+      en: 'Maintenance management platform for private construction sites with operational control and traceability.',
+    },
+    description: {
+      es: 'Plataforma de gestión de mantenimiento de equipos en obras privadas. Permite centralizar y organizar procesos que muchas empresas aún gestionan con planillas de Excel o en papel, mejorando control, trazabilidad y eficiencia operativa.',
+      en: 'Equipment maintenance management platform for private construction projects. It centralizes and organizes processes that many companies still manage with spreadsheets or paper, improving control, traceability, and operational efficiency.',
+    },
     stack: ['Java 17', 'Spring Boot', 'Microservices', 'PostgreSQL', 'Docker', 'Angular PWA', 'JWT', 'IA'],
     metrics: [
       { value: '11', label: { es: 'servicios por dominio', en: 'domain services' } },
@@ -348,15 +807,15 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     ],
     sections: [
       { title: { es: 'Problema', en: 'Problem' }, items: [{ es: 'Centralizar mantenimientos, reparaciones y seguimiento operativo que normalmente quedan dispersos entre mensajes, planillas y procesos manuales.', en: 'Centralize maintenance, repair, and operational follow-up usually scattered across messages, spreadsheets, and manual processes.' }] },
-      { title: { es: 'Solucion', en: 'Solution' }, items: [{ es: 'Plataforma distribuida con autenticacion centralizada, servicios por dominio y visibilidad operativa en tiempo real.', en: 'Distributed platform with centralized authentication, domain-driven services, and real-time operational visibility.' }] },
-      { title: { es: 'Arquitectura', en: 'Architecture' }, items: [{ es: 'Separacion por dominios para aislar responsabilidades y facilitar evolucion independiente.', en: 'Domain separation to isolate responsibilities and support independent evolution.' }, { es: 'API Gateway como punto de entrada unico para clientes y servicios.', en: 'API Gateway as the single entry point for clients and services.' }, { es: 'Integracion con frontend Angular PWA y capacidades de geolocalizacion e IA.', en: 'Integrated Angular PWA frontend plus geolocation and AI capabilities.' }] },
-      { title: { es: 'Decisiones tecnicas', en: 'Technical decisions' }, items: [{ es: 'Docker para entornos repetibles y despliegue consistente.', en: 'Docker for repeatable environments and consistent deployment.' }, { es: 'JWT y autenticacion centralizada para reducir friccion entre componentes.', en: 'JWT and centralized authentication to reduce friction across components.' }, { es: 'IA y geolocalizacion incorporadas como capacidad de negocio, no solo como extra visual.', en: 'AI and geolocation integrated as business capabilities, not just visual add-ons.' }] },
+      { title: { es: 'Solución', en: 'Solution' }, items: [{ es: 'Plataforma distribuida con autenticación centralizada, servicios por dominio y visibilidad operativa en tiempo real.', en: 'Distributed platform with centralized authentication, domain-driven services, and real-time operational visibility.' }] },
+      { title: { es: 'Arquitectura', en: 'Architecture' }, items: [{ es: 'Separación por dominios para aislar responsabilidades y facilitar evolución independiente.', en: 'Domain separation to isolate responsibilities and support independent evolution.' }, { es: 'API Gateway como punto de entrada único para clientes y servicios.', en: 'API Gateway as the single entry point for clients and services.' }, { es: 'Integración con frontend Angular PWA y capacidades de geolocalización e IA.', en: 'Integrated Angular PWA frontend plus geolocation and AI capabilities.' }] },
+      { title: { es: 'Decisiones técnicas', en: 'Technical decisions' }, items: [{ es: 'Docker para entornos repetibles y despliegue consistente.', en: 'Docker for repeatable environments and consistent deployment.' }, { es: 'JWT y autenticación centralizada para reducir fricción entre componentes.', en: 'JWT and centralized authentication to reduce friction across components.' }, { es: 'IA y geolocalización incorporadas como capacidad de negocio, no solo como extra visual.', en: 'AI and geolocation integrated as business capabilities, not just visual add-ons.' }] },
     ],
-    features: [{ es: 'Arquitectura de microservicios', en: 'Microservices architecture' }, { es: 'API Gateway', en: 'API Gateway' }, { es: 'Autenticacion JWT', en: 'JWT authentication' }, { es: 'Geolocalizacion operativa', en: 'Operational geolocation' }, { es: 'Asistente con IA', en: 'AI assistant' }],
+    features: [{ es: 'Arquitectura de microservicios', en: 'Microservices architecture' }, { es: 'API Gateway', en: 'API Gateway' }, { es: 'Autenticación JWT', en: 'JWT authentication' }, { es: 'Geolocalización operativa', en: 'Operational geolocation' }, { es: 'Asistente con IA', en: 'AI assistant' }],
     actions: [
       { id: 'demo', type: 'modal', primary: true, label: { es: 'Ver demo', en: 'Watch demo' } },
-      { id: 'repo', type: 'external', label: { es: 'Codigo', en: 'Code' }, url: 'https://github.com/114320-FERREYRA-FERNANDO-GABRIEL/obrasmart-platform.git' },
-      { id: 'doc', type: 'external', label: { es: 'Monografia', en: 'Monograph' }, url: '/docs/MonografiaObraSmart.pdf' },
+      { id: 'repo', type: 'external', label: { es: 'Código', en: 'Code' }, url: 'https://github.com/114320-FERREYRA-FERNANDO-GABRIEL/obrasmart-platform.git' },
+      { id: 'doc', type: 'external', label: { es: 'Monografía', en: 'Monograph' }, url: '/docs/MonografiaObraSmart.pdf' },
     ],
     media: {
       thumbnailUrl: 'https://img.youtube.com/vi/8qTf_oowQiY/hqdefault.jpg',
@@ -370,8 +829,8 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     name: 'Portfolio Profesional',
     year: '2026',
     category: { es: 'Sistema frontend', en: 'Frontend system' },
-    summary: { es: 'Aplicacion Angular bilingue con arquitectura modular, contenido centralizado y enfoque en mantenibilidad.', en: 'Bilingual Angular application with a modular architecture, centralized content, and a maintainability-focused approach.' },
-    description: { es: 'SPA construida con componentes reutilizables, datos centralizados, theming, i18n y automatizacion basica con GitHub Actions.', en: 'SPA built with reusable components, centralized data, theming, i18n, and basic automation with GitHub Actions.' },
+    summary: { es: 'Aplicación Angular bilingüe con arquitectura modular, contenido centralizado y enfoque en mantenibilidad.', en: 'Bilingual Angular application with a modular architecture, centralized content, and a maintainability-focused approach.' },
+    description: { es: 'SPA construida con componentes reutilizables, datos centralizados, theming, i18n y automatización básica con GitHub Actions.', en: 'SPA built with reusable components, centralized data, theming, i18n, and basic automation with GitHub Actions.' },
     stack: ['Angular 20', 'TypeScript', 'SCSS', 'Angular Router', 'Signals', 'Theme Tokens'],
     metrics: [
       { value: '3', label: { es: 'themes visuales', en: 'visual themes' } },
@@ -379,9 +838,9 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
       { value: 'Angular', label: { es: 'sistema modular', en: 'modular system' } },
     ],
     sections: [
-      { title: { es: 'Objetivo', en: 'Objective' }, items: [{ es: 'Construir un portfolio tecnico claro, mantenible y alineado con un perfil fullstack con foco en backend.', en: 'Build a clear, maintainable technical portfolio aligned with a fullstack profile focused on backend development.' }] },
-      { title: { es: 'Arquitectura', en: 'Architecture' }, items: [{ es: 'Componentes reutilizables, rutas separadas por seccion y datos centralizados para contenido profesional.', en: 'Reusable components, section-based routes, and centralized data for professional content.' }, { es: 'Sistema de themes e internacionalizacion resuelto desde frontend sin duplicar estructura.', en: 'Theme system and internationalization handled on the frontend without duplicating structure.' }] },
-      { title: { es: 'Automatizacion', en: 'Automation' }, items: [{ es: 'Workflow de GitHub Actions para instalar dependencias y validar la build en push y pull request.', en: 'GitHub Actions workflow to install dependencies and validate the build on push and pull request.' }, { es: 'Base lista para conectar un deploy automatico en una siguiente etapa.', en: 'Baseline ready to connect to automatic deployment in a following stage.' }] },
+      { title: { es: 'Objetivo', en: 'Objective' }, items: [{ es: 'Construir un portfolio técnico claro, mantenible y alineado con un perfil fullstack con foco en backend.', en: 'Build a clear, maintainable technical portfolio aligned with a fullstack profile focused on backend development.' }] },
+      { title: { es: 'Arquitectura', en: 'Architecture' }, items: [{ es: 'Componentes reutilizables, rutas separadas por sección y datos centralizados para contenido profesional.', en: 'Reusable components, section-based routes, and centralized data for professional content.' }, { es: 'Sistema de themes e internacionalización resuelto desde frontend sin duplicar estructura.', en: 'Theme system and internationalization handled on the frontend without duplicating structure.' }] },
+      { title: { es: 'Automatización', en: 'Automation' }, items: [{ es: 'Workflow de GitHub Actions para instalar dependencias y validar la build en push y pull request.', en: 'GitHub Actions workflow to install dependencies and validate the build on push and pull request.' }, { es: 'Base lista para conectar un deploy automático en una siguiente etapa.', en: 'Baseline ready to connect to automatic deployment in a following stage.' }] },
     ],
     features: [{ es: 'Arquitectura modular', en: 'Modular architecture' }, { es: 'i18n y theming', en: 'i18n and theming' }, { es: 'Contenido centralizado', en: 'Centralized content' }, { es: 'CI con GitHub Actions', en: 'CI with GitHub Actions' }],
     actions: [

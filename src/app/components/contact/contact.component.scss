@@ -24,17 +24,8 @@
   gap: 1rem;
 }
 
-.contact-hero__copy h1 {
-  margin: 0;
+.contact-hero__title {
   max-width: 16ch;
-  font-size: clamp(2.2rem, 4vw, 3.7rem);
-  line-height: 1.04;
-  letter-spacing: -0.045em;
-  text-wrap: balance;
-  background: linear-gradient(135deg, var(--color-text), var(--color-primary) 62%, var(--color-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .contact-hero__copy p,
@@ -94,9 +85,6 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.9rem;
   padding: 1rem;
-  border-radius: 20px;
-  border: 1px solid var(--glass-border);
-  background: var(--color-surface-elevated);
 }
 
 .contact-channel:hover {
@@ -147,24 +135,109 @@
   gap: 1rem;
 }
 
-.contact-guide-item {
-  display: grid;
-  gap: 0.45rem;
-  padding: 1rem;
-  border-radius: 18px;
-  border: 1px solid var(--glass-border);
-  background: var(--color-surface);
-}
-
-.contact-guide-item span {
-  color: var(--color-text);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.contact-guide-item p {
+.contact-form__destination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
   margin: 0;
   color: var(--color-text-muted);
+}
+
+.contact-form__destination span {
+  color: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.contact-form__destination strong {
+  color: var(--color-text);
+  font-size: 0.92rem;
+}
+
+.contact-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.contact-form__field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.contact-form__field--full {
+  grid-column: 1 / -1;
+}
+
+.contact-form__field span {
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.contact-form__field input,
+.contact-form__field textarea {
+  width: 100%;
+  padding: 0.88rem 0.95rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+  transition:
+    border-color var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-base) var(--ease-out),
+    background var(--motion-base) var(--ease-out);
+}
+
+.contact-form__field input::placeholder,
+.contact-form__field textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.contact-form__field input:focus-visible,
+.contact-form__field textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-border-hover);
+  box-shadow:
+    0 0 0 1px var(--color-primary-soft),
+    0 16px 30px -28px var(--color-primary-glow);
+}
+
+.contact-form__field input.ng-invalid.ng-touched,
+.contact-form__field textarea.ng-invalid.ng-touched {
+  border-color: rgba(248, 113, 113, 0.42);
+}
+
+.contact-form__error {
+  color: #fca5a5;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.contact-form-feedback {
+  margin: 0;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  font-size: 0.92rem;
+}
+
+.contact-form-feedback.is-success {
+  border-color: var(--color-border-hover);
+  color: var(--color-text);
+}
+
+.contact-form-feedback.is-error {
+  border-color: rgba(248, 113, 113, 0.42);
+  color: #fca5a5;
 }
 
 .contact-form-cta {
@@ -173,12 +246,15 @@
   justify-content: center;
   min-height: 46px;
   padding: 0.8rem 1rem;
+  width: fit-content;
   border: 1px solid var(--color-primary);
   border-radius: 999px;
   background: linear-gradient(135deg, var(--color-primary-soft), rgba(255, 255, 255, 0.02));
   color: var(--color-text);
+  font: inherit;
   text-decoration: none;
   font-weight: 700;
+  cursor: pointer;
   transition:
     transform var(--motion-fast) var(--ease-out),
     border-color var(--motion-fast) var(--ease-out),
@@ -191,6 +267,11 @@
   border-color: var(--color-accent);
   box-shadow: 0 12px 30px -22px var(--color-accent);
   outline: none;
+}
+
+.contact-form-cta[disabled] {
+  opacity: 0.72;
+  cursor: wait;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -208,7 +289,19 @@
     padding: 1.25rem;
   }
 
-  .contact-hero__copy h1 {
+  .contact-hero__title {
     max-width: none;
+  }
+
+  .contact-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-form__field--full {
+    grid-column: auto;
+  }
+
+  .contact-form-cta {
+    width: 100%;
   }
 }

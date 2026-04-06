@@ -46,7 +46,7 @@ export class HeaderComponent {
     this.currentLanguage() === 'es' ? 'Opciones de theme visual' : 'Visual theme options',
   );
   readonly homeShortcutLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Ir al inicio' : 'Go to top',
+    this.currentLanguage() === 'es' ? 'Ir al inicio' : 'Go home',
   );
 
   toggleLanguage(): void {
@@ -70,7 +70,8 @@ export class HeaderComponent {
     this.closeThemeMenu();
   }
 
-  goToHome(): void {
+  goToHome(event?: Event): void {
+    event?.preventDefault();
     void this.router.navigate(['/'], { fragment: 'home-top' }).then(() => {
       this.viewportScroller.scrollToPosition([0, 0]);
     });

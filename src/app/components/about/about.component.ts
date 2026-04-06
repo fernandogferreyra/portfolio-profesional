@@ -22,45 +22,45 @@ export class AboutComponent {
           ...baseContent,
           eyebrow: 'Fullstack Developer | Backend-focused',
           heroTitle:
-            'Experiencia tecnica construida desde electronica, hardware y diagnostico de sistemas, hoy aplicada al desarrollo fullstack con foco en backend.',
+            'Experiencia técnica construida desde electrónica, hardware y diagnóstico de sistemas, hoy aplicada al desarrollo fullstack con foco en backend.',
           heroLead:
-            'Desarrollador fullstack con foco en backend. Mi recorrido en electronica, hardware y diagnostico me dio una base tecnica que hoy aplico en APIs, integraciones, arquitectura y desarrollo de software.',
+            'Desarrollador fullstack con foco en backend. Mi recorrido en electrónica, hardware y diagnóstico me dio una base técnica que hoy aplico en APIs, integraciones, arquitectura y desarrollo de software.',
           summaryDescription:
-            'Combino formacion en programacion, experiencia tecnica de campo y foco actual en backend para construir servicios, APIs e integraciones con criterio de mantenimiento.',
-          storyTitle: 'Base tecnica y transicion al software',
+            'Combino formación en programación, experiencia técnica de campo y foco actual en backend para construir servicios, APIs e integraciones con criterio de mantenimiento.',
+          storyTitle: 'Base técnica y transición al software',
           storyDescription:
-            'Mi recorrido profesional comenzo en electronica, hardware y diagnostico de sistemas. Esa experiencia fue la base desde la que pase al desarrollo de software.',
+            'Mi recorrido profesional comenzó en electrónica, hardware y diagnóstico de sistemas. Esa experiencia fue la base desde la que pasé al desarrollo de software.',
           paragraphs: [
-            'Durante anos trabaje en electronica, reparacion de hardware, soporte tecnico y diagnostico de fallas. Esa etapa me dio precision tecnica, metodo de analisis y una forma practica de resolver problemas complejos.',
-            'Con esa base avance hacia el desarrollo de software, complete la Tecnicatura Universitaria en Programacion en UTN FRC y empece a trabajar con Java, Spring Boot, .NET, Angular y bases de datos relacionales y no relacionales.',
-            'Hoy me posiciono como desarrollador fullstack con foco en backend. Trabajo en APIs, microservicios, integraciones y aplicaciones end-to-end, priorizando claridad tecnica, mantenibilidad y escalabilidad.',
+            'Durante años trabajé en electrónica, reparación de hardware, soporte técnico y diagnóstico de fallas. Esa etapa me dio precisión técnica, método de análisis y una forma práctica de resolver problemas complejos.',
+            'Con esa base avancé hacia el desarrollo de software, completé la Tecnicatura Universitaria en Programación en UTN FRC y empecé a trabajar con Java, Spring Boot, .NET, Angular y bases de datos relacionales y no relacionales.',
+            'Hoy me posiciono como desarrollador fullstack con foco en backend. Trabajo en APIs, microservicios, integraciones y aplicaciones end-to-end, priorizando claridad técnica, mantenibilidad y escalabilidad.',
           ],
           journey: [
             {
-              title: 'Electronica y hardware',
+              title: 'Electrónica y hardware',
               description:
-                'Experiencia tecnica en reparacion, configuracion y trabajo directo con hardware y equipos reales.',
+                'Experiencia técnica en reparación, configuración y trabajo directo con hardware y equipos reales.',
             },
             {
-              title: 'Diagnostico de sistemas',
+              title: 'Diagnóstico de sistemas',
               description:
-                'Analisis de fallas, deteccion de causas y resolucion de problemas con enfoque practico y metodico.',
+                'Análisis de fallas, detección de causas y resolución de problemas con enfoque práctico y metódico.',
             },
             {
-              title: 'Formacion en software',
+              title: 'Formación en software',
               description:
-                'Tecnicatura Universitaria en Programacion en UTN FRC y consolidacion del paso hacia el desarrollo profesional.',
+                'Tecnicatura Universitaria en Programación en UTN FRC y consolidación del paso hacia el desarrollo profesional.',
             },
             {
               title: 'Fullstack con foco backend',
               description:
-                'Trabajo con Java, Spring Boot, .NET, Angular, APIs REST, seguridad, bases de datos e integracion entre sistemas.',
+                'Trabajo con Java, Spring Boot, .NET, Angular, APIs REST, seguridad, bases de datos e integración entre sistemas.',
             },
           ],
           projectDescription:
-            'Plataforma de gestion de mantenimientos y reparaciones desarrollada con Java 17 y Spring Boot sobre arquitectura de microservicios. Me permitio consolidar experiencia en backend, seguridad, integracion y diseno de servicios distribuidos.',
+            'Plataforma de gestión de mantenimientos y reparaciones desarrollada con Java 17 y Spring Boot sobre arquitectura de microservicios. Me permitió consolidar experiencia en backend, seguridad, integración y diseño de servicios distribuidos.',
           interestsDescription:
-            'Temas que sigo explorando porque amplian mi mirada como profesional del software.',
+            'Temas que sigo explorando porque amplían mi mirada como profesional del software.',
         }
       : {
           ...baseContent,
@@ -110,11 +110,11 @@ export class AboutComponent {
   readonly portraitContent = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Base tecnica',
+          eyebrow: 'Base técnica',
           title: 'Experiencia previa aplicada al desarrollo actual',
           description:
-            'Electronica, hardware y diagnostico de sistemas forman parte de la base tecnica que hoy traslado al desarrollo de software.',
-          tags: ['Electronica', 'Hardware', 'Diagnostico'],
+            'Electrónica, hardware y diagnóstico de sistemas forman parte de la base técnica que hoy traslado al desarrollo de software.',
+          tags: ['Electrónica', 'Hardware', 'Diagnóstico'],
         }
       : {
           eyebrow: 'Technical foundation',
@@ -130,17 +130,17 @@ export class AboutComponent {
           {
             title: 'Backend',
             description:
-              'Experiencia en APIs, microservicios, seguridad, logica de negocio y mantenimiento de servicios.',
+              'Experiencia en APIs, microservicios, seguridad, lógica de negocio y mantenimiento de servicios.',
           },
           {
-            title: 'Integracion fullstack',
+            title: 'Integración fullstack',
             description:
-              'Capacidad para conectar backend, frontend, bases de datos y flujo funcional dentro de una misma solucion.',
+              'Capacidad para conectar backend, frontend, bases de datos y flujo funcional dentro de una misma solución.',
           },
           {
-            title: 'Diagnostico tecnico',
+            title: 'Diagnóstico técnico',
             description:
-              'Base previa en hardware y diagnostico que aporta criterio para analizar fallas y entender sistemas completos.',
+              'Base previa en hardware y diagnóstico que aporta criterio para analizar fallas y entender sistemas completos.',
           },
         ]
       : [

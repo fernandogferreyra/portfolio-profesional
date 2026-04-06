@@ -2,7 +2,9 @@
   <section class="surface-card contact-hero" aria-labelledby="contact-title">
     <div class="contact-hero__copy">
       <p class="section-eyebrow" appRevealOnScroll [revealDelay]="0">{{ ui().eyebrow }}</p>
-      <h1 id="contact-title" appRevealOnScroll [revealDelay]="60">{{ ui().title }}</h1>
+      <h1 id="contact-title" class="contact-hero__title portfolio-page-title" appRevealOnScroll [revealDelay]="60">
+        {{ ui().title }}
+      </h1>
       <p appRevealOnScroll [revealDelay]="120">{{ ui().intro }}</p>
     </div>
 
@@ -24,12 +26,12 @@
   <div class="contact-grid">
     <section class="surface-card contact-card" aria-labelledby="contact-channels-title" appRevealOnScroll="left" [revealDelay]="90">
       <div class="section-heading">
-        <h2 id="contact-channels-title">{{ ui().channelsTitle }}</h2>
+        <h2 id="contact-channels-title" class="portfolio-section-title">{{ ui().channelsTitle }}</h2>
       </div>
 
       <div class="contact-channel-list">
         <article
-          class="contact-channel motion-panel"
+          class="contact-channel motion-panel portfolio-subcard"
           *ngFor="let channel of channels(); let i = index"
           appRevealOnScroll
           [revealDelay]="110 + i * 50"
@@ -81,26 +83,74 @@
       [revealDelay]="120"
     >
       <div class="section-heading">
-        <h2 id="contact-form-title">{{ ui().formTitle }}</h2>
+        <h2 id="contact-form-title" class="portfolio-section-title">{{ ui().formTitle }}</h2>
         <p>{{ ui().formDescription }}</p>
+        <p class="contact-form__destination">
+          <span>{{ ui().formDestinationLabel }}</span>
+          <strong>{{ contactRecipient }}</strong>
+        </p>
       </div>
 
-      <div class="contact-form-shell" aria-describedby="contact-form-note">
-        <article
-          class="contact-guide-item motion-panel"
-          *ngFor="let item of briefItems(); let i = index"
-          appRevealOnScroll
-          [revealDelay]="140 + i * 50"
+      <form
+        class="contact-form-shell"
+        [formGroup]="contactForm"
+        (ngSubmit)="submitContactForm()"
+        aria-describedby="contact-form-note"
+        [attr.aria-busy]="isSubmitting()"
+        novalidate
+      >
+        <div class="contact-form__grid">
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="140">
+            <span>{{ ui().nameLabel }}</span>
+            <input type="text" formControlName="name" [placeholder]="ui().namePlaceholder" autocomplete="name" />
+            <small class="contact-form__error" *ngIf="controlError('name') as error">{{ error }}</small>
+          </label>
+
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="180">
+            <span>{{ ui().emailLabel }}</span>
+            <input type="email" formControlName="email" [placeholder]="ui().emailPlaceholder" autocomplete="email" />
+            <small class="contact-form__error" *ngIf="controlError('email') as error">{{ error }}</small>
+          </label>
+
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="220">
+            <span>{{ ui().contextLabel }}</span>
+            <input type="text" formControlName="context" [placeholder]="ui().contextPlaceholder" autocomplete="organization" />
+          </label>
+
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="260">
+            <span>{{ ui().subjectLabel }}</span>
+            <input type="text" formControlName="subject" [placeholder]="ui().subjectPlaceholder" />
+            <small class="contact-form__error" *ngIf="controlError('subject') as error">{{ error }}</small>
+          </label>
+
+          <label class="contact-form__field contact-form__field--full" appRevealOnScroll [revealDelay]="300">
+            <span>{{ ui().messageLabel }}</span>
+            <textarea formControlName="message" [placeholder]="ui().messagePlaceholder" rows="6"></textarea>
+            <small class="contact-form__error" *ngIf="controlError('message') as error">{{ error }}</small>
+          </label>
+        </div>
+
+        <p
+          class="contact-form-feedback"
+          *ngIf="formFeedback()"
+          [class.is-success]="formState() === 'success'"
+          [class.is-error]="formState() === 'error'"
+          aria-live="polite"
         >
-          <span>{{ item.label }}</span>
-          <p>{{ item.value }}</p>
-        </article>
+          {{ formFeedback() }}
+        </p>
 
-        <a class="contact-form-cta motion-control" [href]="emailHref" appRevealOnScroll [revealDelay]="240">
-          {{ ui().formButtonLabel }}
-        </a>
+        <button
+          type="submit"
+          class="contact-form-cta motion-control"
+          appRevealOnScroll
+          [revealDelay]="360"
+          [disabled]="isSubmitting()"
+        >
+          {{ isSubmitting() ? ui().formSubmittingLabel : ui().formButtonLabel }}
+        </button>
         <p id="contact-form-note" class="contact-form-note">{{ ui().formNote }}</p>
-      </div>
+      </form>
     </section>
   </div>
 </section>

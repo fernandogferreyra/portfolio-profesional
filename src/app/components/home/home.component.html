@@ -1,8 +1,14 @@
-  <section id="home-top" class="home-page">
+<section id="home-top" class="home-page">
   <section class="home-hero" aria-labelledby="home-hero-title">
     <div class="home-hero__content">
       <p class="home-hero__eyebrow" appRevealOnScroll [revealDelay]="40" [revealDistance]="26">{{ ui().eyebrow }}</p>
-      <h1 id="home-hero-title" class="home-hero__title" appRevealOnScroll [revealDelay]="170" [revealDistance]="42">
+      <h1
+        id="home-hero-title"
+        class="home-hero__title portfolio-page-title"
+        appRevealOnScroll
+        [revealDelay]="170"
+        [revealDistance]="42"
+      >
         {{ ui().title }}
       </h1>
       <p class="home-hero__subtitle" appRevealOnScroll [revealDelay]="300" [revealDistance]="34">{{ ui().subtitle }}</p>
@@ -33,16 +39,18 @@
   </section>
 
   <section class="home-overview">
-    <div class="home-about-shell">
+    <div class="home-main-column">
       <article
         id="about-overview"
         class="surface-card home-about motion-panel"
         aria-labelledby="home-about-title"
         appRevealOnScroll
+        [revealDelay]="40"
+        [revealDistance]="28"
       >
         <div class="home-section-heading">
           <p class="section-eyebrow">{{ about().eyebrow }}</p>
-          <h2 id="home-about-title" class="home-section-title">{{ about().title }}</h2>
+          <h2 id="home-about-title" class="home-section-title portfolio-section-title">{{ about().title }}</h2>
           <p class="home-section-intro">{{ about().lead }}</p>
         </div>
 
@@ -50,18 +58,79 @@
           <p *ngFor="let paragraph of about().paragraphs">{{ paragraph }}</p>
         </div>
       </article>
+
+      <div class="home-technical-base-shell">
+        <section
+          id="technical-base"
+          class="surface-card home-technical-base motion-panel"
+          aria-labelledby="technical-base-title"
+          appRevealOnScroll
+          [revealDelay]="110"
+          [revealDistance]="30"
+        >
+          <div class="home-technical-base__top">
+            <div class="home-section-heading home-section-heading--compact">
+              <p class="section-eyebrow">{{ technicalBase().eyebrow }}</p>
+              <h2 id="technical-base-title" class="home-section-title portfolio-section-title">
+                {{ technicalBase().title }}
+              </h2>
+            </div>
+
+            <div class="base-category-list" role="tablist" [attr.aria-label]="technicalBase().ariaLabel">
+              <button
+                type="button"
+                role="tab"
+                class="base-category-button motion-control"
+                *ngFor="let category of technicalBase().categories; let i = index"
+                [class.is-active]="isBaseCategoryActive(category.id)"
+                [attr.id]="'technical-base-tab-' + category.id"
+                [attr.aria-selected]="isBaseCategoryActive(category.id)"
+                [attr.aria-controls]="'technical-base-panel-' + category.id"
+                [attr.tabindex]="isBaseCategoryActive(category.id) ? 0 : -1"
+                appRevealOnScroll
+                [revealDelay]="150 + i * 35"
+                [revealDistance]="22"
+                (click)="setBaseCategory(category.id)"
+              >
+                {{ category.label }}
+              </button>
+            </div>
+          </div>
+
+          <article
+            class="base-category-detail motion-panel motion-swap portfolio-subcard"
+            *ngIf="activeBaseCategory() as category"
+            role="tabpanel"
+            [attr.id]="'technical-base-panel-' + category.id"
+            [attr.aria-labelledby]="'technical-base-tab-' + category.id"
+          >
+            <div class="base-category-detail__header">
+              <h3 class="portfolio-card-title">{{ category.label }}</h3>
+              <p>{{ category.description }}</p>
+            </div>
+
+            <ul class="base-category-detail__list">
+              <li *ngFor="let item of category.items">{{ item }}</li>
+            </ul>
+          </article>
+        </section>
+      </div>
     </div>
 
     <div class="home-side-column">
       <div class="home-side-block">
         <aside
-          class="surface-card home-work-areas"
+          class="surface-card home-work-areas motion-panel"
           aria-labelledby="work-areas-title"
           appRevealOnScroll="right"
+          [revealDelay]="70"
+          [revealDistance]="30"
         >
           <div class="home-section-heading">
             <p class="section-eyebrow">{{ workAreasSection().eyebrow }}</p>
-            <h2 id="work-areas-title" class="home-section-title">{{ workAreasSection().title }}</h2>
+            <h2 id="work-areas-title" class="home-section-title portfolio-section-title">
+              {{ workAreasSection().title }}
+            </h2>
             <p class="home-section-intro">{{ workAreasSection().description }}</p>
           </div>
 
@@ -73,7 +142,7 @@
               [revealDelay]="80 + i * 45"
             >
               <div class="work-area__topline">
-                <h3>{{ area.label }}</h3>
+                <h3 class="portfolio-card-title">{{ area.label }}</h3>
                 <span>{{ area.level }}%</span>
               </div>
 
@@ -89,15 +158,18 @@
 
       <div class="home-side-block">
         <section
-          class="surface-card home-credentials"
+          class="surface-card home-credentials motion-panel"
           aria-labelledby="home-credentials-title"
           appRevealOnScroll="right"
-          [revealDelay]="100"
+          [revealDelay]="140"
+          [revealDistance]="34"
         >
           <div class="home-section-heading">
             <p class="section-eyebrow">{{ credentials().eyebrow }}</p>
-            <h2 id="home-credentials-title" class="home-section-title">{{ credentials().title }}</h2>
-            <p class="home-section-intro">{{ credentials().description }}</p>
+            <h2 id="home-credentials-title" class="home-section-title portfolio-section-title">
+              {{ credentials().title }}
+            </h2>
+            <p class="home-section-intro" *ngIf="credentials().description">{{ credentials().description }}</p>
           </div>
 
           <div class="home-credentials__list">
@@ -119,45 +191,4 @@
       </div>
     </div>
   </section>
-
-  <div class="home-technical-base-shell">
-    <section
-      id="technical-base"
-      class="surface-card home-technical-base"
-      aria-labelledby="technical-base-title"
-      appRevealOnScroll
-    >
-      <div class="home-section-heading">
-        <p class="section-eyebrow">{{ technicalBase().eyebrow }}</p>
-        <h2 id="technical-base-title" class="home-section-title">{{ technicalBase().title }}</h2>
-        <p class="home-section-intro">{{ technicalBase().description }}</p>
-      </div>
-
-      <div class="base-category-list" role="tablist" [attr.aria-label]="technicalBase().ariaLabel">
-        <button
-          type="button"
-          class="base-category-button motion-control"
-          *ngFor="let category of technicalBase().categories; let i = index"
-          [class.is-active]="isBaseCategoryActive(category.id)"
-          [attr.aria-pressed]="isBaseCategoryActive(category.id)"
-          appRevealOnScroll
-          [revealDelay]="90 + i * 35"
-          (click)="setBaseCategory(category.id)"
-        >
-          {{ category.label }}
-        </button>
-      </div>
-
-      <article class="base-category-detail motion-panel motion-swap" *ngIf="activeBaseCategory() as category">
-        <div class="base-category-detail__header">
-          <h3>{{ category.label }}</h3>
-          <p>{{ category.description }}</p>
-        </div>
-
-        <ul class="base-category-detail__list">
-          <li *ngFor="let item of category.items">{{ item }}</li>
-        </ul>
-      </article>
-    </section>
-  </div>
 </section>

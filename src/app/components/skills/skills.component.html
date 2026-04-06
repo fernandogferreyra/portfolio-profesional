@@ -2,148 +2,106 @@
   <section class="surface-card skills-hero" aria-labelledby="skills-title" appRevealOnScroll>
     <div class="skills-hero__copy">
       <p class="section-eyebrow">{{ ui().eyebrow }}</p>
-      <h1 id="skills-title">{{ ui().title }}</h1>
+      <h1 id="skills-title" class="skills-hero__title portfolio-page-title">{{ ui().title }}</h1>
       <p class="skills-hero__lead">{{ ui().intro }}</p>
     </div>
 
-    <div class="skills-stats" aria-label="Skills summary">
-      <div class="skills-stat-shell motion-drift-shell motion-drift-shell--soft" style="--drift-delay: -1.8s;">
-        <article class="skills-stat motion-panel" appRevealOnScroll="right" [revealDelay]="120" [revealDistance]="30">
-          <strong>{{ totalSkills }}</strong>
-          <span>{{ ui().skillStatLabel }}</span>
-        </article>
+    <aside class="skills-focus-panel motion-panel portfolio-subcard" appRevealOnScroll="right" [revealDelay]="140">
+      <p class="section-eyebrow">{{ ui().focusTitle }}</p>
+
+      <div class="skills-focus-list">
+        <div class="skills-focus-item" *ngFor="let area of focusAreas(); trackBy: trackByFocusId">
+          <div class="skills-focus-item__header">
+            <span>{{ area.label }}</span>
+          </div>
+
+          <span class="skills-focus-bar" aria-hidden="true">
+            <span class="skills-focus-bar__fill" [style.width]="area.width"></span>
+          </span>
+        </div>
       </div>
-      <div class="skills-stat-shell motion-drift-shell motion-drift-shell--reverse" style="--drift-delay: -4.1s;">
-        <article class="skills-stat motion-panel" appRevealOnScroll="right" [revealDelay]="220" [revealDistance]="30">
-          <strong>{{ totalCategories }}</strong>
-          <span>{{ ui().categoryStatLabel }}</span>
-        </article>
-      </div>
-      <div class="skills-stat-shell motion-drift-shell motion-drift-shell--soft" style="--drift-delay: -6.4s;">
-        <article class="skills-stat motion-panel" appRevealOnScroll="right" [revealDelay]="320" [revealDistance]="30">
-          <strong>{{ featuredCount }}</strong>
-          <span>{{ ui().featuredStatLabel }}</span>
-        </article>
-      </div>
-    </div>
+    </aside>
   </section>
 
   <section class="surface-card skills-shell" appRevealOnScroll [revealDelay]="80">
-    <div class="skills-shell__header">
-      <div class="section-heading">
-        <h2>{{ ui().overviewTitle }}</h2>
-        <p>{{ ui().overviewDescription }}</p>
-      </div>
-
-      <div class="skills-filters" role="toolbar" [attr.aria-label]="ui().filtersAriaLabel">
-        <button
-          type="button"
-          class="skills-filter motion-control"
-          *ngFor="let filter of filterOptions(); let i = index"
-          appRevealOnScroll
-          [revealDelay]="90 + i * 35"
-          [class.is-active]="isFilterActive(filter.id)"
-          [attr.aria-pressed]="isFilterActive(filter.id)"
-          (click)="setFilter(filter.id)"
-        >
-          {{ filter.label }}
-        </button>
-      </div>
+    <div class="skills-lanes__heading">
+      <h2 class="portfolio-section-title">{{ ui().lanesTitle }}</h2>
+      <p>{{ ui().lanesDescription }}</p>
     </div>
 
-    <div class="skills-featured-grid motion-swap" *ngIf="showFeaturedSkills()">
-      <div
-        class="skills-card-shell motion-drift-shell"
-        *ngFor="let skill of featuredSkills(); trackBy: trackBySkillId; let i = index"
-        [class.motion-drift-shell--reverse]="i % 2 === 1"
-        [class.motion-drift-shell--soft]="i % 3 === 0"
-        [style.--drift-duration]="(16 + i * 1.25) + 's'"
-        [style.--drift-delay]="(-2.4 - i * 1.15) + 's'"
-      >
-        <article
-          class="featured-skill-card motion-panel"
-          [style.--skill-accent]="skillIcons[skill.icon].accent"
-          [style.--skill-surface]="skillIcons[skill.icon].surface"
-          [style.--skill-border]="skillIcons[skill.icon].border"
-          appRevealOnScroll
-          [revealDelay]="170 + i * 85"
-          [revealDistance]="36"
-        >
-          <span class="featured-skill-icon" aria-hidden="true">
-            <svg
-              [attr.viewBox]="skillIcons[skill.icon].viewBox"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path *ngFor="let path of skillIcons[skill.icon].paths" [attr.d]="path"></path>
-            </svg>
-          </span>
-
-          <div class="featured-skill-copy">
-            <span class="featured-skill-category">{{ skill.categoryLabel }}</span>
-            <h3>{{ skill.name }}</h3>
-            <p>{{ skill.description }}</p>
-          </div>
-        </article>
-      </div>
-    </div>
-
-    <div class="skills-groups">
-      <section
-        class="skills-group motion-swap"
-        *ngFor="let category of visibleCategories(); trackBy: trackByCategoryId; let categoryIndex = index"
-        [attr.aria-labelledby]="'skills-group-' + category.id"
+    <section class="skills-lanes">
+      <article
+        class="skills-lane motion-swap"
+        *ngFor="let lane of showcaseLanes(); trackBy: trackByLaneId; let laneIndex = index"
+        [class.skills-lane--reverse]="lane.direction === 'right'"
+        [style.--lane-duration]="lane.duration"
         appRevealOnScroll
-        [revealDelay]="140 + categoryIndex * 90"
-        [revealDistance]="28"
+        [revealDelay]="120 + laneIndex * 60"
+        [revealDistance]="26"
       >
-        <div class="skills-group__header">
-          <h2 [id]="'skills-group-' + category.id">{{ category.label }}</h2>
-          <p>{{ category.description }}</p>
+        <div class="skills-lane__header">
+          <span class="skills-lane__label">{{ lane.label }}</span>
         </div>
 
-        <div class="skills-grid">
-          <div
-            class="skills-card-shell motion-drift-shell motion-drift-shell--soft"
-            *ngFor="let skill of category.skills; trackBy: trackBySkillId; let i = index"
-            [class.motion-drift-shell--reverse]="i % 2 === 1"
-            [style.--drift-duration]="(18 + i * 0.95) + 's'"
-            [style.--drift-delay]="(-2.8 - i * 0.9) + 's'"
-          >
-            <article
-              class="skill-card motion-panel"
-              [style.--skill-accent]="skillIcons[skill.icon].accent"
-              [style.--skill-surface]="skillIcons[skill.icon].surface"
-              [style.--skill-border]="skillIcons[skill.icon].border"
-              appRevealOnScroll
-              [revealDelay]="180 + i * 70"
-              [revealDistance]="36"
+        <div class="skills-lane__marquee">
+          <div class="skills-lane__track">
+            <div
+              class="skills-lane__sequence"
+              *ngFor="let copy of laneCopies"
+              [attr.aria-hidden]="copy === 1 ? 'true' : null"
             >
-              <span class="skill-card__icon" aria-hidden="true">
-                <svg
-                  [attr.viewBox]="skillIcons[skill.icon].viewBox"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path *ngFor="let path of skillIcons[skill.icon].paths" [attr.d]="path"></path>
-                </svg>
-              </span>
+              <article
+                class="skill-card motion-panel portfolio-subcard"
+                *ngFor="let skill of lane.skills; trackBy: trackBySkillId"
+                [class.skill-card--no-level]="!skill.showLevel"
+                [style.--skill-accent]="skill.icon.accent"
+                [style.--skill-surface]="skill.icon.surface"
+                [style.--skill-border]="skill.icon.border"
+              >
+                <div class="skill-card__top">
+                  <span class="skill-card__icon" aria-hidden="true">
+                    <svg
+                      [attr.viewBox]="skill.icon.viewBox"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path *ngFor="let path of skill.icon.paths" [attr.d]="path"></path>
+                    </svg>
+                  </span>
 
-              <div class="skill-card__copy">
-                <span class="skill-card__category">{{ skill.categoryLabel }}</span>
-                <h3>{{ skill.name }}</h3>
-                <p>{{ skill.description }}</p>
-              </div>
-            </article>
+                  <span
+                    *ngIf="skill.showLevel"
+                    class="skill-level"
+                    [class.skill-level--basic]="skill.level === 'basic'"
+                    [class.skill-level--intermediate]="skill.level === 'intermediate'"
+                    [class.skill-level--advanced]="skill.level === 'advanced'"
+                    [attr.aria-label]="skill.levelLabel"
+                  >
+                    <span class="skill-level__bars" aria-hidden="true">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </span>
+                    <span class="skill-level__label">{{ skill.levelLabel }}</span>
+                  </span>
+                </div>
+
+                <div class="skill-card__copy">
+                  <h3 class="portfolio-card-title">{{ skill.name }}</h3>
+                  <p>{{ skill.description }}</p>
+                </div>
+
+                <div class="skill-card__tags" *ngIf="skill.tags.length">
+                  <span class="skill-card__tag motion-chip" *ngFor="let tag of skill.tags">{{ tag }}</span>
+                </div>
+              </article>
+            </div>
           </div>
         </div>
-      </section>
-    </div>
+      </article>
+    </section>
   </section>
 </section>

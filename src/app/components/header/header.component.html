@@ -17,16 +17,27 @@
   </a>
 
   <nav class="site-nav" [attr.aria-label]="content().navigationAriaLabel">
-    <button type="button" class="site-nav__home motion-control" [attr.aria-label]="homeShortcutLabel()" (click)="goToHome()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="5.8"></circle>
-        <path d="M12 4.2v2.1"></path>
-        <path d="M19.8 12h-2.1"></path>
-        <path d="M12 19.8v-2.1"></path>
-        <path d="M4.2 12h2.1"></path>
-        <circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"></circle>
-      </svg>
-    </button>
+    <a
+      class="site-nav__home motion-control"
+      routerLink="/"
+      fragment="home-top"
+      [routerLinkActiveOptions]="{ exact: true }"
+      routerLinkActive="active"
+      [attr.aria-label]="homeShortcutLabel()"
+      (click)="goToHome($event)"
+    >
+      <span class="site-nav__home-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5.8"></circle>
+          <path d="M12 4.2v2.1"></path>
+          <path d="M19.8 12h-2.1"></path>
+          <path d="M12 19.8v-2.1"></path>
+          <path d="M4.2 12h2.1"></path>
+          <circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"></circle>
+        </svg>
+      </span>
+      <span class="site-nav__home-label">{{ content().homeLabel }}</span>
+    </a>
     <a class="motion-control" routerLink="/projects" routerLinkActive="active">{{ content().projectsLabel }}</a>
     <a class="motion-control" routerLink="/skills" routerLinkActive="active">{{ content().skillsLabel }}</a>
     <a class="motion-control" routerLink="/contact" routerLinkActive="active">{{ content().contactLabel }}</a>
