@@ -3,9 +3,9 @@ spring:
     activate:
       on-profile: test
   datasource:
-    url: ${PORTFOLIO_TEST_DB_URL:${PORTFOLIO_DB_URL:jdbc:postgresql://localhost:5432/portfolio_db}}
-    username: ${PORTFOLIO_TEST_DB_USERNAME:${PORTFOLIO_DB_USERNAME:postgres}}
-    password: ${PORTFOLIO_TEST_DB_PASSWORD:${PORTFOLIO_DB_PASSWORD:postgres}}
+    url: ${PORTFOLIO_TEST_DB_URL}
+    username: ${PORTFOLIO_TEST_DB_USERNAME}
+    password: ${PORTFOLIO_TEST_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       initialization-fail-timeout: 0
@@ -15,6 +15,9 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
+  test:
+    database:
+      replace: none
 
 logging:
   level:
