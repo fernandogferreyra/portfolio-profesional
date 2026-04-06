@@ -1,18 +1,18 @@
 spring:
+  config:
+    activate:
+      on-profile: test
   datasource:
-    url: jdbc:h2:mem:portfolio_backend_test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${PORTFOLIO_TEST_DB_URL:${PORTFOLIO_DB_URL:jdbc:postgresql://localhost:5432/portfolio_db}}
+    username: ${PORTFOLIO_TEST_DB_USERNAME:${PORTFOLIO_DB_USERNAME:postgres}}
+    password: ${PORTFOLIO_TEST_DB_PASSWORD:${PORTFOLIO_DB_PASSWORD:postgres}}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      initialization-fail-timeout: 0
+      connection-timeout: 3000
+      maximum-pool-size: 2
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        format_sql: false
-        jdbc:
-          time_zone: UTC
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
 

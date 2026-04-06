@@ -5,9 +5,17 @@ spring:
   output:
     ansi:
       enabled: ALWAYS
+  datasource:
+    url: ${PORTFOLIO_DB_URL:jdbc:postgresql://localhost:5432/portfolio_db}
+    username: ${PORTFOLIO_DB_USERNAME:postgres}
+    password: ${PORTFOLIO_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      initialization-fail-timeout: -1
+      connection-timeout: 3000
+      maximum-pool-size: 5
   jpa:
-    hibernate:
-      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 debug: false
 
