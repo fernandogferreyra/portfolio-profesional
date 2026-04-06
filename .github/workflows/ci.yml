@@ -43,6 +43,24 @@ jobs:
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
+    env:
+      PORTFOLIO_DB_URL: jdbc:postgresql://localhost:5432/portfolio_db
+      PORTFOLIO_DB_USERNAME: postgres
+      PORTFOLIO_DB_PASSWORD: postgres
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: portfolio_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d portfolio_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: backend
