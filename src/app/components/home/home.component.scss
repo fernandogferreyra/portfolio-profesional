@@ -117,27 +117,8 @@
   text-transform: uppercase;
 }
 
-.home-hero__title,
-.home-section-title {
-  margin: 0;
-  background: linear-gradient(
-    135deg,
-    var(--color-text) 0%,
-    var(--color-primary) 62%,
-    var(--color-accent) 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .home-hero__title {
   max-width: 12ch;
-  font-size: clamp(3rem, 7vw, 5rem);
-  line-height: 0.96;
-  letter-spacing: -0.05em;
-  text-wrap: balance;
-  text-wrap-style: balance;
 }
 
 .home-hero__subtitle {
@@ -169,14 +150,15 @@
 
 .home-overview {
   display: grid;
-  grid-template-columns: minmax(0, 1.16fr) minmax(300px, 0.84fr);
-  gap: 1.35rem;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 1.5rem;
   align-items: start;
 }
 
+.home-main-column,
 .home-side-column {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.35rem;
   align-content: start;
 }
 
@@ -200,9 +182,12 @@
   gap: 0.7rem;
 }
 
+.home-section-heading--compact {
+  gap: 0.45rem;
+}
+
 .home-section-title {
-  font-size: clamp(1.45rem, 2.7vw, 2.2rem);
-  line-height: 1.08;
+  margin: 0;
 }
 
 .home-section-intro {
@@ -384,19 +369,19 @@
 }
 
 .home-technical-base {
+  gap: 1.1rem;
+}
+
+.home-technical-base__top {
+  display: grid;
   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  column-gap: 1.5rem;
-  row-gap: 1rem;
+  gap: 1.3rem;
   align-items: start;
 }
 
-.home-technical-base .home-section-heading {
-  grid-column: 1;
-}
-
-.base-category-list,
-.base-category-detail {
-  grid-column: 2;
+.home-technical-base__top .base-category-list {
+  justify-content: flex-start;
+  align-self: start;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -414,8 +399,7 @@
 
 @media (max-width: 960px) {
   .home-hero,
-  .home-overview,
-  .home-technical-base {
+  .home-overview {
     grid-template-columns: 1fr;
   }
 
@@ -435,10 +419,8 @@
     padding: 1.6rem;
   }
 
-  .home-technical-base .home-section-heading,
-  .base-category-list,
-  .base-category-detail {
-    grid-column: auto;
+  .home-technical-base__top {
+    grid-template-columns: 1fr;
   }
 }
 

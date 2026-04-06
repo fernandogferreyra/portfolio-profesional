@@ -1,8 +1,12 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 
+import { ContactMessagePayload, ContactService } from '../../services/contact.service';
 import { LanguageService } from '../../services/language.service';
 
 type ContactChannelIconId = 'email' | 'phone' | 'linkedin' | 'github' | 'document';
+type ContactFormControlName = 'name' | 'email' | 'context' | 'subject' | 'message';
+type ContactFormState = 'idle' | 'submitting' | 'success' | 'error';
 
 interface ContactChannel {
   id: string;
@@ -27,11 +31,20 @@ interface ContactChannelIcon {
   styleUrl: './contact.component.scss',
 })
 export class ContactComponent {
+  private readonly formBuilder = inject(FormBuilder);
   private readonly languageService = inject(LanguageService);
+  private readonly contactService = inject(ContactService);
 
-  readonly emailHref =
-    'mailto:fernandogabrielf@gmail.com?subject=Contacto%20profesional%20desde%20portfolio';
+  readonly contactRecipient = 'fernandogabrielf@gmail.com';
   readonly currentLanguage = this.languageService.language;
+  readonly formState = signal<ContactFormState>('idle');
+  readonly contactForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+    context: ['', [Validators.maxLength(120)]],
+    subject: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(120)]],
+    message: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(1200)]],
+  });
   readonly channelIcons: Record<ContactChannelIconId, ContactChannelIcon> = {
     email: {
       viewBox: '0 0 24 24',
@@ -62,12 +75,32 @@ export class ContactComponent {
           intro:
             'Estoy abierto a conversaciones profesionales sobre roles, colaboraciones y desarrollo de software. Abajo tenes los canales directos y la informacion que me ayuda a responder con contexto.',
           channelsTitle: 'Canales directos',
-          formTitle: 'Como prefiero recibir una propuesta',
+          formTitle: 'Enviar mensaje',
           formDescription:
-            'Comparti nombre, empresa o proyecto, objetivo del contacto y stack involucrado. Ese contexto me permite responder con mas precision.',
-          formButtonLabel: 'Escribirme por email',
+            'Completa el formulario con el contexto principal. Queda preparado para integrarse con backend sin cambiar la experiencia de uso.',
+          formDestinationLabel: 'Destino',
+          nameLabel: 'Nombre',
+          namePlaceholder: 'Tu nombre completo',
+          emailLabel: 'Email',
+          emailPlaceholder: 'nombre@empresa.com',
+          contextLabel: 'Empresa o proyecto',
+          contextPlaceholder: 'Empresa, equipo o producto',
+          subjectLabel: 'Asunto',
+          subjectPlaceholder: 'Motivo del contacto',
+          messageLabel: 'Mensaje',
+          messagePlaceholder: 'Contame el contexto, stack involucrado y objetivo del contacto.',
+          formButtonLabel: 'Enviar mensaje',
+          formSubmittingLabel: 'Enviando...',
+          formSuccessLabel: 'Mensaje enviado. El flujo quedó listo para conectarlo a un backend de correo.',
+          formErrorLabel: 'No se pudo procesar el envío. Intenta nuevamente en unos segundos.',
+          sentAlertLabel: 'Mensaje enviado',
+          validationRequired: 'Este campo es obligatorio.',
+          validationEmail: 'Ingresa un email válido.',
+          validationName: 'Ingresa al menos 2 caracteres.',
+          validationSubject: 'Ingresa al menos 4 caracteres.',
+          validationMessage: 'Ingresa al menos 20 caracteres.',
           formNote:
-            'Tambien podes contactarme por LinkedIn para procesos formales o conversaciones iniciales.',
+            'El envío es simulado desde frontend y ya está estructurado para una futura integración con API o backend.',
           availabilityTitle: 'Disponibilidad',
         }
       : {
@@ -76,15 +109,46 @@ export class ContactComponent {
           intro:
             'I am open to professional conversations about roles, collaborations, and software development work. Below you will find direct channels and the context that helps me respond clearly.',
           channelsTitle: 'Direct channels',
-          formTitle: 'How I prefer to receive an opportunity brief',
+          formTitle: 'Send message',
           formDescription:
-            'Share your name, company or project, the reason for the contact, and the stack involved. That context helps me respond with more precision.',
-          formButtonLabel: 'Email me',
+            'Fill in the form with the main context. It is already prepared to integrate with a backend later without changing the UX.',
+          formDestinationLabel: 'Recipient',
+          nameLabel: 'Name',
+          namePlaceholder: 'Your full name',
+          emailLabel: 'Email',
+          emailPlaceholder: 'name@company.com',
+          contextLabel: 'Company or project',
+          contextPlaceholder: 'Company, team, or product',
+          subjectLabel: 'Subject',
+          subjectPlaceholder: 'Reason for contact',
+          messageLabel: 'Message',
+          messagePlaceholder: 'Share the context, stack involved, and the goal of the conversation.',
+          formButtonLabel: 'Send message',
+          formSubmittingLabel: 'Sending...',
+          formSuccessLabel: 'Message sent. The flow is ready to connect to a future mail backend.',
+          formErrorLabel: 'The submission could not be processed. Please try again in a few seconds.',
+          sentAlertLabel: 'Message sent',
+          validationRequired: 'This field is required.',
+          validationEmail: 'Enter a valid email address.',
+          validationName: 'Enter at least 2 characters.',
+          validationSubject: 'Enter at least 4 characters.',
+          validationMessage: 'Enter at least 20 characters.',
           formNote:
-            'You can also reach out through LinkedIn for formal processes or an initial conversation.',
+            'Submission is simulated on the frontend and already structured for a future API or backend integration.',
           availabilityTitle: 'Availability',
         },
   );
+  readonly isSubmitting = computed(() => this.formState() === 'submitting');
+  readonly formFeedback = computed(() => {
+    switch (this.formState()) {
+      case 'success':
+        return this.ui().formSuccessLabel;
+      case 'error':
+        return this.ui().formErrorLabel;
+      default:
+        return '';
+    }
+  });
   readonly channels = computed<ContactChannel[]>(() =>
     this.currentLanguage() === 'es'
       ? [
@@ -95,7 +159,6 @@ export class ContactComponent {
             label: 'Gmail / Email',
             value: 'fernandogabrielf@gmail.com',
             note: 'Canal principal para oportunidades profesionales y conversaciones tecnicas.',
-            href: 'mailto:fernandogabrielf@gmail.com',
           },
           {
             id: 'phone',
@@ -144,7 +207,6 @@ export class ContactComponent {
             label: 'Gmail / Email',
             value: 'fernandogabrielf@gmail.com',
             note: 'Primary channel for professional opportunities and technical conversations.',
-            href: 'mailto:fernandogabrielf@gmail.com',
           },
           {
             id: 'phone',
@@ -186,43 +248,6 @@ export class ContactComponent {
           },
         ],
   );
-  readonly briefItems = computed(() =>
-    this.currentLanguage() === 'es'
-      ? [
-          {
-            id: 'name',
-            label: 'Nombre',
-            value: 'Tu nombre, rol y empresa o equipo.',
-          },
-          {
-            id: 'scope',
-            label: 'Proyecto o contexto',
-            value: 'Producto, area tecnica involucrada y objetivo del contacto.',
-          },
-          {
-            id: 'stack',
-            label: 'Stack y alcance',
-            value: 'Tecnologias, modalidad de trabajo, alcance estimado y tiempos.',
-          },
-        ]
-      : [
-          {
-            id: 'name',
-            label: 'Name',
-            value: 'Your name, role, and company or team.',
-          },
-          {
-            id: 'scope',
-            label: 'Project or context',
-            value: 'Product, technical area involved, and reason for the contact.',
-          },
-          {
-            id: 'stack',
-            label: 'Stack and scope',
-            value: 'Technologies, work mode, estimated scope, and timeline.',
-          },
-        ],
-  );
   readonly availability = computed(() =>
     this.currentLanguage() === 'es'
       ? ['Oportunidades profesionales', 'Colaboracion tecnica', 'Proyectos freelance']
@@ -231,5 +256,79 @@ export class ContactComponent {
 
   hasHref(channel: ContactChannel): boolean {
     return Boolean(channel.href);
+  }
+
+  controlError(controlName: ContactFormControlName): string | null {
+    const control = this.contactForm.controls[controlName];
+
+    if (!(control.invalid && (control.touched || control.dirty))) {
+      return null;
+    }
+
+    if (control.hasError('required')) {
+      return this.ui().validationRequired;
+    }
+
+    if (control.hasError('email')) {
+      return this.ui().validationEmail;
+    }
+
+    if (controlName === 'name' && control.hasError('minlength')) {
+      return this.ui().validationName;
+    }
+
+    if (controlName === 'subject' && control.hasError('minlength')) {
+      return this.ui().validationSubject;
+    }
+
+    if (controlName === 'message' && control.hasError('minlength')) {
+      return this.ui().validationMessage;
+    }
+
+    return null;
+  }
+
+  async submitContactForm(): Promise<void> {
+    this.formState.set('idle');
+
+    if (this.contactForm.invalid) {
+      this.contactForm.markAllAsTouched();
+      return;
+    }
+
+    this.formState.set('submitting');
+
+    try {
+      await this.contactService.submitMessage(this.buildPayload());
+      this.formState.set('success');
+      this.contactForm.reset({
+        name: '',
+        email: '',
+        context: '',
+        subject: '',
+        message: '',
+      });
+      this.contactForm.markAsPristine();
+      this.contactForm.markAsUntouched();
+      globalThis.alert?.(this.ui().sentAlertLabel);
+    } catch {
+      this.formState.set('error');
+    }
+  }
+
+  private buildPayload(): ContactMessagePayload {
+    const rawValue = this.contactForm.getRawValue();
+
+    return {
+      to: this.contactRecipient,
+      name: rawValue.name.trim(),
+      email: rawValue.email.trim(),
+      context: rawValue.context.trim(),
+      subject: rawValue.subject.trim(),
+      message: rawValue.message.trim(),
+      language: this.currentLanguage(),
+      source: 'portfolio-contact-form',
+      submittedAt: new Date().toISOString(),
+    };
   }
 }

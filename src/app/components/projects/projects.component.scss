@@ -20,23 +20,6 @@
   max-width: 72ch;
 }
 
-.projects-hero h1,
-.project-card h2,
-.project-detail__copy h2 {
-  margin: 0;
-  color: var(--color-text);
-}
-
-.projects-hero h1 {
-  font-size: clamp(2.25rem, 4vw, 3.8rem);
-  line-height: 1.04;
-  letter-spacing: -0.045em;
-  background: linear-gradient(135deg, var(--color-text), var(--color-primary) 60%, var(--color-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
 .projects-hero__lead,
 .project-card__summary,
 .project-card__meta,
@@ -152,10 +135,6 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.project-card h2 {
-  font-size: 1.3rem;
 }
 
 .project-card__summary,
@@ -310,12 +289,6 @@ button.project-action {
 
 .project-detail {
   view-transition-name: selected-project-detail;
-}
-
-.project-detail-card h3,
-.project-modal h3 {
-  margin: 0;
-  color: var(--color-text);
 }
 
 .project-list {

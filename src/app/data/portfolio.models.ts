@@ -21,10 +21,14 @@ export type SkillCategoryId =
   | 'frontend'
   | 'data'
   | 'tools'
-  | 'ai';
+  | 'ai'
+  | 'soft';
+
+export type SkillLevelId = 'basic' | 'intermediate' | 'advanced';
 
 export type SkillIconId =
   | 'java'
+  | 'javascript'
   | 'cplusplus'
   | 'python'
   | 'spring'
@@ -46,7 +50,13 @@ export type SkillIconId =
   | 'architecture'
   | 'security'
   | 'ai'
-  | 'llm';
+  | 'llm'
+  | 'problemSolving'
+  | 'analyticalThinking'
+  | 'adaptability'
+  | 'teamwork'
+  | 'autonomy'
+  | 'continuousLearning';
 
 export interface SkillCategoryDefinition {
   id: SkillCategoryId;
@@ -68,6 +78,8 @@ export interface PortfolioSkill {
   name: string;
   category: SkillCategoryId;
   description: LocalizedText;
+  tags?: LocalizedText[];
+  showLevel?: boolean;
   featured?: boolean;
 }
 

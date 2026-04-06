@@ -343,7 +343,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         },
         {
           title: 'Frontend',
-          skills: ['Angular', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Bootstrap'],
+          skills: ['Angular', 'TypeScript', 'JavaScript', 'HTML', 'CSS'],
         },
         {
           title: 'Bases de datos',
@@ -670,7 +670,7 @@ export const translations: Record<Language, TranslationDictionary> = {
         },
         {
           title: 'Frontend',
-          skills: ['Angular', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Bootstrap'],
+          skills: ['Angular', 'TypeScript', 'JavaScript', 'HTML', 'CSS'],
         },
         {
           title: 'Databases',

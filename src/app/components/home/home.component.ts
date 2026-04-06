@@ -33,7 +33,7 @@ export class HomeComponent {
           title: 'Fullstack Developer',
           subtitle: 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
           lead:
-            'Desarrollo aplicaciones de punta a punta, con especial foco en backend, arquitectura y diseno de APIs escalables.',
+            'Desarrollo aplicaciones de punta a punta, con especial foco en backend, arquitectura y diseño de APIs escalables.',
         }
       : {
           eyebrow: 'Fernando G. Ferreyra',
@@ -59,25 +59,25 @@ export class HomeComponent {
   readonly about = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Sobre mi',
+          eyebrow: 'Sobre mí',
           title: 'Recorrido y perfil actual',
           lead:
-            'Mi recorrido profesional comenzo en electronica, informatica y diagnostico de sistemas. Esa base tecnica hoy se traduce en una forma de trabajar orientada al analisis, la integracion y el desarrollo fullstack con foco backend.',
+            'Más de 15 años de experiencia técnica en electrónica e informática me dieron una base práctica para diagnosticar fallas, reparar equipos y resolver problemas complejos. Esa trayectoria hoy se complementa con mi formación como desarrollador y un perfil orientado al desarrollo fullstack.',
           paragraphs: [
-            'Durante anos trabaje con hardware, reparacion, mantenimiento, soporte tecnico y puesta a punto de equipos. Esa experiencia me dio criterio para diagnosticar fallas, entender sistemas completos y resolver problemas de forma practica.',
-            'Con esa base avance hacia el desarrollo de software, complete la Tecnicatura Universitaria en Programacion en UTN FRC y empece a trabajar con Java, Spring Boot, .NET, Angular y bases de datos relacionales y no relacionales.',
-            'Hoy trabajo como fullstack developer con foco en backend, APIs y microservicios, manteniendo una mirada integral para conectar frontend, datos, servicios y herramientas de despliegue.',
+            'Durante más de una década trabajé de forma hands-on en electrónica e informática, interviniendo equipos, analizando fallas y resolviendo problemas reales en hardware, audio, video y entornos de PC.',
+            'Con el tiempo trasladé esa experiencia al software, completé la Tecnicatura Universitaria en Programación en UTN FRC y comencé a desarrollar aplicaciones web con frontend, backend, APIs y bases de datos.',
+            'Hoy consolido un perfil técnico integral: combino criterio de diagnóstico, trabajo práctico y una formación reciente en desarrollo para aportar en proyectos con una mirada completa del problema.',
           ],
         }
       : {
           eyebrow: 'About',
           title: 'Background and current profile',
           lead:
-            'My professional path started in electronics, IT, and systems diagnostics. That technical base now translates into a way of working focused on analysis, integration, and fullstack development with a backend focus.',
+            'More than 15 years of technical experience in electronics and IT gave me a practical foundation to diagnose failures, repair equipment, and solve complex problems. Today that path is complemented by my software training and a profile oriented toward fullstack development.',
           paragraphs: [
-            'For years I worked with hardware, repair, maintenance, technical support, and system setup. That experience gave me judgment to diagnose failures, understand complete systems, and solve problems in a practical way.',
-            'With that foundation I moved into software development, completed the University Programming Technician degree at UTN FRC, and started working with Java, Spring Boot, .NET, Angular, and both relational and non-relational databases.',
-            'Today I work as a fullstack developer with a backend focus on APIs and microservices, while keeping the broader view needed to connect frontend, data, services, and delivery tooling.',
+            'For more than a decade I worked hands-on in electronics and IT, intervening equipment, analyzing failures, and solving real problems across hardware, audio, video, and PC environments.',
+            'Over time I brought that experience into software, completed the University Programming Technician degree at UTN FRC, and started building web applications across frontend, backend, APIs, and databases.',
+            'Today I am consolidating a well-rounded technical profile: I combine diagnostic judgment, practical execution, and recent software training to contribute to projects with a complete view of the problem.',
           ],
         },
   );
@@ -85,74 +85,96 @@ export class HomeComponent {
   readonly technicalBase = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Recorrido tecnico',
-          title: 'Trayectoria tecnica',
-          description:
-            'Una base construida en electronica, informatica y desarrollo, con experiencia practica en diagnostico, mantenimiento e integracion de sistemas.',
-          ariaLabel: 'Categorias de recorrido tecnico',
+          eyebrow: 'Recorrido técnico',
+          title: 'Experiencia técnica',
+          description: '',
+          ariaLabel: 'Categorías de experiencia técnica',
           categories: [
             {
               id: 'electronics' as const,
-              label: 'Electronica',
+              label: 'Electrónica',
               description:
-                'Trabajo sobre diagnostico, reparacion, mantenimiento y analisis de fallas en equipos y hardware.',
-              items: ['Diagnostico', 'Reparacion', 'Mantenimiento', 'Hardware'],
+                'Experiencia práctica en audio y video, hardware de videojuegos, consolas, PC, monitores y arcades, con trabajo directo en diagnóstico, reparación y programación de memorias.',
+              items: [
+                'Audio y video',
+                'Consolas y hardware de videojuegos',
+                'PC, notebooks y periféricos',
+                'Monitores y arcades',
+                'Programación de memorias',
+              ],
             },
             {
               id: 'it' as const,
-              label: 'Informatica',
+              label: 'Informática',
               description:
-                'Soporte tecnico y puesta a punto de equipos, sistemas operativos y entornos de usuario.',
+                'Soporte técnico, instalación, mantenimiento y puesta a punto de equipos y entornos de trabajo, con criterio para resolver fallas de hardware, software y conectividad.',
               items: [
-                'Instalacion de sistemas operativos',
-                'Formateos',
-                'Redes basicas',
-                'Mantenimiento',
-                'Arquitectura de PC',
+                'Instalación y configuración',
+                'Sistemas operativos',
+                'Mantenimiento preventivo',
+                'Redes y conectividad',
+                'Soporte técnico',
               ],
             },
             {
               id: 'development' as const,
               label: 'Desarrollo',
               description:
-                'Trabajo actual centrado en backend, integracion entre servicios y desarrollo fullstack.',
-              items: ['Backend', 'APIs', 'Microservicios', 'Integracion', 'Desarrollo fullstack'],
+                'Desarrollo de aplicaciones web fullstack, trabajando tanto en frontend como en backend, con experiencia en APIs, bases de datos y buenas prácticas de desarrollo. Actualmente en etapa de consolidación profesional, ampliando experiencia en proyectos reales.',
+              items: [
+                'Frontend + Backend',
+                'APIs',
+                'Bases de datos',
+                'Buenas prácticas',
+                'Aprendizaje continuo',
+              ],
             },
           ],
         }
       : {
-          eyebrow: 'Technical path',
-          title: 'Technical background',
-          description:
-            'A foundation built in electronics, IT, and software, with practical experience in diagnostics, maintenance, and systems integration.',
-          ariaLabel: 'Technical background categories',
+          eyebrow: 'Technical background',
+          title: 'Technical experience',
+          description: '',
+          ariaLabel: 'Technical experience categories',
           categories: [
             {
               id: 'electronics' as const,
               label: 'Electronics',
               description:
-                'Hands-on work around diagnostics, repair, maintenance, and hardware fault analysis.',
-              items: ['Diagnostics', 'Repair', 'Maintenance', 'Hardware'],
+                'Hands-on experience in audio and video equipment, gaming hardware, consoles, PCs, monitors, and arcade systems, including diagnostics, repair, and memory programming.',
+              items: [
+                'Audio and video',
+                'Consoles and gaming hardware',
+                'PCs, laptops, and peripherals',
+                'Monitors and arcades',
+                'Memory programming',
+              ],
             },
             {
               id: 'it' as const,
               label: 'IT',
               description:
-                'Technical support and system setup across operating systems and end-user environments.',
+                'Technical support, installation, maintenance, and workstation setup with a practical approach to hardware, software, and connectivity issues.',
               items: [
-                'Operating system installation',
-                'Formatting',
-                'Basic networking',
-                'Maintenance',
-                'PC architecture',
+                'Installation and setup',
+                'Operating systems',
+                'Preventive maintenance',
+                'Networking and connectivity',
+                'Technical support',
               ],
             },
             {
               id: 'development' as const,
               label: 'Development',
               description:
-                'Current work centered on backend, service integration, and fullstack delivery.',
-              items: ['Backend', 'APIs', 'Microservices', 'Integration', 'Fullstack development'],
+                'Fullstack web application development across frontend and backend, with experience in APIs, databases, and development practices while building real-project experience.',
+              items: [
+                'Frontend + Backend',
+                'APIs',
+                'Databases',
+                'Best practices',
+                'Continuous learning',
+              ],
             },
           ],
         },
@@ -161,43 +183,33 @@ export class HomeComponent {
   readonly credentials = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Formacion y certificaciones',
-          title: 'Base academica y credenciales tecnicas',
-          description:
-            'Resumen pensado para reunir formacion formal y futuras certificaciones con referencia institucional y contexto tecnico.',
+          eyebrow: 'Formación y credenciales',
+          title: 'Base académica y credenciales técnicas',
+          description: '',
           highlights: [
             {
-              label: 'Formacion base',
-              value: 'Tecnicatura Universitaria en Programacion - UTN FRC.',
+              label: 'Formación profesional',
+              value: 'Técnico Universitario en Programación - UTN FRC',
             },
             {
               label: 'Perfil actual',
-              value: 'Backend, APIs, arquitectura e integracion de sistemas.',
-            },
-            {
-              label: 'Proxima incorporacion',
-              value: 'Credenciales y certificados tecnicos con institucion, imagen y descripcion breve.',
+              value: 'Desarrollo de software, APIs y arquitectura backend.',
             },
           ],
-          actionLabel: 'Ver formacion y certificaciones',
+          actionLabel: 'Ver formación y credenciales',
         }
       : {
           eyebrow: 'Education and certifications',
           title: 'Academic foundation and technical credentials',
-          description:
-            'A structured summary intended to gather formal education and future certifications with institutional reference and technical context.',
+          description: '',
           highlights: [
             {
-              label: 'Core education',
-              value: 'University Programming Technician degree - UTN FRC.',
+              label: 'Professional training',
+              value: 'University Programming Technician - UTN FRC',
             },
             {
               label: 'Current profile',
-              value: 'Backend, APIs, architecture, and systems integration.',
-            },
-            {
-              label: 'Next addition',
-              value: 'Technical credentials and certificates with institution, image, and concise description.',
+              value: 'Software development, APIs, and backend architecture.',
             },
           ],
           actionLabel: 'View education and certifications',
@@ -207,16 +219,16 @@ export class HomeComponent {
   readonly workAreasSection = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Areas de trabajo',
-          title: 'Foco actual',
+          eyebrow: 'Perfil técnico',
+          title: 'Stack y enfoque',
           description:
-            'Distribucion estimada de mi perfil tecnico segun el tipo de trabajo que hoy realizo con mayor frecuencia.',
+            'Distribución estimada de mi stack actual y de las áreas donde hoy aporto más valor dentro del desarrollo de software.',
         }
       : {
-          eyebrow: 'Work areas',
-          title: 'Current focus',
+          eyebrow: 'Technical profile',
+          title: 'Stack and focus',
           description:
-            'Estimated distribution of my technical profile based on the type of work I currently do most often.',
+            'Estimated view of my current stack and the areas where I currently bring the most value in software development.',
         },
   );
 
@@ -225,41 +237,53 @@ export class HomeComponent {
       ? [
           {
             label: 'Backend',
-            level: 90,
+            level: 88,
             description:
-              'Java, Spring Boot, .NET, APIs REST, seguridad, microservicios e integracion entre servicios.',
+              'Java, Spring Boot, .NET, diseño de APIs, seguridad y lógica de negocio para servicios mantenibles.',
           },
           {
-            label: 'Fullstack',
+            label: 'Frontend',
+            level: 74,
+            description:
+              'Angular, TypeScript, componentes reutilizables, consumo de APIs y resolución visual orientada a producto.',
+          },
+          {
+            label: 'Data',
+            level: 70,
+            description:
+              'Modelado relacional, consultas SQL, PostgreSQL y persistencia para flujos transaccionales y operativos.',
+          },
+          {
+            label: 'Herramientas',
             level: 76,
             description:
-              'Desarrollo end-to-end conectando backend, frontend Angular, datos y flujo funcional.',
-          },
-          {
-            label: 'Tools / Infraestructura',
-            level: 72,
-            description:
-              'Docker, Git, Maven, bases de datos, testing y entornos reproducibles para desarrollo.',
+              'Docker, Git, Maven, Postman y tooling de desarrollo para entornos reproducibles y trabajo diario.',
           },
         ]
       : [
           {
             label: 'Backend',
-            level: 90,
+            level: 88,
             description:
-              'Java, Spring Boot, .NET, REST APIs, security, microservices, and service integration.',
+              'Java, Spring Boot, .NET, API design, security, and business logic for maintainable services.',
           },
           {
-            label: 'Fullstack',
+            label: 'Frontend',
+            level: 74,
+            description:
+              'Angular, TypeScript, reusable components, API consumption, and product-oriented visual execution.',
+          },
+          {
+            label: 'Data',
+            level: 70,
+            description:
+              'Relational modeling, SQL querying, PostgreSQL, and persistence for transactional and operational flows.',
+          },
+          {
+            label: 'Tools',
             level: 76,
             description:
-              'End-to-end development connecting backend, Angular frontend, data, and functional flow.',
-          },
-          {
-            label: 'Tools / Infrastructure',
-            level: 72,
-            description:
-              'Docker, Git, Maven, databases, testing, and reproducible environments for development work.',
+              'Docker, Git, Maven, Postman, and daily development tooling for reproducible environments.',
           },
         ],
   );

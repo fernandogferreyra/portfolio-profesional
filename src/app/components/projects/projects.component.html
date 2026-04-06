@@ -2,7 +2,7 @@
   <section class="surface-card projects-hero" aria-labelledby="projects-title" appRevealOnScroll>
     <div class="projects-hero__copy">
       <p class="section-eyebrow">{{ ui().eyebrow }}</p>
-      <h1 id="projects-title">{{ ui().title }}</h1>
+      <h1 id="projects-title" class="portfolio-page-title">{{ ui().title }}</h1>
       <p class="projects-hero__lead">{{ ui().intro }}</p>
       <p class="projects-hero__lead">{{ ui().supportingIntro }}</p>
     </div>
@@ -22,7 +22,7 @@
     >
       <button
         type="button"
-        class="project-card motion-panel"
+        class="project-card motion-panel portfolio-subcard"
         [class.is-active]="project.id === selectedProjectId()"
         [attr.aria-expanded]="project.id === selectedProjectId()"
         aria-controls="project-detail-panel"
@@ -50,7 +50,7 @@
 
           <div class="project-card__copy">
             <p class="project-card__meta">{{ project.category }} | {{ project.year }}</p>
-            <h2>{{ project.name }}</h2>
+            <h2 class="portfolio-card-title">{{ project.name }}</h2>
           </div>
         </div>
 
@@ -87,7 +87,7 @@
     <div class="project-detail__overview">
       <div class="project-detail__copy">
         <p class="section-eyebrow">{{ ui().detailEyebrow }}</p>
-        <h2 id="project-detail-title">{{ project.name }}</h2>
+        <h2 id="project-detail-title" class="portfolio-section-title">{{ project.name }}</h2>
         <p class="project-detail__meta">{{ project.category }} | {{ project.year }}</p>
         <p class="project-detail__lead">{{ project.description }}</p>
 
@@ -157,7 +157,7 @@
 
     <div class="project-metrics">
       <article
-        class="project-metric motion-panel"
+        class="project-metric motion-panel portfolio-subcard"
         *ngFor="let metric of project.metrics; let i = index"
         appRevealOnScroll
         [revealDelay]="80 + i * 40"
@@ -169,23 +169,23 @@
 
     <div class="project-details-grid">
       <article
-        class="project-detail-card motion-panel"
+        class="project-detail-card motion-panel portfolio-subcard"
         *ngFor="let section of project.sections; let i = index"
         appRevealOnScroll
         [revealDelay]="120 + i * 45"
       >
-        <h3>{{ section.title }}</h3>
+        <h3 class="portfolio-card-title">{{ section.title }}</h3>
         <ul class="project-list">
           <li *ngFor="let item of section.items">{{ item }}</li>
         </ul>
       </article>
 
       <article
-        class="project-detail-card motion-panel"
+        class="project-detail-card motion-panel portfolio-subcard"
         appRevealOnScroll
         [revealDelay]="120 + project.sections.length * 45"
       >
-        <h3>{{ ui().stackTitle }}</h3>
+        <h3 class="portfolio-card-title">{{ ui().stackTitle }}</h3>
         <div class="project-stack">
           <span class="project-tech" *ngFor="let tech of project.stack; trackBy: trackByTechnologyName">
             <span class="project-tech__icon">
@@ -206,11 +206,11 @@
       </article>
 
       <article
-        class="project-detail-card motion-panel"
+        class="project-detail-card motion-panel portfolio-subcard"
         appRevealOnScroll
         [revealDelay]="165 + project.sections.length * 45"
       >
-        <h3>{{ ui().featuresTitle }}</h3>
+        <h3 class="portfolio-card-title">{{ ui().featuresTitle }}</h3>
         <ul class="project-list">
           <li *ngFor="let feature of project.features">{{ feature }}</li>
         </ul>
@@ -238,7 +238,7 @@
       </button>
 
       <p class="section-eyebrow">{{ ui().demoEyebrow }}</p>
-      <h3 id="project-modal-title">{{ project.name }}</h3>
+      <h3 id="project-modal-title" class="portfolio-card-title">{{ project.name }}</h3>
       <p id="project-modal-description">{{ project.description }}</p>
 
       <div class="project-video" *ngIf="activeProjectEmbedUrl() as embedUrl">

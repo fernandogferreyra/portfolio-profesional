@@ -1,20 +1,25 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 
-import { PORTFOLIO_SKILLS, SKILL_CATEGORIES, SKILL_ICONS } from '../../data/portfolio.data';
-import { SkillCategoryId, SkillIconId, localizeText } from '../../data/portfolio.models';
+import { PORTFOLIO_SKILLS, SKILL_CATEGORIES, SKILL_ICONS, SKILL_LEVELS } from '../../data/portfolio.data';
+import {
+  SkillCategoryId,
+  SkillIconDefinition,
+  SkillLevelId,
+  localizeText,
+} from '../../data/portfolio.models';
 import { LanguageService } from '../../services/language.service';
-import { MotionService } from '../../services/motion.service';
 
-type SkillsFilterId = 'all' | SkillCategoryId;
+type ShowcaseLaneDirection = 'left' | 'right';
 
 interface SkillView {
   id: string;
-  icon: SkillIconId;
+  icon: SkillIconDefinition;
   name: string;
   description: string;
-  categoryId: SkillCategoryId;
-  categoryLabel: string;
-  featured: boolean;
+  tags: string[];
+  level?: SkillLevelId;
+  levelLabel?: string;
+  showLevel: boolean;
 }
 
 interface CategoryView {
@@ -24,6 +29,50 @@ interface CategoryView {
   skills: SkillView[];
 }
 
+interface FocusAreaView {
+  id: SkillCategoryId;
+  label: string;
+  width: string;
+}
+
+interface ShowcaseLaneView {
+  id: string;
+  label: string;
+  direction: ShowcaseLaneDirection;
+  duration: string;
+  skills: SkillView[];
+}
+
+const TECHNICAL_FOCUS_IDS: SkillCategoryId[] = ['backend', 'frontend', 'data', 'tools', 'ai'];
+const LANE_ORDER: SkillCategoryId[] = ['backend', 'frontend', 'data', 'tools', 'ai', 'soft'];
+
+const LANE_DIRECTION: Record<SkillCategoryId, ShowcaseLaneDirection> = {
+  backend: 'left',
+  frontend: 'right',
+  data: 'left',
+  tools: 'right',
+  ai: 'left',
+  soft: 'right',
+};
+
+const LANE_DURATION: Record<SkillCategoryId, string> = {
+  backend: '78s',
+  frontend: '72s',
+  data: '74s',
+  tools: '84s',
+  ai: '76s',
+  soft: '88s',
+};
+
+const FOCUS_WIDTH: Record<SkillCategoryId, string> = {
+  backend: '96%',
+  frontend: '74%',
+  data: '64%',
+  tools: '82%',
+  ai: '68%',
+  soft: '0%',
+};
+
 @Component({
   selector: 'app-skills',
   standalone: false,
@@ -32,44 +81,31 @@ interface CategoryView {
 })
 export class SkillsComponent {
   private readonly languageService = inject(LanguageService);
-  private readonly motionService = inject(MotionService);
 
   readonly currentLanguage = this.languageService.language;
-  readonly activeFilter = signal<SkillsFilterId>('all');
-  readonly skillIcons = SKILL_ICONS;
-  readonly totalSkills = PORTFOLIO_SKILLS.length;
-  readonly totalCategories = SKILL_CATEGORIES.length;
-  readonly featuredCount = PORTFOLIO_SKILLS.filter((skill) => skill.featured).length;
+  readonly laneCopies = [0, 1] as const;
 
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Skills',
-          title: 'Stack tecnico organizado por areas de trabajo.',
+          title: 'Stack técnico organizado por áreas clave.',
           intro:
-            'Tecnologias y herramientas utilizadas en backend, frontend, data y flujo de desarrollo.',
-          overviewTitle: 'Stack profesional',
-          overviewDescription:
-            'Conjunto de tecnologias con las que trabajo en desarrollo fullstack, con foco principal en backend.',
-          filtersAriaLabel: 'Filtrar skills por categoria',
-          allLabel: 'Todas',
-          skillStatLabel: 'tecnologias',
-          categoryStatLabel: 'areas',
-          featuredStatLabel: 'skills foco',
+            'Tecnologías, herramientas y capacidades de trabajo organizadas en un flujo visual continuo, claro y profesional.',
+          focusTitle: 'Enfoque técnico',
+          lanesTitle: 'Stack por áreas',
+          lanesDescription:
+            'Cada fila reúne tecnologías o habilidades relacionadas dentro del mismo lenguaje visual, con movimiento suave y lectura rápida.',
         }
       : {
           eyebrow: 'Skills',
-          title: 'Technical stack organized by work area.',
+          title: 'Technical stack organized by core areas.',
           intro:
-            'Technologies and tools used across backend, frontend, data, and the development workflow.',
-          overviewTitle: 'Professional stack',
-          overviewDescription:
-            'Set of technologies I use in fullstack development, with a primary focus on backend work.',
-          filtersAriaLabel: 'Filter skills by category',
-          allLabel: 'All',
-          skillStatLabel: 'technologies',
-          categoryStatLabel: 'areas',
-          featuredStatLabel: 'focus skills',
+            'Technologies, tools, and working capabilities organized in a continuous, clear, and professional visual flow.',
+          focusTitle: 'Technical focus',
+          lanesTitle: 'Stack by area',
+          lanesDescription:
+            'Each lane groups related technologies or capabilities within the same visual language, with subtle motion and quick scanning.',
         },
   );
 
@@ -80,62 +116,78 @@ export class SkillsComponent {
       id: category.id,
       label: localizeText(category.label, language),
       description: localizeText(category.description, language),
-      skills: PORTFOLIO_SKILLS.filter((skill) => skill.category === category.id).map((skill) => ({
-        id: skill.id,
-        icon: skill.icon,
-        name: skill.name,
-        description: localizeText(skill.description, language),
-        categoryId: category.id,
-        categoryLabel: localizeText(category.label, language),
-        featured: Boolean(skill.featured),
-      })),
+      skills: PORTFOLIO_SKILLS.filter((skill) => skill.category === category.id).map((skill) => {
+        const level = SKILL_LEVELS[skill.id];
+
+        return {
+          id: skill.id,
+          icon: SKILL_ICONS[skill.icon],
+          name: skill.name,
+          description: localizeText(skill.description, language),
+          tags: (skill.tags ?? []).map((tag) => localizeText(tag, language)),
+          level,
+          levelLabel: level ? this.localizeLevel(level, language) : undefined,
+          showLevel: skill.showLevel !== false && Boolean(level),
+        };
+      }),
     }));
   });
 
-  readonly featuredSkills = computed(() =>
+  readonly focusAreas = computed<FocusAreaView[]>(() =>
     this.categories()
-      .flatMap((category) => category.skills)
-      .filter((skill) => skill.featured),
+      .filter((category) => TECHNICAL_FOCUS_IDS.includes(category.id))
+      .map((category) => ({
+        id: category.id,
+        label: category.label,
+        width: FOCUS_WIDTH[category.id],
+      })),
   );
-  readonly showFeaturedSkills = computed(() => this.activeFilter() === 'all');
 
-  readonly filterOptions = computed(() => [
-    {
-      id: 'all' as const,
-      label: this.ui().allLabel,
-    },
-    ...this.categories().map((category) => ({
-      id: category.id,
-      label: category.label,
-    })),
-  ]);
+  readonly showcaseLanes = computed<ShowcaseLaneView[]>(() => {
+    const categoriesById = new Map(this.categories().map((category) => [category.id, category] as const));
 
-  readonly visibleCategories = computed(() => {
-    const activeFilter = this.activeFilter();
-    return activeFilter === 'all'
-      ? this.categories()
-      : this.categories().filter((category) => category.id === activeFilter);
+    return LANE_ORDER.map((categoryId) => categoriesById.get(categoryId))
+      .filter((category): category is CategoryView => Boolean(category))
+      .map((category) => ({
+        id: `lane-${category.id}`,
+        label: category.label,
+        direction: LANE_DIRECTION[category.id],
+        duration: LANE_DURATION[category.id],
+        skills: category.skills,
+      }));
   });
-
-  setFilter(filter: SkillsFilterId): void {
-    if (filter === this.activeFilter()) {
-      return;
-    }
-
-    this.motionService.runWithViewTransition(() => {
-      this.activeFilter.set(filter);
-    });
-  }
-
-  isFilterActive(filter: SkillsFilterId): boolean {
-    return this.activeFilter() === filter;
-  }
-
-  trackByCategoryId(_index: number, category: CategoryView): SkillCategoryId {
-    return category.id;
-  }
 
   trackBySkillId(_index: number, skill: SkillView): string {
     return skill.id;
+  }
+
+  trackByLaneId(_index: number, lane: ShowcaseLaneView): string {
+    return lane.id;
+  }
+
+  trackByFocusId(_index: number, item: FocusAreaView): SkillCategoryId {
+    return item.id;
+  }
+
+  private localizeLevel(level: SkillLevelId, language: 'es' | 'en'): string {
+    if (language === 'es') {
+      switch (level) {
+        case 'basic':
+          return 'Básico';
+        case 'intermediate':
+          return 'Intermedio';
+        default:
+          return 'Avanzado';
+      }
+    }
+
+    switch (level) {
+      case 'basic':
+        return 'Basic';
+      case 'intermediate':
+        return 'Intermediate';
+      default:
+        return 'Advanced';
+    }
   }
 }
