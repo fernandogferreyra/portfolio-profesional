@@ -1,5 +1,6 @@
 package com.fernandogferreyra.portfolio.backend;
 
+import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -53,19 +54,27 @@ class ApiIntegrationTest {
                 .content("""
                     {
                       "name": "Fernando Ferreyra",
-                      "email": "fer@example.com",
-                      "subject": "Consulta portfolio",
-                      "message": "Quiero conversar sobre una oportunidad backend."
+                      "email": "FER@EXAMPLE.COM",
+                      "message": "Quiero conversar sobre una oportunidad backend.",
+                      "source": "portfolio-web",
+                      "context": "contact-form",
+                      "language": "es",
+                      "userAgent": "Mozilla/5.0",
+                      "submittedAt": "2026-04-06T16:00:00Z",
+                      "extraField": "ignored"
                     }
                     """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.status").value("NEW"));
+            .andExpect(jsonPath("$.message").value("Message received successfully"))
+            .andExpect(jsonPath("$.data.id").isNotEmpty())
+            .andExpect(jsonPath("$.data.createdAt").isNotEmpty());
 
         var persistedMessages = contactMessageRepository.findAll();
         org.junit.jupiter.api.Assertions.assertEquals(1, persistedMessages.size());
         org.junit.jupiter.api.Assertions.assertEquals(ContactMessageStatus.NEW, persistedMessages.get(0).getStatus());
         org.junit.jupiter.api.Assertions.assertEquals("fer@example.com", persistedMessages.get(0).getEmail());
+        org.junit.jupiter.api.Assertions.assertEquals("Portfolio contact", persistedMessages.get(0).getSubject());
     }
 
     @Test
@@ -76,13 +85,13 @@ class ApiIntegrationTest {
                     {
                       "name": "",
                       "email": "invalid",
-                      "subject": "Hi",
-                      "message": "short"
+                      "message": "   "
                     }
                     """))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.success").value(false))
-            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.errors[*].field", hasItems("name", "email", "message")));
     }
 
     @Test

@@ -21,7 +21,7 @@ public class ContactController {
 
     @PostMapping("/contact")
     public ApiResponse<ContactResponse> submit(@Valid @RequestBody ContactRequest request) {
-        return ApiResponse.success("Contact message accepted", contactService.submit(request));
+        return ApiResponse.success("Message received successfully", contactService.submit(request));
     }
 }
 
