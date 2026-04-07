@@ -41,10 +41,50 @@
     <a class="motion-control" routerLink="/projects" routerLinkActive="active">{{ content().projectsLabel }}</a>
     <a class="motion-control" routerLink="/skills" routerLinkActive="active">{{ content().skillsLabel }}</a>
     <a class="motion-control" routerLink="/contact" routerLinkActive="active">{{ content().contactLabel }}</a>
+    <a
+      *ngIf="authService.isAdmin()"
+      class="motion-control"
+      routerLink="/control-center"
+      routerLinkActive="active"
+    >
+      {{ controlCenterLabel() }}
+    </a>
   </nav>
 
   <div class="header-actions">
     <div class="header-controls">
+      <button
+        *ngIf="!authService.isAuthenticated()"
+        type="button"
+        class="theme-menu__trigger motion-control"
+        [attr.aria-label]="privateAccessAriaLabel()"
+        (click)="openLoginModal()"
+      >
+        <span aria-hidden="true">+</span>
+        <span>{{ privateAccessLabel() }}</span>
+      </button>
+
+      <div
+        *ngIf="authService.isAuthenticated()"
+        style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;"
+      >
+        <button
+          type="button"
+          class="theme-menu__trigger motion-control"
+          (click)="goToControlCenter()"
+        >
+          {{ adminStatusLabel() }} · {{ authService.session()?.username || 'FERCHUZ' }}
+        </button>
+
+        <button
+          type="button"
+          class="theme-menu__trigger motion-control"
+          (click)="logout()"
+        >
+          {{ logoutLabel() }}
+        </button>
+      </div>
+
       <div class="theme-menu" [class.is-open]="themeMenuOpen()">
         <button
           type="button"

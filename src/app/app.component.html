@@ -6,7 +6,7 @@
 </div>
 
 <div class="app-shell">
-  <app-header></app-header>
+  <app-header (privateAccessRequested)="openLoginModal()"></app-header>
 
   <main class="app-main">
     <router-outlet></router-outlet>
@@ -14,3 +14,9 @@
 
   <app-footer></app-footer>
 </div>
+
+<app-admin-login-modal
+  *ngIf="loginModalOpen()"
+  (closed)="closeLoginModal()"
+  (authenticated)="onAuthenticated()"
+></app-admin-login-modal>

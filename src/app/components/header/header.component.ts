@@ -1,10 +1,11 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Output, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { PORTFOLIO_THEMES } from '../../data/portfolio.data';
 import { ThemeId, localizeText } from '../../data/portfolio.models';
 import { translations } from '../../i18n/translations';
+import { AuthService } from '../../services/auth.service';
 import { LanguageService } from '../../services/language.service';
 import { ThemeService } from '../../services/theme.service';
 
@@ -21,6 +22,9 @@ export class HeaderComponent {
   private readonly router = inject(Router);
   private readonly viewportScroller = inject(ViewportScroller);
 
+  @Output() readonly privateAccessRequested = new EventEmitter<void>();
+
+  readonly authService = inject(AuthService);
   readonly currentLanguage = this.languageService.language;
   readonly activeTheme = this.themeService.activeTheme;
   readonly brandAvatarUrl = 'images/profile-photo.jpg';
@@ -48,6 +52,23 @@ export class HeaderComponent {
   readonly homeShortcutLabel = computed(() =>
     this.currentLanguage() === 'es' ? 'Ir al inicio' : 'Go home',
   );
+  readonly privateAccessLabel = computed(() =>
+    this.currentLanguage() === 'es' ? 'Acceso privado' : 'Private access',
+  );
+  readonly privateAccessAriaLabel = computed(() =>
+    this.currentLanguage() === 'es'
+      ? 'Abrir acceso privado para administrador'
+      : 'Open private admin access',
+  );
+  readonly controlCenterLabel = computed(() =>
+    this.currentLanguage() === 'es' ? 'Centro de Mando' : 'Control Center',
+  );
+  readonly adminStatusLabel = computed(() =>
+    this.currentLanguage() === 'es' ? 'Admin activo' : 'Admin active',
+  );
+  readonly logoutLabel = computed(() =>
+    this.currentLanguage() === 'es' ? 'Salir' : 'Logout',
+  );
 
   toggleLanguage(): void {
     this.languageService.toggleLanguage();
@@ -68,6 +89,28 @@ export class HeaderComponent {
   selectTheme(themeId: ThemeId): void {
     this.setTheme(themeId);
     this.closeThemeMenu();
+  }
+
+  openLoginModal(): void {
+    this.closeThemeMenu();
+    this.privateAccessRequested.emit();
+  }
+
+  goToControlCenter(): void {
+    if (!this.authService.isAdmin()) {
+      this.openLoginModal();
+      return;
+    }
+
+    void this.router.navigate(['/control-center']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+
+    if (this.router.url.startsWith('/control-center')) {
+      void this.router.navigate(['/'], { fragment: 'home-top' });
+    }
   }
 
   goToHome(event?: Event): void {

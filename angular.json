@@ -71,7 +71,8 @@
               "buildTarget": "portfolio-ferchuz:build:production"
             },
             "development": {
-              "buildTarget": "portfolio-ferchuz:build:development"
+              "buildTarget": "portfolio-ferchuz:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
