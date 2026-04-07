@@ -50,6 +50,67 @@ info:
 app:
   cors:
     allowed-origins: ${PORTFOLIO_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
+  quote:
+    hourly-rate: 35.00
+    saas-module-multiplier: 1.15
+    complexity-multipliers:
+      LOW: 1.00
+      MEDIUM: 1.25
+      HIGH: 1.60
+    project-types:
+      LANDING_PAGE:
+        label: Landing page
+        multiplier: 0.80
+        saas: false
+      CORPORATE_WEBSITE:
+        label: Corporate website
+        multiplier: 1.00
+        saas: false
+      INTERNAL_TOOL:
+        label: Internal tool
+        multiplier: 1.20
+        saas: false
+      ECOMMERCE:
+        label: Ecommerce platform
+        multiplier: 1.45
+        saas: false
+      SAAS_PLATFORM:
+        label: SaaS platform
+        multiplier: 1.65
+        saas: true
+    modules:
+      DISCOVERY:
+        label: Discovery and planning
+        base-hours: 8.00
+        saas-eligible: false
+      UI_FOUNDATION:
+        label: UI foundation
+        base-hours: 12.00
+        saas-eligible: false
+      AUTHENTICATION:
+        label: Authentication and roles
+        base-hours: 16.00
+        saas-eligible: true
+      CORE_BACKEND:
+        label: Core backend API
+        base-hours: 22.00
+        saas-eligible: true
+      DASHBOARD:
+        label: Admin or client dashboard
+        base-hours: 20.00
+        saas-eligible: true
+      PAYMENTS:
+        label: Payments and subscriptions
+        base-hours: 18.00
+        saas-eligible: true
+      ANALYTICS:
+        label: Analytics and tracking
+        base-hours: 10.00
+        saas-eligible: true
+      DEVOPS:
+        label: Deployment and environments
+        base-hours: 14.00
+        saas-eligible: true
   security:
     jwt:
       secret: ${PORTFOLIO_JWT_SECRET}

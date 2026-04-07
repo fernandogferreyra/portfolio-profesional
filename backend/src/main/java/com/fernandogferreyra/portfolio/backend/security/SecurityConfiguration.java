@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                     "/api/contact",
                     "/api/projects",
                     "/api/events",
+                    "/api/quote",
                     "/api/auth/login",
                     "/actuator/health",
                     "/swagger-ui.html",
