@@ -27,6 +27,10 @@ export class QuoteService {
       .pipe(map((response) => response.data));
   }
 
+  saveQuote(payload: QuoteRequestPayload): Observable<QuoteResult> {
+    return this.generateQuote(payload);
+  }
+
   getQuotes(): Observable<QuoteAdminSummary[]> {
     return this.http
       .get<ApiResponse<QuoteAdminSummary[]>>('/api/admin/quotes')

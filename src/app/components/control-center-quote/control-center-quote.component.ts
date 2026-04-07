@@ -17,10 +17,14 @@ import {
   QuoteAdminSummary,
   QuoteComplexity,
   QuoteModuleCode,
+  QuoteRequestPayload,
+  QuoteResult,
   localizeQuoteText,
 } from '../../models/quote.models';
 import { LanguageService } from '../../services/language.service';
+import { QuotePreviewService } from '../../services/quote-preview.service';
 import { QuoteService } from '../../services/quote.service';
+import { SiteActivityService } from '../../services/site-activity.service';
 
 @Component({
   selector: 'app-control-center-quote',
@@ -32,7 +36,9 @@ export class ControlCenterQuoteComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(FormBuilder);
   private readonly languageService = inject(LanguageService);
+  private readonly quotePreviewService = inject(QuotePreviewService);
   private readonly quoteService = inject(QuoteService);
+  private readonly siteActivityService = inject(SiteActivityService);
 
   readonly currentLanguage = this.languageService.language;
   readonly moduleSelection = this.formBuilder.record(
@@ -49,12 +55,16 @@ export class ControlCenterQuoteComponent implements OnInit {
   });
 
   readonly calculating = signal(false);
+  readonly saving = signal(false);
   readonly loadingHistory = signal(false);
   readonly loadingHistoryDetail = signal(false);
   readonly formError = signal<string | null>(null);
+  readonly saveFeedback = signal<string | null>(null);
   readonly historyError = signal<string | null>(null);
   readonly historyDetailError = signal<string | null>(null);
-  readonly latestResult = signal<QuoteAdminDetail['resultJson']>(null);
+  readonly previewPayload = signal<QuoteRequestPayload | null>(null);
+  readonly previewResult = signal<QuoteResult | null>(null);
+  readonly previewSaved = signal(false);
   readonly history = signal<QuoteAdminSummary[]>([]);
   readonly selectedHistoryId = signal<string | null>(null);
   readonly selectedHistoryDetail = signal<QuoteAdminDetail | null>(null);
@@ -63,21 +73,30 @@ export class ControlCenterQuoteComponent implements OnInit {
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Cotizador',
-          title: 'Cotizacion privada conectada al backend',
+          title: 'Preview + guardado controlado',
           lead:
-            'Calcula horas, costo y desglose usando el motor real de quotes. Todo queda guardado y visible en el historial del admin.',
+            'Primero calcula una vista previa. Solo se persiste cuando decides guardarla en el backend.',
+          workflowNote:
+            'Preview local alineado a las reglas activas. El historial solo muestra cotizaciones guardadas.',
           formTitle: 'Configurar estimacion',
-          formLead: 'Selecciona tipo de proyecto, complejidad y modulos para generar una cotizacion inicial.',
+          formLead: 'Selecciona tipo de proyecto, complejidad y modulos para preparar una cotizacion.',
           projectTypeLabel: 'Tipo de proyecto',
           complexityLabel: 'Complejidad',
           modulesLabel: 'Modulos incluidos',
           selectedModulesLabel: 'seleccionados',
-          calculateLabel: 'Calcular cotizacion',
+          calculateLabel: 'Calcular preview',
+          previewReadyLabel: 'Preview listo',
           calculatingLabel: 'Calculando...',
+          saveLabel: 'Guardar cotizacion',
+          savingLabel: 'Guardando...',
+          newLabel: 'Nueva cotizacion',
+          discardLabel: 'Descartar',
+          previewStatusLabel: 'Preview sin guardar',
+          savedStatusLabel: 'Guardada en historial',
           resultTitle: 'Resultado actual',
-          resultLead: 'Desglose generado a partir del backend de cotizaciones.',
-          resultEmpty: 'Todavia no generaste una cotizacion en esta sesion.',
-          resultLoading: 'Calculando desglose y costo total...',
+          resultLead: 'Revisa horas, costo y desglose antes de persistir.',
+          resultEmpty: 'Calcula un preview para revisar la cotizacion antes de guardarla.',
+          resultLoading: 'Preparando preview de horas y costo total...',
           resultProjectLabel: 'Proyecto',
           resultComplexityLabel: 'Complejidad',
           resultTotalHoursLabel: 'Horas totales',
@@ -85,34 +104,44 @@ export class ControlCenterQuoteComponent implements OnInit {
           resultHourlyRateLabel: 'Tarifa',
           breakdownTitle: 'Desglose por item',
           historyTitle: 'Historial reciente',
-          historyLead: 'Resumen de cotizaciones guardadas para el admin.',
+          historyLead: 'Solo aparecen cotizaciones guardadas desde este Centro de Mando.',
           historyEmpty: 'Todavia no hay cotizaciones guardadas.',
           historyLoading: 'Cargando historial de cotizaciones...',
           historyDetailTitle: 'Detalle guardado',
           historyDetailLoading: 'Cargando detalle guardado...',
-          historyDetailEmpty: 'Selecciona una cotizacion del historial para revisar su desglose.',
+          historyDetailEmpty: 'Selecciona una cotizacion guardada para revisar su desglose.',
+          saveSuccess: 'Cotizacion guardada correctamente en el historial.',
           moduleValidationMessage: 'Selecciona al menos un modulo para calcular la cotizacion.',
-          genericGenerateError: 'No se pudo calcular la cotizacion. Intenta nuevamente.',
+          genericSaveError: 'No se pudo guardar la cotizacion. Intenta nuevamente.',
           genericHistoryError: 'No se pudo cargar el historial de cotizaciones.',
           genericHistoryDetailError: 'No se pudo cargar el detalle de la cotizacion seleccionada.',
         }
       : {
           eyebrow: 'Quote Engine',
-          title: 'Private quote module connected to the backend',
+          title: 'Preview + controlled persistence',
           lead:
-            'Estimate hours, cost, and breakdown using the real quote engine. Every result is stored and exposed in admin history.',
+            'First calculate a preview. It is only persisted when you explicitly save it through the backend.',
+          workflowNote:
+            'Local preview aligned with the active rules. History only shows stored quotes.',
           formTitle: 'Configure estimate',
-          formLead: 'Select project type, complexity, and modules to generate an initial quote.',
+          formLead: 'Select project type, complexity, and modules to prepare a quote.',
           projectTypeLabel: 'Project type',
           complexityLabel: 'Complexity',
           modulesLabel: 'Included modules',
           selectedModulesLabel: 'selected',
-          calculateLabel: 'Calculate quote',
+          calculateLabel: 'Calculate preview',
+          previewReadyLabel: 'Preview ready',
           calculatingLabel: 'Calculating...',
+          saveLabel: 'Save quote',
+          savingLabel: 'Saving...',
+          newLabel: 'New quote',
+          discardLabel: 'Discard',
+          previewStatusLabel: 'Preview not saved',
+          savedStatusLabel: 'Stored in history',
           resultTitle: 'Current result',
-          resultLead: 'Breakdown generated from the backend quote engine.',
-          resultEmpty: 'You have not generated a quote in this session yet.',
-          resultLoading: 'Calculating breakdown and total cost...',
+          resultLead: 'Review hours, cost, and breakdown before persisting it.',
+          resultEmpty: 'Calculate a preview to review the quote before saving it.',
+          resultLoading: 'Preparing preview hours and total cost...',
           resultProjectLabel: 'Project',
           resultComplexityLabel: 'Complexity',
           resultTotalHoursLabel: 'Total hours',
@@ -120,18 +149,20 @@ export class ControlCenterQuoteComponent implements OnInit {
           resultHourlyRateLabel: 'Hourly rate',
           breakdownTitle: 'Item breakdown',
           historyTitle: 'Recent history',
-          historyLead: 'Summary of stored quotes available to the admin.',
+          historyLead: 'Only quotes explicitly saved from this Control Center appear here.',
           historyEmpty: 'There are no stored quotes yet.',
           historyLoading: 'Loading quote history...',
           historyDetailTitle: 'Stored detail',
           historyDetailLoading: 'Loading stored quote detail...',
-          historyDetailEmpty: 'Select a quote from history to review its breakdown.',
+          historyDetailEmpty: 'Select a stored quote to review its breakdown.',
+          saveSuccess: 'Quote stored successfully in history.',
           moduleValidationMessage: 'Select at least one module to calculate a quote.',
-          genericGenerateError: 'The quote could not be calculated. Try again.',
+          genericSaveError: 'The quote could not be saved. Try again.',
           genericHistoryError: 'The quote history could not be loaded.',
           genericHistoryDetailError: 'The selected quote detail could not be loaded.',
         },
   );
+
   readonly projectOptions = computed(() =>
     QUOTE_PROJECT_TYPE_OPTIONS.map((option) => ({
       code: option.code,
@@ -162,41 +193,92 @@ export class ControlCenterQuoteComponent implements OnInit {
     );
     return selectedProject?.description ?? '';
   });
+  readonly hasPreview = computed(() => Boolean(this.previewPayload() && this.previewResult()));
+  readonly canSavePreview = computed(
+    () => this.hasPreview() && !this.previewSaved() && !this.saving(),
+  );
+  readonly isBuilderLocked = computed(() => this.hasPreview());
+  readonly previewStatus = computed(() =>
+    this.previewSaved() ? this.content().savedStatusLabel : this.content().previewStatusLabel,
+  );
 
   ngOnInit(): void {
     this.loadHistory(true);
   }
 
   submitQuote(): void {
-    const selectedModules = this.getSelectedModules();
+    const payload = this.buildPayload();
 
-    if (selectedModules.length === 0) {
+    if (payload.modules.length === 0) {
       this.formError.set(this.content().moduleValidationMessage);
       return;
     }
 
     this.formError.set(null);
+    this.saveFeedback.set(null);
     this.calculating.set(true);
 
+    try {
+      const preview = this.quotePreviewService.previewQuote(payload);
+      this.previewPayload.set(payload);
+      this.previewResult.set(preview);
+      this.previewSaved.set(false);
+      this.lockBuilder();
+      this.siteActivityService.trackQuotePreview();
+    } finally {
+      this.calculating.set(false);
+    }
+  }
+
+  saveQuote(): void {
+    const payload = this.previewPayload();
+
+    if (!payload || this.previewSaved()) {
+      return;
+    }
+
+    this.formError.set(null);
+    this.saveFeedback.set(null);
+    this.saving.set(true);
+
     this.quoteService
-      .generateQuote({
-        projectType: this.quoteForm.controls.projectType.value,
-        complexity: this.quoteForm.controls.complexity.value,
-        modules: selectedModules,
-      })
+      .saveQuote(payload)
       .pipe(
-        finalize(() => this.calculating.set(false)),
+        finalize(() => this.saving.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (result) => {
-          this.latestResult.set(result);
+        next: () => {
+          this.previewSaved.set(true);
+          this.saveFeedback.set(this.content().saveSuccess);
+          this.siteActivityService.trackQuoteSave();
           this.loadHistory(true);
         },
         error: (error) => {
-          this.formError.set(this.resolveErrorMessage(error, this.content().genericGenerateError));
+          this.formError.set(this.resolveErrorMessage(error, this.content().genericSaveError));
         },
       });
+  }
+
+  startNewQuote(): void {
+    this.resetFormState([]);
+    this.previewPayload.set(null);
+    this.previewResult.set(null);
+    this.previewSaved.set(false);
+    this.formError.set(null);
+    this.saveFeedback.set(null);
+    this.unlockBuilder();
+    this.siteActivityService.trackQuoteReset();
+  }
+
+  discardPreview(): void {
+    this.previewPayload.set(null);
+    this.previewResult.set(null);
+    this.previewSaved.set(false);
+    this.formError.set(null);
+    this.saveFeedback.set(null);
+    this.unlockBuilder();
+    this.siteActivityService.trackQuoteDiscard();
   }
 
   selectHistoryItem(quoteId: string): void {
@@ -285,10 +367,45 @@ export class ControlCenterQuoteComponent implements OnInit {
       });
   }
 
+  private buildPayload(): QuoteRequestPayload {
+    return {
+      projectType: this.quoteForm.controls.projectType.value,
+      complexity: this.quoteForm.controls.complexity.value,
+      modules: this.getSelectedModules(),
+    };
+  }
+
   private getSelectedModules(): QuoteModuleCode[] {
     return QUOTE_MODULE_OPTIONS.map((module) => module.code).filter((moduleCode) =>
       this.moduleSelection.get(moduleCode)?.value,
     );
+  }
+
+  private resetFormState(selectedModules: QuoteModuleCode[]): void {
+    this.quoteForm.reset(
+      {
+        projectType: DEFAULT_QUOTE_PROJECT_TYPE,
+        complexity: DEFAULT_QUOTE_COMPLEXITY,
+      },
+      { emitEvent: false },
+    );
+
+    for (const module of QUOTE_MODULE_OPTIONS) {
+      this.moduleSelection.get(module.code)?.setValue(
+        selectedModules.includes(module.code),
+        { emitEvent: false },
+      );
+    }
+  }
+
+  private lockBuilder(): void {
+    this.quoteForm.disable({ emitEvent: false });
+    this.moduleSelection.disable({ emitEvent: false });
+  }
+
+  private unlockBuilder(): void {
+    this.quoteForm.enable({ emitEvent: false });
+    this.moduleSelection.enable({ emitEvent: false });
   }
 
   private resolveErrorMessage(error: unknown, fallback: string): string {

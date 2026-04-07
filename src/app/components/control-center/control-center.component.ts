@@ -28,7 +28,7 @@ export class ControlCenterComponent {
           sessionRoleLabel: 'Rol',
           sessionStateLabel: 'Estado',
           sessionStateValue: 'Acceso operativo',
-          moduleCount: 4,
+          moduleCount: 5,
           modulesLabel: 'modulos listos',
           accessLabel: 'acceso seguro',
           toolsEyebrow: 'Workspace privado',
@@ -42,14 +42,6 @@ export class ControlCenterComponent {
               description:
                 'Bandeja para seguimiento de conversaciones, leads y automatizaciones operativas desde un unico punto.',
               tag: 'Canal interno',
-              status: 'Placeholder listo',
-              action: 'Proximamente',
-            },
-            {
-              title: 'Analytics',
-              description:
-                'Vista futura para eventos, embudo del portfolio y senales de uso relevantes para toma de decisiones.',
-              tag: 'Inteligencia operativa',
               status: 'Placeholder listo',
               action: 'Proximamente',
             },
@@ -74,7 +66,7 @@ export class ControlCenterComponent {
           sessionRoleLabel: 'Role',
           sessionStateLabel: 'State',
           sessionStateValue: 'Operational access',
-          moduleCount: 4,
+          moduleCount: 5,
           modulesLabel: 'modules ready',
           accessLabel: 'secure access',
           toolsEyebrow: 'Private workspace',
@@ -88,14 +80,6 @@ export class ControlCenterComponent {
               description:
                 'Inbox space for conversations, leads, and operational automations from a single internal surface.',
               tag: 'Internal channel',
-              status: 'Placeholder ready',
-              action: 'Coming soon',
-            },
-            {
-              title: 'Analytics',
-              description:
-                'Future view for events, portfolio funnel signals, and internal usage metrics that matter.',
-              tag: 'Operational intelligence',
               status: 'Placeholder ready',
               action: 'Coming soon',
             },

@@ -16,6 +16,7 @@ import { PORTFOLIO_PROJECTS, SKILL_ICONS } from '../../data/portfolio.data';
 import { ProjectActionType, SkillIconId, localizeText } from '../../data/portfolio.models';
 import { LanguageService } from '../../services/language.service';
 import { MotionService } from '../../services/motion.service';
+import { SiteActivityService } from '../../services/site-activity.service';
 
 interface ProjectActionView {
   id: string;
@@ -85,6 +86,7 @@ const STACK_ICON_RULES: Array<{ pattern: RegExp; icon: SkillIconId }> = [
 export class ProjectsComponent {
   private readonly languageService = inject(LanguageService);
   private readonly motionService = inject(MotionService);
+  private readonly siteActivityService = inject(SiteActivityService);
 
   @ViewChild('projectDialog') projectDialog?: ElementRef<HTMLElement>;
   @ViewChild('projectCloseButton') projectCloseButton?: ElementRef<HTMLButtonElement>;
@@ -197,6 +199,8 @@ export class ProjectsComponent {
       return;
     }
 
+    this.siteActivityService.trackProjectSelection(projectId);
+
     this.motionService.runWithViewTransition(() => {
       this.selectedProjectId.set(projectId);
     });
@@ -206,6 +210,8 @@ export class ProjectsComponent {
     if (!this.activeProject()?.media?.embedUrl) {
       return;
     }
+
+    this.siteActivityService.trackProjectDemoOpen(this.activeProject()?.id ?? 'unknown-project');
 
     if (event?.currentTarget instanceof HTMLElement) {
       this.lastFocusedElement = event.currentTarget;

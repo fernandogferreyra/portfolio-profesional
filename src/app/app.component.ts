@@ -1,4 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+
+import { SiteActivityService } from './services/site-activity.service';
 
 @Component({
   selector: 'app-root',
@@ -7,6 +9,8 @@ import { Component, signal } from '@angular/core';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
+  private readonly siteActivityService = inject(SiteActivityService);
+
   title = 'portfolio-ferchuz';
   readonly loginModalOpen = signal(false);
 

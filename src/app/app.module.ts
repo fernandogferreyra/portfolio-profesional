@@ -10,6 +10,8 @@ import { AdminLoginModalComponent } from './components/admin-login-modal/admin-l
 import { ContactComponent } from './components/contact/contact.component';
 import { ControlCenterComponent } from './components/control-center/control-center.component';
 import { ControlCenterQuoteComponent } from './components/control-center-quote/control-center-quote.component';
+import { ControlCenterQuoteMetricsComponent } from './components/control-center-quote-metrics/control-center-quote-metrics.component';
+import { ControlCenterSiteActivityComponent } from './components/control-center-site-activity/control-center-site-activity.component';
 import { CredentialsComponent } from './components/credentials/credentials.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -35,6 +37,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     CredentialsComponent,
     ControlCenterComponent,
     ControlCenterQuoteComponent,
+    ControlCenterQuoteMetricsComponent,
+    ControlCenterSiteActivityComponent,
     RevealOnScrollDirective,
   ],
   imports: [

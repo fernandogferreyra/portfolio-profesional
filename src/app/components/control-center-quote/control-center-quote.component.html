@@ -4,6 +4,7 @@
       <p class="section-eyebrow">{{ content().eyebrow }}</p>
       <h2 class="portfolio-section-title">{{ content().title }}</h2>
       <p>{{ content().lead }}</p>
+      <p class="quote-workbench__workflow-note">{{ content().workflowNote }}</p>
     </div>
   </div>
 
@@ -58,27 +59,34 @@
       <button
         type="submit"
         class="quote-workbench__submit motion-control"
-        [disabled]="calculating()"
+        [disabled]="calculating() || isBuilderLocked()"
       >
-        {{ calculating() ? content().calculatingLabel : content().calculateLabel }}
+        {{
+          calculating()
+            ? content().calculatingLabel
+            : (isBuilderLocked() ? content().previewReadyLabel : content().calculateLabel)
+        }}
       </button>
     </form>
 
     <div class="quote-workbench__side">
       <section class="quote-workbench__panel portfolio-subcard">
         <div class="quote-workbench__panel-heading">
-          <h3 class="portfolio-card-title">{{ content().resultTitle }}</h3>
+          <div class="quote-workbench__panel-topline">
+            <h3 class="portfolio-card-title">{{ content().resultTitle }}</h3>
+            <span class="quote-workbench__status-chip" *ngIf="hasPreview()">{{ previewStatus() }}</span>
+          </div>
           <p>{{ content().resultLead }}</p>
         </div>
 
         <p class="quote-workbench__state" *ngIf="calculating()">{{ content().resultLoading }}</p>
 
         <ng-container *ngIf="!calculating()">
-          <ng-container *ngIf="latestResult() as result; else resultEmpty">
+          <ng-container *ngIf="previewResult() as result; else resultEmpty">
             <div class="quote-workbench__result-grid">
               <div class="quote-workbench__metric">
                 <span>{{ content().resultProjectLabel }}</span>
-                <strong>{{ result.projectLabel }}</strong>
+                <strong>{{ getProjectLabel(result.projectType) }}</strong>
               </div>
 
               <div class="quote-workbench__metric">
@@ -101,6 +109,35 @@
                 <strong>USD {{ result.hourlyRate | number:'1.2-2' }}</strong>
               </div>
             </div>
+
+            <div class="quote-workbench__actions">
+              <button
+                type="button"
+                class="quote-workbench__action quote-workbench__action--primary motion-control"
+                (click)="saveQuote()"
+                [disabled]="!canSavePreview()"
+              >
+                {{ saving() ? content().savingLabel : content().saveLabel }}
+              </button>
+
+              <button
+                type="button"
+                class="quote-workbench__action motion-control"
+                (click)="startNewQuote()"
+              >
+                {{ content().newLabel }}
+              </button>
+
+              <button
+                type="button"
+                class="quote-workbench__action quote-workbench__action--ghost motion-control"
+                (click)="discardPreview()"
+              >
+                {{ content().discardLabel }}
+              </button>
+            </div>
+
+            <p class="quote-workbench__success" *ngIf="saveFeedback()">{{ saveFeedback() }}</p>
 
             <div class="quote-workbench__breakdown">
               <div class="quote-workbench__breakdown-head">
