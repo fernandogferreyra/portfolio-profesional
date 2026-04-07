@@ -21,41 +21,45 @@ export class ControlCenterComponent {
           eyebrow: 'Centro de Mando',
           title: 'Panel privado FERCHUZ',
           lead:
-            'Base inicial para operaciones internas. El portfolio público sigue intacto y este espacio concentra accesos administrativos futuros.',
-          statusLabel: 'Sesión activa',
-          logoutLabel: 'Cerrar sesión',
+            'Base inicial para operaciones internas. El portfolio publico sigue intacto y este espacio concentra accesos administrativos futuros.',
+          statusLabel: 'Sesion activa',
+          sessionLiveLabel: 'Online',
+          sessionUserLabel: 'Usuario',
+          sessionRoleLabel: 'Rol',
+          sessionStateLabel: 'Estado',
+          sessionStateValue: 'Acceso operativo',
+          moduleCount: 4,
+          modulesLabel: 'modulos listos',
+          accessLabel: 'acceso seguro',
+          toolsEyebrow: 'Workspace privado',
+          toolsTitle: 'Herramientas internas preparadas para crecer sin ensuciar el portfolio publico.',
+          toolsLead:
+            'Cada modulo ya tiene un espacio claro dentro del dashboard. El siguiente paso puede implementarse sobre esta base sin rehacer el layout.',
+          logoutLabel: 'Cerrar sesion',
           modules: [
             {
-              title: 'Cotizador',
+              title: 'Mensajeria',
               description:
-                'Entrada para cálculo de servicios, alcance, complejidad y armado de propuesta comercial.',
-              tag: 'Pipeline privado',
-              status: 'Placeholder listo',
-              action: 'Próximamente',
-            },
-            {
-              title: 'Mensajería',
-              description:
-                'Bandeja para seguimiento de conversaciones, leads y automatizaciones operativas desde un único punto.',
+                'Bandeja para seguimiento de conversaciones, leads y automatizaciones operativas desde un unico punto.',
               tag: 'Canal interno',
               status: 'Placeholder listo',
-              action: 'Próximamente',
+              action: 'Proximamente',
             },
             {
               title: 'Analytics',
               description:
-                'Vista futura para eventos, embudo del portfolio y señales de uso relevantes para toma de decisiones.',
+                'Vista futura para eventos, embudo del portfolio y senales de uso relevantes para toma de decisiones.',
               tag: 'Inteligencia operativa',
               status: 'Placeholder listo',
-              action: 'Próximamente',
+              action: 'Proximamente',
             },
             {
               title: 'Presupuestos PDF',
               description:
-                'Generación y gestión de documentos comerciales exportables con trazabilidad de versión y cliente.',
-              tag: 'Documentación',
+                'Generacion y gestion de documentos comerciales exportables con trazabilidad de version y cliente.',
+              tag: 'Documentacion',
               status: 'Placeholder listo',
-              action: 'Próximamente',
+              action: 'Proximamente',
             },
           ],
         }
@@ -65,16 +69,20 @@ export class ControlCenterComponent {
           lead:
             'Initial internal operations layer. The public portfolio remains untouched and this space centralizes future admin access points.',
           statusLabel: 'Active session',
+          sessionLiveLabel: 'Online',
+          sessionUserLabel: 'User',
+          sessionRoleLabel: 'Role',
+          sessionStateLabel: 'State',
+          sessionStateValue: 'Operational access',
+          moduleCount: 4,
+          modulesLabel: 'modules ready',
+          accessLabel: 'secure access',
+          toolsEyebrow: 'Private workspace',
+          toolsTitle: 'Internal tools arranged to scale without disturbing the public portfolio.',
+          toolsLead:
+            'Each module already has a clear place inside the dashboard. The next feature can plug into this layout without a visual reset.',
           logoutLabel: 'Sign out',
           modules: [
-            {
-              title: 'Quote Engine',
-              description:
-                'Entry point for pricing workflows, service scope, complexity, and proposal preparation.',
-              tag: 'Private pipeline',
-              status: 'Placeholder ready',
-              action: 'Coming soon',
-            },
             {
               title: 'Messaging',
               description:

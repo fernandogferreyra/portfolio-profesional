@@ -14,7 +14,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
   position: sticky;
   top: 1rem;
-  z-index: 10;
+  z-index: 120;
   transition:
     border-color var(--motion-fast) var(--ease-out),
     box-shadow var(--motion-base) var(--ease-out),
@@ -299,7 +299,7 @@
   border-radius: 18px;
   display: grid;
   gap: 0.28rem;
-  z-index: 12;
+  z-index: 180;
 }
 
 .theme-menu__option {

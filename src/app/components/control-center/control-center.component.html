@@ -2,14 +2,52 @@
   <div class="control-center__hero surface-card">
     <div class="control-center__hero-copy">
       <p class="section-eyebrow">{{ content().eyebrow }}</p>
-      <h1 class="portfolio-page-title">{{ content().title }}</h1>
-      <p class="control-center__lead">{{ content().lead }}</p>
+
+      <div class="control-center__hero-heading">
+        <h1 class="portfolio-page-title">{{ content().title }}</h1>
+        <p class="control-center__lead">{{ content().lead }}</p>
+      </div>
+
+      <div class="control-center__hero-metrics">
+        <div class="control-center__metric portfolio-subcard">
+          <strong>{{ content().moduleCount }}</strong>
+          <span>{{ content().modulesLabel }}</span>
+        </div>
+
+        <div class="control-center__metric portfolio-subcard">
+          <strong>{{ authService.session()?.tokenType || 'Bearer' }}</strong>
+          <span>{{ content().accessLabel }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="control-center__session portfolio-subcard">
-      <span class="control-center__session-label">{{ content().statusLabel }}</span>
-      <strong>{{ authService.session()?.username || 'FERCHUZ' }}</strong>
-      <span>{{ authService.session()?.role || 'ADMIN' }}</span>
+      <div class="control-center__session-top">
+        <span class="control-center__session-label">{{ content().statusLabel }}</span>
+        <span class="control-center__session-live">{{ content().sessionLiveLabel }}</span>
+      </div>
+
+      <div class="control-center__session-identity">
+        <strong>{{ authService.session()?.username || 'FERCHUZ' }}</strong>
+        <span>{{ authService.session()?.role || 'ROLE_FERCHUZ' }}</span>
+      </div>
+
+      <div class="control-center__session-grid">
+        <div class="control-center__session-item">
+          <span>{{ content().sessionUserLabel }}</span>
+          <strong>{{ authService.session()?.username || 'FERCHUZ' }}</strong>
+        </div>
+
+        <div class="control-center__session-item">
+          <span>{{ content().sessionRoleLabel }}</span>
+          <strong>{{ authService.session()?.role || 'ROLE_FERCHUZ' }}</strong>
+        </div>
+
+        <div class="control-center__session-item">
+          <span>{{ content().sessionStateLabel }}</span>
+          <strong>{{ content().sessionStateValue }}</strong>
+        </div>
+      </div>
 
       <button
         type="button"
@@ -21,26 +59,40 @@
     </div>
   </div>
 
+  <div class="control-center__tools-head">
+    <p class="section-eyebrow">{{ content().toolsEyebrow }}</p>
+    <h2 class="portfolio-section-title">{{ content().toolsTitle }}</h2>
+    <p>{{ content().toolsLead }}</p>
+  </div>
+
+  <app-control-center-quote></app-control-center-quote>
+
   <div class="control-center__grid">
     <article
       class="control-center__card surface-card motion-panel"
       *ngFor="let module of content().modules"
     >
-      <div class="control-center__card-top">
-        <span class="control-center__tag">{{ module.tag }}</span>
-        <span class="control-center__status">{{ module.status }}</span>
+      <div class="control-center__card-shell">
+        <div class="control-center__card-top">
+          <span class="control-center__tag">{{ module.tag }}</span>
+          <span class="control-center__status">{{ module.status }}</span>
+        </div>
+
+        <h2 class="portfolio-card-title">{{ module.title }}</h2>
+        <p>{{ module.description }}</p>
+
+        <div class="control-center__card-footer">
+          <span class="control-center__card-note">{{ module.status }}</span>
+
+          <button
+            type="button"
+            class="control-center__action motion-control"
+            disabled
+          >
+            {{ module.action }}
+          </button>
+        </div>
       </div>
-
-      <h2 class="portfolio-card-title">{{ module.title }}</h2>
-      <p>{{ module.description }}</p>
-
-      <button
-        type="button"
-        class="control-center__action motion-control"
-        disabled
-      >
-        {{ module.action }}
-      </button>
     </article>
   </div>
 </section>
