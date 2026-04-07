@@ -1,0 +1,39 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  output:
+    ansi:
+      enabled: ALWAYS
+  datasource:
+    url: ${PORTFOLIO_DB_URL:jdbc:postgresql://localhost:5432/portfolio_db}
+    username: ${PORTFOLIO_DB_USERNAME:postgres}
+    password: ${PORTFOLIO_DB_PASSWORD:123456}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      initialization-fail-timeout: -1
+      connection-timeout: 3000
+      maximum-pool-size: 5
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+debug: false
+
+logging:
+  level:
+    org.springframework: INFO
+    org.hibernate.SQL: INFO
+    com.fernandogferreyra.portfolio.backend: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%15.15t]){faint} %clr(%-42.42logger{42}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+
+app:
+  cors:
+    allowed-origins: ${PORTFOLIO_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200,http://localhost:4300}
+  security:
+    jwt:
+      secret: ${PORTFOLIO_JWT_SECRET:dev-jwt-secret-key-with-minimum-length-1234567890}
+    bootstrap-admin:
+      enabled: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:true}
+      username: ${PORTFOLIO_ADMIN_USERNAME:ferchuz}
+      password: ${PORTFOLIO_ADMIN_PASSWORD:ferchuz-dev-password}

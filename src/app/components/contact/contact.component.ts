@@ -1,7 +1,13 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 
-import { ContactMessagePayload, ContactService } from '../../services/contact.service';
+import {
+  ContactApiResponse,
+  ContactRequestPayload,
+  ContactService,
+} from '../../services/contact.service';
 import { LanguageService } from '../../services/language.service';
 
 type ContactChannelIconId = 'email' | 'phone' | 'linkedin' | 'github' | 'document';
@@ -38,12 +44,13 @@ export class ContactComponent {
   readonly contactRecipient = 'fernandogabrielf@gmail.com';
   readonly currentLanguage = this.languageService.language;
   readonly formState = signal<ContactFormState>('idle');
+  readonly serverMessage = signal('');
   readonly contactForm = this.formBuilder.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(80)]],
-    email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+    name: ['', [Validators.required, Validators.maxLength(120)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(180)]],
     context: ['', [Validators.maxLength(120)]],
-    subject: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(120)]],
-    message: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(1200)]],
+    subject: ['', [Validators.maxLength(160)]],
+    message: ['', [Validators.required, Validators.maxLength(2500)]],
   });
   readonly channelIcons: Record<ContactChannelIconId, ContactChannelIcon> = {
     email: {
@@ -77,7 +84,7 @@ export class ContactComponent {
           channelsTitle: 'Canales directos',
           formTitle: 'Enviar mensaje',
           formDescription:
-            'Completa el formulario con el contexto principal. Queda preparado para integrarse con backend sin cambiar la experiencia de uso.',
+            'Completa el formulario con el contexto principal y lo enviaremos al backend real.',
           formDestinationLabel: 'Destino',
           nameLabel: 'Nombre',
           namePlaceholder: 'Tu nombre completo',
@@ -91,16 +98,13 @@ export class ContactComponent {
           messagePlaceholder: 'Contame el contexto, stack involucrado y objetivo del contacto.',
           formButtonLabel: 'Enviar mensaje',
           formSubmittingLabel: 'Enviando...',
-          formSuccessLabel: 'Mensaje enviado. El flujo quedó listo para conectarlo a un backend de correo.',
-          formErrorLabel: 'No se pudo procesar el envío. Intenta nuevamente en unos segundos.',
-          sentAlertLabel: 'Mensaje enviado',
+          formSuccessLabel: 'Mensaje enviado correctamente.',
+          formErrorLabel: 'No se pudo procesar el envio. Intenta nuevamente en unos segundos.',
           validationRequired: 'Este campo es obligatorio.',
-          validationEmail: 'Ingresa un email válido.',
-          validationName: 'Ingresa al menos 2 caracteres.',
-          validationSubject: 'Ingresa al menos 4 caracteres.',
-          validationMessage: 'Ingresa al menos 20 caracteres.',
+          validationEmail: 'Ingresa un email valido.',
+          validationTooLong: 'El contenido supera el maximo permitido.',
           formNote:
-            'El envío es simulado desde frontend y ya está estructurado para una futura integración con API o backend.',
+            'El formulario usa el endpoint real del backend para registrar el mensaje.',
           availabilityTitle: 'Disponibilidad',
         }
       : {
@@ -111,7 +115,7 @@ export class ContactComponent {
           channelsTitle: 'Direct channels',
           formTitle: 'Send message',
           formDescription:
-            'Fill in the form with the main context. It is already prepared to integrate with a backend later without changing the UX.',
+            'Fill in the form with the main context and it will be sent to the real backend.',
           formDestinationLabel: 'Recipient',
           nameLabel: 'Name',
           namePlaceholder: 'Your full name',
@@ -125,30 +129,18 @@ export class ContactComponent {
           messagePlaceholder: 'Share the context, stack involved, and the goal of the conversation.',
           formButtonLabel: 'Send message',
           formSubmittingLabel: 'Sending...',
-          formSuccessLabel: 'Message sent. The flow is ready to connect to a future mail backend.',
+          formSuccessLabel: 'Message sent successfully.',
           formErrorLabel: 'The submission could not be processed. Please try again in a few seconds.',
-          sentAlertLabel: 'Message sent',
           validationRequired: 'This field is required.',
           validationEmail: 'Enter a valid email address.',
-          validationName: 'Enter at least 2 characters.',
-          validationSubject: 'Enter at least 4 characters.',
-          validationMessage: 'Enter at least 20 characters.',
+          validationTooLong: 'The content exceeds the maximum allowed length.',
           formNote:
-            'Submission is simulated on the frontend and already structured for a future API or backend integration.',
+            'This form uses the real backend endpoint to register the message.',
           availabilityTitle: 'Availability',
         },
   );
   readonly isSubmitting = computed(() => this.formState() === 'submitting');
-  readonly formFeedback = computed(() => {
-    switch (this.formState()) {
-      case 'success':
-        return this.ui().formSuccessLabel;
-      case 'error':
-        return this.ui().formErrorLabel;
-      default:
-        return '';
-    }
-  });
+  readonly formFeedback = computed(() => this.serverMessage());
   readonly channels = computed<ContactChannel[]>(() =>
     this.currentLanguage() === 'es'
       ? [
@@ -273,16 +265,8 @@ export class ContactComponent {
       return this.ui().validationEmail;
     }
 
-    if (controlName === 'name' && control.hasError('minlength')) {
-      return this.ui().validationName;
-    }
-
-    if (controlName === 'subject' && control.hasError('minlength')) {
-      return this.ui().validationSubject;
-    }
-
-    if (controlName === 'message' && control.hasError('minlength')) {
-      return this.ui().validationMessage;
+    if (control.hasError('maxlength')) {
+      return this.ui().validationTooLong;
     }
 
     return null;
@@ -290,6 +274,7 @@ export class ContactComponent {
 
   async submitContactForm(): Promise<void> {
     this.formState.set('idle');
+    this.serverMessage.set('');
 
     if (this.contactForm.invalid) {
       this.contactForm.markAllAsTouched();
@@ -299,36 +284,58 @@ export class ContactComponent {
     this.formState.set('submitting');
 
     try {
-      await this.contactService.submitMessage(this.buildPayload());
-      this.formState.set('success');
-      this.contactForm.reset({
-        name: '',
-        email: '',
-        context: '',
-        subject: '',
-        message: '',
-      });
-      this.contactForm.markAsPristine();
-      this.contactForm.markAsUntouched();
-      globalThis.alert?.(this.ui().sentAlertLabel);
-    } catch {
-      this.formState.set('error');
+      const response = await firstValueFrom(this.contactService.sendContact(this.buildPayload()));
+      this.handleSuccess(response);
+    } catch (error) {
+      this.handleError(error);
     }
   }
 
-  private buildPayload(): ContactMessagePayload {
+  private handleSuccess(response: ContactApiResponse): void {
+    this.formState.set('success');
+    this.serverMessage.set(response.message || this.ui().formSuccessLabel);
+    this.contactForm.reset({
+      name: '',
+      email: '',
+      context: '',
+      subject: '',
+      message: '',
+    });
+    this.contactForm.markAsPristine();
+    this.contactForm.markAsUntouched();
+  }
+
+  private handleError(error: unknown): void {
+    this.formState.set('error');
+    this.serverMessage.set(this.resolveErrorMessage(error));
+  }
+
+  private buildPayload(): ContactRequestPayload {
     const rawValue = this.contactForm.getRawValue();
+    const subject = rawValue.subject.trim();
 
     return {
-      to: this.contactRecipient,
       name: rawValue.name.trim(),
       email: rawValue.email.trim(),
-      context: rawValue.context.trim(),
-      subject: rawValue.subject.trim(),
       message: rawValue.message.trim(),
+      subject: subject || undefined,
+      source: 'portfolio-web',
+      context: 'contact-form',
       language: this.currentLanguage(),
-      source: 'portfolio-contact-form',
+      userAgent: globalThis.navigator?.userAgent || undefined,
       submittedAt: new Date().toISOString(),
     };
+  }
+
+  private resolveErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse) {
+      const backendMessage = error.error?.message;
+
+      if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+        return backendMessage;
+      }
+    }
+
+    return this.ui().formErrorLabel;
   }
 }

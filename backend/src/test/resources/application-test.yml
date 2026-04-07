@@ -1,0 +1,33 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: ${PORTFOLIO_TEST_DB_URL}
+    username: ${PORTFOLIO_TEST_DB_USERNAME}
+    password: ${PORTFOLIO_TEST_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      initialization-fail-timeout: 0
+      connection-timeout: 3000
+      maximum-pool-size: 2
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+  test:
+    database:
+      replace: none
+
+logging:
+  level:
+    com.fernandogferreyra.portfolio.backend: INFO
+
+app:
+  security:
+    jwt:
+      secret: ${PORTFOLIO_TEST_JWT_SECRET:${PORTFOLIO_JWT_SECRET:test-jwt-secret-key-with-minimum-length-1234567890}}
+    bootstrap-admin:
+      enabled: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:true}
+      username: ${PORTFOLIO_ADMIN_USERNAME:ferchuz}
+      password: ${PORTFOLIO_ADMIN_PASSWORD:ferchuz-test-password}

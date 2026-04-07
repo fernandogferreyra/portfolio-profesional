@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 'feature/**'
   pull_request:
     branches:
       - main
@@ -38,3 +39,47 @@ jobs:
         with:
           name: portfolio-build
           path: dist/portfolio-ferchuz/browser
+
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    env:
+      SPRING_PROFILES_ACTIVE: test
+      PORTFOLIO_TEST_DB_URL: jdbc:postgresql://localhost:5432/portfolio_db
+      PORTFOLIO_TEST_DB_USERNAME: postgres
+      PORTFOLIO_TEST_DB_PASSWORD: postgres
+      PORTFOLIO_JWT_SECRET: ci-test-jwt-secret-key-with-minimum-length-1234567890
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: portfolio_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d portfolio_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Make Maven Wrapper executable
+        run: chmod +x mvnw
+
+      - name: Run backend tests
+        run: ./mvnw test
