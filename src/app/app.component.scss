@@ -65,6 +65,10 @@
   z-index: 1;
 }
 
+.app-shell > app-header {
+  z-index: 3;
+}
+
 .app-main {
   flex: 1;
   min-width: 0;

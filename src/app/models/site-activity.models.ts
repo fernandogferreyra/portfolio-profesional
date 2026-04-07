@@ -2,7 +2,8 @@ export type SiteActivityEventType =
   | 'section_view'
   | 'project_interaction'
   | 'contact_interaction'
-  | 'quote_interaction';
+  | 'quote_interaction'
+  | 'estimator_interaction';
 
 export interface SiteActivityEvent {
   id: string;

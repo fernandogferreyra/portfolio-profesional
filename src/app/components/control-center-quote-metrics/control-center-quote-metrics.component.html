@@ -8,9 +8,6 @@
     </div>
   </div>
 
-  <p class="quote-metrics-panel__state" *ngIf="loading()">{{ content().loading }}</p>
-  <p class="quote-metrics-panel__error" *ngIf="error()">{{ error() }}</p>
-
   <ng-container *ngIf="!loading() && !error()">
     <ng-container *ngIf="quotes().length; else emptyState">
       <div class="quote-metrics-panel__metrics">
@@ -32,13 +29,13 @@
       <div class="quote-metrics-panel__distribution-grid">
         <section class="quote-metrics-panel__distribution portfolio-subcard">
           <div class="quote-metrics-panel__panel-head">
-            <span class="section-eyebrow">{{ content().projectDistributionTitle }}</span>
+            <span class="section-eyebrow">{{ content().scopeDistributionTitle }}</span>
           </div>
 
           <div class="quote-metrics-panel__list">
             <article
               class="quote-metrics-panel__row"
-              *ngFor="let item of metrics().projectDistribution; trackBy: trackByLabel"
+              *ngFor="let item of metrics().scopeDistribution; trackBy: trackByLabel"
             >
               <div class="quote-metrics-panel__row-top">
                 <strong>{{ item.label }}</strong>
@@ -50,8 +47,8 @@
               </div>
 
               <div class="quote-metrics-panel__row-meta">
-                <span>{{ content().projectHoursLabel }}: {{ formatHours(item.totalHours) }}</span>
-                <span>{{ content().projectCostLabel }}: {{ formatCurrency(item.totalCost) }}</span>
+                <span>{{ content().budgetLabel }}: {{ formatCurrency(item.totalBudget) }}</span>
+                <span>{{ content().monthlyLabel }}: {{ formatCurrency(item.totalMonthly) }}</span>
               </div>
             </article>
           </div>
@@ -59,13 +56,13 @@
 
         <section class="quote-metrics-panel__distribution portfolio-subcard">
           <div class="quote-metrics-panel__panel-head">
-            <span class="section-eyebrow">{{ content().complexityDistributionTitle }}</span>
+            <span class="section-eyebrow">{{ content().stackDistributionTitle }}</span>
           </div>
 
           <div class="quote-metrics-panel__list">
             <article
               class="quote-metrics-panel__row"
-              *ngFor="let item of metrics().complexityDistribution; trackBy: trackByLabel"
+              *ngFor="let item of metrics().stackDistribution; trackBy: trackByLabel"
             >
               <div class="quote-metrics-panel__row-top">
                 <strong>{{ item.label }}</strong>
@@ -77,8 +74,8 @@
               </div>
 
               <div class="quote-metrics-panel__row-meta">
-                <span>{{ content().projectHoursLabel }}: {{ formatHours(item.totalHours) }}</span>
-                <span>{{ content().projectCostLabel }}: {{ formatCurrency(item.totalCost) }}</span>
+                <span>{{ content().budgetLabel }}: {{ formatCurrency(item.totalBudget) }}</span>
+                <span>{{ content().monthlyLabel }}: {{ formatCurrency(item.totalMonthly) }}</span>
               </div>
             </article>
           </div>
@@ -86,6 +83,8 @@
       </div>
     </ng-container>
   </ng-container>
+
+  <p class="quote-metrics-panel__error" *ngIf="error()">{{ error() }}</p>
 
   <ng-template #emptyState>
     <p class="quote-metrics-panel__state">{{ content().empty }}</p>

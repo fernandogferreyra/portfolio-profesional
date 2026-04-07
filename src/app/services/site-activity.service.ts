@@ -54,20 +54,36 @@ export class SiteActivityService {
     this.pushEvent('project_interaction', 'open_project_demo', `Demo: ${projectId}`);
   }
 
-  trackQuotePreview(): void {
-    this.pushEvent('quote_interaction', 'preview_quote', 'Preview de cotizacion');
+  trackCommercialQuotePreview(): void {
+    this.pushEvent('quote_interaction', 'preview_commercial_quote', 'Preview comercial');
   }
 
-  trackQuoteSave(): void {
-    this.pushEvent('quote_interaction', 'save_quote', 'Guardar cotizacion');
+  trackCommercialQuoteSave(): void {
+    this.pushEvent('quote_interaction', 'save_commercial_quote', 'Guardar cotizacion comercial');
   }
 
-  trackQuoteDiscard(): void {
-    this.pushEvent('quote_interaction', 'discard_quote', 'Descartar preview');
+  trackCommercialQuoteDiscard(): void {
+    this.pushEvent('quote_interaction', 'discard_commercial_quote', 'Descartar cotizacion comercial');
   }
 
-  trackQuoteReset(): void {
-    this.pushEvent('quote_interaction', 'new_quote', 'Nueva cotizacion');
+  trackCommercialQuoteReset(): void {
+    this.pushEvent('quote_interaction', 'new_commercial_quote', 'Nueva cotizacion comercial');
+  }
+
+  trackEstimatorPreview(): void {
+    this.pushEvent('estimator_interaction', 'preview_estimator', 'Preview de estimacion');
+  }
+
+  trackEstimatorSave(): void {
+    this.pushEvent('estimator_interaction', 'save_estimator', 'Guardar estimacion');
+  }
+
+  trackEstimatorDiscard(): void {
+    this.pushEvent('estimator_interaction', 'discard_estimator', 'Descartar estimacion');
+  }
+
+  trackEstimatorReset(): void {
+    this.pushEvent('estimator_interaction', 'new_estimator', 'Nueva estimacion');
   }
 
   private trackRouteVisit(url: string): void {

@@ -1,0 +1,262 @@
+<section class="quote-workbench surface-card">
+  <div class="quote-workbench__header">
+    <div class="quote-workbench__heading">
+      <p class="section-eyebrow">{{ content().eyebrow }}</p>
+      <h2 class="portfolio-section-title">{{ content().title }}</h2>
+      <p>{{ content().lead }}</p>
+      <p class="quote-workbench__workflow-note">{{ content().workflowNote }}</p>
+    </div>
+  </div>
+
+  <div class="quote-workbench__layout">
+    <form class="quote-workbench__builder portfolio-subcard" [formGroup]="estimatorForm" (ngSubmit)="submitEstimate()">
+      <div class="quote-workbench__panel-heading">
+        <h3 class="portfolio-card-title">{{ content().formTitle }}</h3>
+        <p>{{ content().formLead }}</p>
+      </div>
+
+      <div class="quote-workbench__field-grid">
+        <label class="quote-workbench__field">
+          <span>{{ content().projectTypeLabel }}</span>
+          <select formControlName="projectType">
+            <option *ngFor="let option of projectOptions(); trackBy: trackByCode" [value]="option.code">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+
+        <label class="quote-workbench__field">
+          <span>{{ content().complexityLabel }}</span>
+          <select formControlName="complexity">
+            <option *ngFor="let option of complexityOptions(); trackBy: trackByCode" [value]="option.code">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <p class="quote-workbench__hint">{{ selectedProjectHint() }}</p>
+
+      <div class="quote-workbench__modules-top">
+        <span>{{ content().modulesLabel }}</span>
+        <strong>{{ selectedModulesCount() }} {{ content().selectedModulesLabel }}</strong>
+      </div>
+
+      <div class="quote-workbench__module-grid" [formGroup]="moduleSelection">
+        <label
+          class="quote-workbench__module motion-control"
+          *ngFor="let module of moduleOptions(); trackBy: trackByCode"
+          [class.is-selected]="isModuleSelected(module.code)"
+        >
+          <input type="checkbox" [formControlName]="module.code" />
+          <span class="quote-workbench__module-name">{{ module.label }}</span>
+          <span class="quote-workbench__module-note">{{ module.note }}</span>
+        </label>
+      </div>
+
+      <p class="quote-workbench__error" *ngIf="formError()">{{ formError() }}</p>
+
+      <button
+        type="submit"
+        class="quote-workbench__submit motion-control"
+        [disabled]="calculating() || isBuilderLocked()"
+      >
+        {{
+          calculating()
+            ? content().calculatingLabel
+            : (isBuilderLocked() ? content().previewReadyLabel : content().calculateLabel)
+        }}
+      </button>
+    </form>
+
+    <div class="quote-workbench__side">
+      <section class="quote-workbench__panel portfolio-subcard">
+        <div class="quote-workbench__panel-heading">
+          <div class="quote-workbench__panel-topline">
+            <h3 class="portfolio-card-title">{{ content().resultTitle }}</h3>
+            <span class="quote-workbench__status-chip" *ngIf="hasPreview()">{{ previewStatus() }}</span>
+          </div>
+          <p>{{ content().resultLead }}</p>
+        </div>
+
+        <p class="quote-workbench__state" *ngIf="calculating()">{{ content().resultLoading }}</p>
+
+        <ng-container *ngIf="!calculating()">
+          <ng-container *ngIf="previewResult() as result; else resultEmpty">
+            <div class="quote-workbench__result-grid">
+              <div class="quote-workbench__metric">
+                <span>{{ content().resultProjectLabel }}</span>
+                <strong>{{ getProjectLabel(result.projectType) }}</strong>
+              </div>
+
+              <div class="quote-workbench__metric">
+                <span>{{ content().resultComplexityLabel }}</span>
+                <strong>{{ getComplexityLabel(result.complexity) }}</strong>
+              </div>
+
+              <div class="quote-workbench__metric">
+                <span>{{ content().resultEffortLabel }}</span>
+                <strong>{{ getEffortLabel(result.totalHours) }}</strong>
+              </div>
+
+              <div class="quote-workbench__metric">
+                <span>{{ content().resultTotalHoursLabel }}</span>
+                <strong>{{ result.totalHours | number:'1.2-2' }} h</strong>
+              </div>
+
+              <div class="quote-workbench__metric">
+                <span>{{ content().resultModulesLabel }}</span>
+                <strong>{{ result.items.length }}</strong>
+              </div>
+
+              <div class="quote-workbench__metric">
+                <span>{{ content().resultTimelineLabel }}</span>
+                <strong>{{ getTimelineLabel(result.totalHours) }}</strong>
+              </div>
+            </div>
+
+            <div class="quote-workbench__actions">
+              <button
+                type="button"
+                class="quote-workbench__action quote-workbench__action--primary motion-control"
+                (click)="saveEstimate()"
+                [disabled]="!canSavePreview()"
+              >
+                {{ saving() ? content().savingLabel : content().saveLabel }}
+              </button>
+
+              <button
+                type="button"
+                class="quote-workbench__action motion-control"
+                (click)="startNewEstimate()"
+              >
+                {{ content().newLabel }}
+              </button>
+
+              <button
+                type="button"
+                class="quote-workbench__action quote-workbench__action--ghost motion-control"
+                (click)="discardPreview()"
+              >
+                {{ content().discardLabel }}
+              </button>
+            </div>
+
+            <p class="quote-workbench__success" *ngIf="saveFeedback()">{{ saveFeedback() }}</p>
+
+            <div class="quote-workbench__breakdown">
+              <div class="quote-workbench__breakdown-head">
+                <span class="section-eyebrow">{{ content().breakdownTitle }}</span>
+              </div>
+
+              <div class="quote-workbench__rows">
+                <div class="quote-workbench__row" *ngFor="let item of result.items">
+                  <div>
+                    <strong>{{ item.name }}</strong>
+                  </div>
+                  <span>{{ item.hours | number:'1.2-2' }} h</span>
+                  <span>{{ getEffortShare(item.hours, result.totalHours) }} {{ content().effortShareLabel }}</span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <ng-template #resultEmpty>
+          <p class="quote-workbench__state">{{ content().resultEmpty }}</p>
+        </ng-template>
+      </section>
+
+      <section class="quote-workbench__panel portfolio-subcard">
+        <div class="quote-workbench__panel-heading">
+          <h3 class="portfolio-card-title">{{ content().historyTitle }}</h3>
+          <p>{{ content().historyLead }}</p>
+        </div>
+
+        <p class="quote-workbench__state" *ngIf="loadingHistory()">{{ content().historyLoading }}</p>
+        <p class="quote-workbench__error" *ngIf="historyError()">{{ historyError() }}</p>
+
+        <div class="quote-workbench__history" *ngIf="!loadingHistory() && recentHistory().length">
+          <button
+            type="button"
+            class="quote-workbench__history-item motion-control"
+            *ngFor="let estimate of recentHistory(); trackBy: trackById"
+            [class.is-active]="selectedHistoryId() === estimate.id"
+            (click)="selectHistoryItem(estimate.id)"
+          >
+            <div class="quote-workbench__history-line">
+              <strong>{{ getProjectLabel(estimate.projectType) }}</strong>
+              <span>{{ estimate.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+
+            <div class="quote-workbench__history-line quote-workbench__history-line--meta">
+              <span>{{ getComplexityLabel(estimate.complexity) }}</span>
+              <span>{{ estimate.totalHours | number:'1.2-2' }} h</span>
+              <span>{{ getTimelineLabel(estimate.totalHours) }}</span>
+            </div>
+          </button>
+        </div>
+
+        <p class="quote-workbench__state" *ngIf="!loadingHistory() && !recentHistory().length">
+          {{ content().historyEmpty }}
+        </p>
+
+        <div class="quote-workbench__detail">
+          <div class="quote-workbench__detail-head">
+            <span class="section-eyebrow">{{ content().historyDetailTitle }}</span>
+          </div>
+
+          <p class="quote-workbench__state" *ngIf="loadingHistoryDetail()">
+            {{ content().historyDetailLoading }}
+          </p>
+          <p class="quote-workbench__error" *ngIf="historyDetailError()">{{ historyDetailError() }}</p>
+
+          <ng-container *ngIf="!loadingHistoryDetail() && !historyDetailError()">
+            <ng-container *ngIf="selectedHistoryResult() as detail; else detailEmpty">
+              <div class="quote-workbench__detail-top">
+                <strong>{{ detail.projectLabel }}</strong>
+                <span>{{ selectedHistoryDetail()?.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+
+              <div class="quote-workbench__result-grid">
+                <div class="quote-workbench__metric">
+                  <span>{{ content().resultComplexityLabel }}</span>
+                  <strong>{{ getComplexityLabel(detail.complexity) }}</strong>
+                </div>
+
+                <div class="quote-workbench__metric">
+                  <span>{{ content().resultEffortLabel }}</span>
+                  <strong>{{ getEffortLabel(detail.totalHours) }}</strong>
+                </div>
+
+                <div class="quote-workbench__metric">
+                  <span>{{ content().resultTotalHoursLabel }}</span>
+                  <strong>{{ detail.totalHours | number:'1.2-2' }} h</strong>
+                </div>
+
+                <div class="quote-workbench__metric">
+                  <span>{{ content().resultTimelineLabel }}</span>
+                  <strong>{{ getTimelineLabel(detail.totalHours) }}</strong>
+                </div>
+              </div>
+
+              <div class="quote-workbench__rows">
+                <div class="quote-workbench__row" *ngFor="let item of detail.items">
+                  <div>
+                    <strong>{{ item.name }}</strong>
+                  </div>
+                  <span>{{ item.hours | number:'1.2-2' }} h</span>
+                  <span>{{ getEffortShare(item.hours, detail.totalHours) }} {{ content().effortShareLabel }}</span>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+
+          <ng-template #detailEmpty>
+            <p class="quote-workbench__state">{{ content().historyDetailEmpty }}</p>
+          </ng-template>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>

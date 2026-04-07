@@ -1,31 +1,28 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 
-import { QUOTE_COMPLEXITY_OPTIONS, QUOTE_PROJECT_TYPE_OPTIONS } from '../../data/quote.data';
-import { QuoteAdminSummary } from '../../models/quote.models';
+import { COMMERCIAL_SCOPE_OPTIONS, COMMERCIAL_STACK_OPTIONS } from '../../data/commercial-quote.data';
+import { CommercialQuoteRecord } from '../../models/commercial-quote.models';
+import { CommercialQuoteService } from '../../services/commercial-quote.service';
 import { LanguageService } from '../../services/language.service';
-import { QuoteService } from '../../services/quote.service';
 
 interface QuoteMetricsDistributionItem {
   label: string;
   count: number;
   percent: number;
-  totalHours: number;
-  totalCost: number;
+  totalBudget: number;
+  totalMonthly: number;
 }
 
 interface QuoteMetricsSnapshot {
   totalQuotes: number;
-  averageCost: number;
-  averageHours: number;
-  highestQuote: QuoteAdminSummary | null;
-  topProjectType: string | null;
-  topComplexity: string | null;
+  averageBudget: number;
+  averageMonthly: number;
+  highestQuote: CommercialQuoteRecord | null;
+  topScope: string | null;
+  topStack: string | null;
   latestCreatedAt: string | null;
-  projectDistribution: QuoteMetricsDistributionItem[];
-  complexityDistribution: QuoteMetricsDistributionItem[];
+  scopeDistribution: QuoteMetricsDistributionItem[];
+  stackDistribution: QuoteMetricsDistributionItem[];
 }
 
 interface QuoteMetricsCard {
@@ -41,66 +38,61 @@ interface QuoteMetricsCard {
   styleUrl: './control-center-quote-metrics.component.scss',
 })
 export class ControlCenterQuoteMetricsComponent implements OnInit {
-  private readonly destroyRef = inject(DestroyRef);
   private readonly languageService = inject(LanguageService);
-  private readonly quoteService = inject(QuoteService);
+  private readonly commercialQuoteService = inject(CommercialQuoteService);
 
   readonly currentLanguage = this.languageService.language;
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly quotes = signal<QuoteAdminSummary[]>([]);
+  readonly loading = signal(true);
+  readonly error = this.commercialQuoteService.storageError;
+  readonly quotes = this.commercialQuoteService.history;
 
   readonly content = computed(() =>
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Metricas de Cotizacion',
-          title: 'Lectura operativa del historial de cotizaciones',
+          title: 'Lectura operativa del historial comercial',
           subtitle: 'Datos basados en cotizaciones generadas en el sistema',
           lead:
-            'Resumen de volumen, ticket, esfuerzo y patrones de demanda para detectar rapido que tipo de trabajo entra mas seguido.',
-          loading: 'Cargando metricas de cotizaciones...',
-          empty: 'Todavia no hay cotizaciones suficientes para construir metricas.',
+            'Resumen de ticket, alcances y stacks mas pedidos para entender rapido que tipo de propuesta comercial se repite.',
+          empty: 'Todavia no hay cotizaciones comerciales suficientes para construir metricas.',
           totalQuotesLabel: 'Cotizaciones totales',
-          averageCostLabel: 'Costo promedio',
-          averageHoursLabel: 'Horas promedio',
+          averageBudgetLabel: 'Presupuesto promedio',
+          averageMonthlyLabel: 'Mensual promedio',
           highestQuoteLabel: 'Cotizacion mas alta',
-          topProjectLabel: 'Proyecto dominante',
-          topComplexityLabel: 'Complejidad dominante',
+          topScopeLabel: 'Alcance dominante',
+          topStackLabel: 'Stack dominante',
           latestActivityLabel: 'Ultima actividad',
           noData: 'Sin datos',
           quotesUnit: 'quotes',
           distributionTitle: 'Distribuciones clave',
-          distributionLead: 'Porcentajes simples para ver de un vistazo lo mas solicitado.',
-          projectDistributionTitle: 'Por tipo de proyecto',
-          complexityDistributionTitle: 'Por complejidad',
-          projectCostLabel: 'Costo acumulado',
-          projectHoursLabel: 'Horas acumuladas',
-          genericError: 'No se pudieron cargar las metricas de cotizacion.',
+          distributionLead: 'Porcentajes simples para ver de un vistazo que se vende mas.',
+          scopeDistributionTitle: 'Por alcance',
+          stackDistributionTitle: 'Por stack',
+          budgetLabel: 'Presupuesto acumulado',
+          monthlyLabel: 'Mensual acumulado',
         }
       : {
           eyebrow: 'Quote Metrics',
-          title: 'Operational read of stored quote history',
+          title: 'Operational read of commercial history',
           subtitle: 'Data based on quotes generated inside the system',
           lead:
-            'Snapshot of volume, ticket size, effort, and demand patterns to quickly detect what kind of work is requested the most.',
-          loading: 'Loading quote metrics...',
-          empty: 'There are not enough quotes yet to build metrics.',
+            'Snapshot of average ticket, popular scopes, and requested stacks to quickly understand repeated commercial patterns.',
+          empty: 'There are not enough commercial quotes yet to build metrics.',
           totalQuotesLabel: 'Total quotes',
-          averageCostLabel: 'Average cost',
-          averageHoursLabel: 'Average hours',
+          averageBudgetLabel: 'Average budget',
+          averageMonthlyLabel: 'Average monthly',
           highestQuoteLabel: 'Highest quote',
-          topProjectLabel: 'Top project type',
-          topComplexityLabel: 'Top complexity',
+          topScopeLabel: 'Top scope',
+          topStackLabel: 'Top stack',
           latestActivityLabel: 'Latest activity',
           noData: 'No data',
           quotesUnit: 'quotes',
           distributionTitle: 'Key distributions',
-          distributionLead: 'Simple percentages to see what gets requested the most at a glance.',
-          projectDistributionTitle: 'By project type',
-          complexityDistributionTitle: 'By complexity',
-          projectCostLabel: 'Accumulated cost',
-          projectHoursLabel: 'Accumulated hours',
-          genericError: 'Quote metrics could not be loaded.',
+          distributionLead: 'Simple percentages to quickly see what gets sold the most.',
+          scopeDistributionTitle: 'By scope',
+          stackDistributionTitle: 'By stack',
+          budgetLabel: 'Accumulated budget',
+          monthlyLabel: 'Accumulated monthly',
         },
   );
 
@@ -118,16 +110,16 @@ export class ControlCenterQuoteMetricsComponent implements OnInit {
           : this.content().noData,
       },
       {
-        label: this.content().averageCostLabel,
-        value: snapshot.totalQuotes > 0 ? this.formatCurrency(snapshot.averageCost) : this.content().noData,
+        label: this.content().averageBudgetLabel,
+        value: snapshot.totalQuotes > 0 ? this.formatCurrency(snapshot.averageBudget) : this.content().noData,
         helper:
           snapshot.totalQuotes > 0
             ? `${snapshot.totalQuotes} ${this.content().quotesUnit}`
             : this.content().noData,
       },
       {
-        label: this.content().averageHoursLabel,
-        value: snapshot.totalQuotes > 0 ? this.formatHours(snapshot.averageHours) : this.content().noData,
+        label: this.content().averageMonthlyLabel,
+        value: snapshot.totalQuotes > 0 ? this.formatCurrency(snapshot.averageMonthly) : this.content().noData,
         helper:
           snapshot.totalQuotes > 0
             ? `${snapshot.totalQuotes} ${this.content().quotesUnit}`
@@ -135,49 +127,47 @@ export class ControlCenterQuoteMetricsComponent implements OnInit {
       },
       {
         label: this.content().highestQuoteLabel,
-        value: highestQuote ? this.formatCurrency(highestQuote.totalCost) : this.content().noData,
-        helper: highestQuote ? this.getProjectLabel(highestQuote.projectType) : this.content().noData,
+        value: highestQuote ? this.formatCurrency(highestQuote.result.oneTimeTotal) : this.content().noData,
+        helper: highestQuote ? this.getScopeLabel(highestQuote.request.scope) : this.content().noData,
       },
       {
-        label: this.content().topProjectLabel,
-        value: snapshot.topProjectType ? this.getProjectLabel(snapshot.topProjectType) : this.content().noData,
+        label: this.content().topScopeLabel,
+        value: snapshot.topScope ? this.getScopeLabel(snapshot.topScope) : this.content().noData,
         helper:
-          snapshot.projectDistribution[0]
-            ? `${snapshot.projectDistribution[0].percent.toFixed(0)}%`
+          snapshot.scopeDistribution[0]
+            ? `${snapshot.scopeDistribution[0].percent.toFixed(0)}%`
             : this.content().noData,
       },
       {
-        label: this.content().topComplexityLabel,
-        value: snapshot.topComplexity ? this.getComplexityLabel(snapshot.topComplexity) : this.content().noData,
+        label: this.content().topStackLabel,
+        value: snapshot.topStack ? this.getStackLabel(snapshot.topStack) : this.content().noData,
         helper:
-          snapshot.complexityDistribution[0]
-            ? `${snapshot.complexityDistribution[0].percent.toFixed(0)}%`
+          snapshot.stackDistribution[0]
+            ? `${snapshot.stackDistribution[0].percent.toFixed(0)}%`
             : this.content().noData,
       },
     ];
   });
 
   ngOnInit(): void {
-    this.loadMetrics();
+    this.loading.set(false);
   }
 
   trackByLabel(_: number, item: { label: string }): string {
     return item.label;
   }
 
-  getProjectLabel(projectType: string): string {
+  getScopeLabel(scope: string): string {
     return (
-      QUOTE_PROJECT_TYPE_OPTIONS.find((option) => option.code === projectType)?.label[
-        this.currentLanguage()
-      ] ?? projectType.replaceAll('_', ' ')
+      COMMERCIAL_SCOPE_OPTIONS.find((option) => option.code === scope)?.label[this.currentLanguage()] ??
+      scope.replaceAll('_', ' ')
     );
   }
 
-  getComplexityLabel(complexity: string | null | undefined): string {
+  getStackLabel(stack: string): string {
     return (
-      QUOTE_COMPLEXITY_OPTIONS.find((option) => option.code === complexity)?.label[
-        this.currentLanguage()
-      ] ?? complexity ?? this.content().noData
+      COMMERCIAL_STACK_OPTIONS.find((option) => option.code === stack)?.label[this.currentLanguage()] ??
+      stack.replaceAll('_', ' ')
     );
   }
 
@@ -187,13 +177,6 @@ export class ControlCenterQuoteMetricsComponent implements OnInit {
       currency: 'USD',
       maximumFractionDigits: 2,
     }).format(value);
-  }
-
-  formatHours(value: number): string {
-    return new Intl.NumberFormat(this.currentLanguage() === 'es' ? 'es-AR' : 'en-US', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 2,
-    }).format(value) + ' h';
   }
 
   formatDate(value: string): string {
@@ -206,86 +189,63 @@ export class ControlCenterQuoteMetricsComponent implements OnInit {
     }).format(new Date(value));
   }
 
-  private loadMetrics(): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    this.quoteService
-      .getQuotes()
-      .pipe(
-        finalize(() => this.loading.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (quotes) => {
-          const sortedQuotes = [...quotes].sort(
-            (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
-          );
-          this.quotes.set(sortedQuotes);
-        },
-        error: (error) => {
-          this.error.set(this.resolveErrorMessage(error, this.content().genericError));
-        },
-      });
-  }
-
-  private buildMetrics(quotes: QuoteAdminSummary[]): QuoteMetricsSnapshot {
+  private buildMetrics(quotes: CommercialQuoteRecord[]): QuoteMetricsSnapshot {
     if (quotes.length === 0) {
       return {
         totalQuotes: 0,
-        averageCost: 0,
-        averageHours: 0,
+        averageBudget: 0,
+        averageMonthly: 0,
         highestQuote: null,
-        topProjectType: null,
-        topComplexity: null,
+        topScope: null,
+        topStack: null,
         latestCreatedAt: null,
-        projectDistribution: [],
-        complexityDistribution: [],
+        scopeDistribution: [],
+        stackDistribution: [],
       };
     }
 
     const totalQuotes = quotes.length;
-    const totalCost = quotes.reduce((sum, quote) => sum + quote.totalCost, 0);
-    const totalHours = quotes.reduce((sum, quote) => sum + quote.totalHours, 0);
+    const totalBudget = quotes.reduce((sum, quote) => sum + quote.result.oneTimeTotal, 0);
+    const totalMonthly = quotes.reduce((sum, quote) => sum + quote.result.monthlyTotal, 0);
     const highestQuote = quotes.reduce((highest, quote) =>
-      !highest || quote.totalCost > highest.totalCost ? quote : highest,
+      !highest || quote.result.oneTimeTotal > highest.result.oneTimeTotal ? quote : highest,
     );
 
     return {
       totalQuotes,
-      averageCost: totalCost / totalQuotes,
-      averageHours: totalHours / totalQuotes,
+      averageBudget: totalBudget / totalQuotes,
+      averageMonthly: totalMonthly / totalQuotes,
       highestQuote,
-      topProjectType: this.pickTopKey(quotes, (quote) => quote.projectType),
-      topComplexity: this.pickTopKey(quotes, (quote) => quote.complexity),
+      topScope: this.pickTopKey(quotes, (quote) => quote.request.scope),
+      topStack: this.pickTopKey(quotes, (quote) => quote.request.stack),
       latestCreatedAt: quotes[0]?.createdAt ?? null,
-      projectDistribution: this.buildDistribution(
+      scopeDistribution: this.buildDistribution(
         quotes,
-        (quote) => quote.projectType,
-        (key) => this.getProjectLabel(key),
+        (quote) => quote.request.scope,
+        (key) => this.getScopeLabel(key),
       ),
-      complexityDistribution: this.buildDistribution(
+      stackDistribution: this.buildDistribution(
         quotes,
-        (quote) => quote.complexity,
-        (key) => this.getComplexityLabel(key),
+        (quote) => quote.request.stack,
+        (key) => this.getStackLabel(key),
       ),
     };
   }
 
   private buildDistribution(
-    quotes: QuoteAdminSummary[],
-    selectKey: (quote: QuoteAdminSummary) => string,
+    quotes: CommercialQuoteRecord[],
+    selectKey: (quote: CommercialQuoteRecord) => string,
     selectLabel: (key: string) => string,
   ): QuoteMetricsDistributionItem[] {
-    const buckets = new Map<string, { count: number; totalHours: number; totalCost: number }>();
+    const buckets = new Map<string, { count: number; totalBudget: number; totalMonthly: number }>();
 
     for (const quote of quotes) {
       const key = selectKey(quote);
-      const current = buckets.get(key) ?? { count: 0, totalHours: 0, totalCost: 0 };
+      const current = buckets.get(key) ?? { count: 0, totalBudget: 0, totalMonthly: 0 };
 
       current.count += 1;
-      current.totalHours += quote.totalHours;
-      current.totalCost += quote.totalCost;
+      current.totalBudget += quote.result.oneTimeTotal;
+      current.totalMonthly += quote.result.monthlyTotal;
       buckets.set(key, current);
     }
 
@@ -294,15 +254,15 @@ export class ControlCenterQuoteMetricsComponent implements OnInit {
         label: selectLabel(key),
         count: value.count,
         percent: (value.count / quotes.length) * 100,
-        totalHours: value.totalHours,
-        totalCost: value.totalCost,
+        totalBudget: value.totalBudget,
+        totalMonthly: value.totalMonthly,
       }))
-      .sort((left, right) => right.count - left.count || right.totalCost - left.totalCost);
+      .sort((left, right) => right.count - left.count || right.totalBudget - left.totalBudget);
   }
 
   private pickTopKey(
-    quotes: QuoteAdminSummary[],
-    selectKey: (quote: QuoteAdminSummary) => string,
+    quotes: CommercialQuoteRecord[],
+    selectKey: (quote: CommercialQuoteRecord) => string,
   ): string | null {
     const counts = new Map<string, number>();
 
@@ -312,18 +272,5 @@ export class ControlCenterQuoteMetricsComponent implements OnInit {
     }
 
     return [...counts.entries()].sort((left, right) => right[1] - left[1])[0]?.[0] ?? null;
-  }
-
-  private resolveErrorMessage(error: unknown, fallback: string): string {
-    if (
-      error instanceof HttpErrorResponse &&
-      error.error &&
-      typeof error.error.message === 'string' &&
-      error.error.message.trim().length > 0
-    ) {
-      return error.error.message;
-    }
-
-    return fallback;
   }
 }

@@ -3,69 +3,67 @@
   min-width: 0;
 }
 
-.commercial-quote {
+.quote-workbench {
   padding: clamp(1.1rem, 2vw, 1.45rem);
   display: grid;
   gap: 1rem;
   min-width: 0;
 }
 
-.commercial-quote__header,
-.commercial-quote__heading,
-.commercial-quote__panel-heading,
-.commercial-quote__builder,
-.commercial-quote__panel,
-.commercial-quote__side,
-.commercial-quote__detail,
-.commercial-quote__breakdown {
+.quote-workbench__header,
+.quote-workbench__heading,
+.quote-workbench__panel-heading,
+.quote-workbench__builder,
+.quote-workbench__panel,
+.quote-workbench__side,
+.quote-workbench__detail,
+.quote-workbench__breakdown {
   display: grid;
   gap: 0.75rem;
 }
 
-.commercial-quote__heading p,
-.commercial-quote__panel-heading p,
-.commercial-quote__hint,
-.commercial-quote__state {
+.quote-workbench__heading p,
+.quote-workbench__panel-heading p,
+.quote-workbench__hint,
+.quote-workbench__state {
   margin: 0;
   color: var(--color-text-muted);
 }
 
-.commercial-quote__workflow-note {
+.quote-workbench__workflow-note {
   color: var(--color-primary);
   font-size: 0.92rem;
   font-weight: 600;
   line-height: 1.6;
 }
 
-.commercial-quote__layout {
+.quote-workbench__layout {
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   align-items: start;
 }
 
-.commercial-quote__builder,
-.commercial-quote__panel {
+.quote-workbench__builder,
+.quote-workbench__panel {
   padding: 1rem;
   min-width: 0;
 }
 
-.commercial-quote__field-grid,
-.commercial-quote__toggle-grid {
+.quote-workbench__field-grid {
   display: grid;
   gap: 0.85rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.commercial-quote__field {
+.quote-workbench__field {
   display: grid;
   gap: 0.45rem;
 }
 
-.commercial-quote__field span,
-.commercial-quote__extras-top span:first-child,
-.commercial-quote__metric span,
-.commercial-quote__toggle span {
+.quote-workbench__field span,
+.quote-workbench__modules-top span:first-child,
+.quote-workbench__metric span {
   color: var(--color-text-soft);
   font-size: 0.76rem;
   font-weight: 700;
@@ -73,7 +71,7 @@
   text-transform: uppercase;
 }
 
-.commercial-quote__field select {
+.quote-workbench__field select {
   width: 100%;
   min-width: 0;
   min-height: 3rem;
@@ -85,18 +83,39 @@
   font: inherit;
 }
 
-.commercial-quote__field select:focus-visible {
+.quote-workbench__field select:focus-visible {
   outline: none;
   border-color: var(--color-border-hover);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-glow) 24%, transparent);
 }
 
-.commercial-quote__toggle {
+.quote-workbench__modules-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.quote-workbench__modules-top strong,
+.quote-workbench__detail-top strong,
+.quote-workbench__row strong,
+.quote-workbench__history-line strong {
+  color: var(--color-text);
+}
+
+.quote-workbench__module-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quote-workbench__module {
   position: relative;
   display: grid;
-  gap: 0.3rem;
+  gap: 0.35rem;
   min-width: 0;
-  min-height: 5.6rem;
+  min-height: 7rem;
   padding: 0.95rem;
   border: 1px solid var(--glass-border);
   border-radius: 20px;
@@ -104,20 +123,25 @@
   cursor: pointer;
 }
 
-.commercial-quote__toggle input {
+.quote-workbench__module input {
   position: absolute;
   inset: 0;
   opacity: 0;
   cursor: pointer;
 }
 
-.commercial-quote__toggle strong {
+.quote-workbench__module-name {
   color: var(--color-text);
-  font-size: 1rem;
+  font-size: 0.98rem;
+  font-weight: 700;
 }
 
-.commercial-quote__toggle.is-selected,
-.commercial-quote__extra.is-selected {
+.quote-workbench__module-note {
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.quote-workbench__module.is-selected {
   border-color: var(--color-border-hover);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 84%, transparent), transparent 70%),
@@ -125,60 +149,8 @@
   box-shadow: 0 18px 36px -28px var(--color-primary-glow);
 }
 
-.commercial-quote__extras-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.commercial-quote__extras-top strong,
-.commercial-quote__detail-top strong,
-.commercial-quote__row strong,
-.commercial-quote__history-line strong {
-  color: var(--color-text);
-}
-
-.commercial-quote__extras-grid {
-  display: grid;
-  gap: 0.8rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.commercial-quote__extra {
-  position: relative;
-  display: grid;
-  gap: 0.35rem;
-  min-width: 0;
-  min-height: 6.6rem;
-  padding: 0.95rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
-  cursor: pointer;
-}
-
-.commercial-quote__extra input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.commercial-quote__extra-name {
-  color: var(--color-text);
-  font-size: 0.98rem;
-  font-weight: 700;
-}
-
-.commercial-quote__extra-note {
-  color: var(--color-text-muted);
-  line-height: 1.55;
-}
-
-.commercial-quote__submit,
-.commercial-quote__action {
+.quote-workbench__submit,
+.quote-workbench__action {
   min-height: 3rem;
   border-radius: 999px;
   font: inherit;
@@ -186,7 +158,7 @@
   cursor: pointer;
 }
 
-.commercial-quote__submit {
+.quote-workbench__submit {
   border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 76%, transparent), color-mix(in srgb, var(--color-accent) 50%, transparent)),
@@ -194,13 +166,13 @@
   color: var(--color-primary-contrast);
 }
 
-.commercial-quote__submit:disabled,
-.commercial-quote__action:disabled {
+.quote-workbench__submit:disabled,
+.quote-workbench__action:disabled {
   opacity: 0.72;
   cursor: not-allowed;
 }
 
-.commercial-quote__panel-topline {
+.quote-workbench__panel-topline {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -208,7 +180,7 @@
   flex-wrap: wrap;
 }
 
-.commercial-quote__status-chip {
+.quote-workbench__status-chip {
   display: inline-flex;
   align-items: center;
   min-height: 2rem;
@@ -223,15 +195,15 @@
   text-transform: uppercase;
 }
 
-.commercial-quote__result-grid {
+.quote-workbench__result-grid {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.commercial-quote__metric,
-.commercial-quote__detail,
-.commercial-quote__breakdown {
+.quote-workbench__metric,
+.quote-workbench__detail,
+.quote-workbench__breakdown {
   min-width: 0;
   padding: 0.9rem;
   border-radius: 18px;
@@ -239,26 +211,26 @@
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
 
-.commercial-quote__metric strong {
+.quote-workbench__metric strong {
   display: block;
   margin-top: 0.28rem;
   font-size: 1.05rem;
   line-height: 1.3;
 }
 
-.commercial-quote__actions {
+.quote-workbench__actions {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.commercial-quote__action {
+.quote-workbench__action {
   border: 1px solid var(--glass-border);
   background: var(--color-surface);
   color: var(--color-text);
 }
 
-.commercial-quote__action--primary {
+.quote-workbench__action--primary {
   border-color: color-mix(in srgb, var(--color-primary) 24%, transparent);
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 72%, transparent), color-mix(in srgb, var(--color-accent) 44%, transparent)),
@@ -266,12 +238,12 @@
   color: var(--color-primary-contrast);
 }
 
-.commercial-quote__action--ghost {
+.quote-workbench__action--ghost {
   background: color-mix(in srgb, var(--color-surface) 84%, transparent);
   color: var(--color-text-soft);
 }
 
-.commercial-quote__success {
+.quote-workbench__success {
   margin: 0;
   padding: 0.8rem 0.95rem;
   border-radius: 16px;
@@ -280,20 +252,20 @@
   color: #86efac;
 }
 
-.commercial-quote__rows {
+.quote-workbench__rows {
   display: grid;
   gap: 0.55rem;
 }
 
-.commercial-quote__row,
-.commercial-quote__history-item,
-.commercial-quote__detail-top {
+.quote-workbench__row,
+.quote-workbench__history-item,
+.quote-workbench__detail-top {
   display: grid;
   gap: 0.4rem;
 }
 
-.commercial-quote__row {
-  grid-template-columns: minmax(0, 1fr) auto;
+.quote-workbench__row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   padding: 0.78rem 0.85rem;
   border-radius: 16px;
@@ -301,23 +273,18 @@
   border: 1px solid var(--glass-border);
 }
 
-.commercial-quote__row div {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.commercial-quote__row span,
-.commercial-quote__history-line span,
-.commercial-quote__detail-top span {
+.quote-workbench__row span,
+.quote-workbench__history-line span,
+.quote-workbench__detail-top span {
   color: var(--color-text-muted);
 }
 
-.commercial-quote__history {
+.quote-workbench__history {
   display: grid;
   gap: 0.65rem;
 }
 
-.commercial-quote__history-item {
+.quote-workbench__history-item {
   width: 100%;
   padding: 0.85rem 0.95rem;
   border-radius: 18px;
@@ -327,14 +294,14 @@
   cursor: pointer;
 }
 
-.commercial-quote__history-item.is-active {
+.quote-workbench__history-item.is-active {
   border-color: var(--color-border-hover);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 82%, transparent), transparent 72%),
     color-mix(in srgb, var(--color-surface) 92%, transparent);
 }
 
-.commercial-quote__history-line {
+.quote-workbench__history-line {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -342,17 +309,17 @@
   flex-wrap: wrap;
 }
 
-.commercial-quote__history-line--meta {
+.quote-workbench__history-line--meta {
   font-size: 0.92rem;
 }
 
-.commercial-quote__detail-head {
+.quote-workbench__detail-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.commercial-quote__error {
+.quote-workbench__error {
   margin: 0;
   padding: 0.8rem 0.95rem;
   border-radius: 16px;
@@ -362,32 +329,31 @@
 }
 
 @media (max-width: 1120px) {
-  .commercial-quote__layout {
+  .quote-workbench__layout {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 840px) {
-  .commercial-quote__actions,
-  .commercial-quote__toggle-grid {
+  .quote-workbench__actions {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 720px) {
-  .commercial-quote,
-  .commercial-quote__builder,
-  .commercial-quote__panel {
+  .quote-workbench,
+  .quote-workbench__builder,
+  .quote-workbench__panel {
     padding: 1rem;
   }
 
-  .commercial-quote__field-grid,
-  .commercial-quote__extras-grid,
-  .commercial-quote__result-grid {
+  .quote-workbench__field-grid,
+  .quote-workbench__module-grid,
+  .quote-workbench__result-grid {
     grid-template-columns: 1fr;
   }
 
-  .commercial-quote__row {
+  .quote-workbench__row {
     grid-template-columns: 1fr;
   }
 }

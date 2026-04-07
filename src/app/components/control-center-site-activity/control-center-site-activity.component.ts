@@ -15,7 +15,7 @@ interface ActivitySnapshot {
   sectionVisits: number;
   projectClicks: number;
   contactOpens: number;
-  quoteUsage: number;
+  toolUsage: number;
   topAction: ActivityDistributionItem | null;
   sectionDistribution: ActivityDistributionItem[];
   actionDistribution: ActivityDistributionItem[];
@@ -49,7 +49,7 @@ export class ControlCenterSiteActivityComponent implements OnInit {
           sectionVisitsLabel: 'Visitas a secciones',
           projectClicksLabel: 'Clicks en proyectos',
           contactOpensLabel: 'Aperturas de contacto',
-          quoteUsageLabel: 'Uso del cotizador',
+          toolUsageLabel: 'Uso de herramientas',
           topActionLabel: 'Top accion',
           noData: 'Sin datos',
           distributionTitle: 'Distribuciones simples',
@@ -69,7 +69,7 @@ export class ControlCenterSiteActivityComponent implements OnInit {
           sectionVisitsLabel: 'Section visits',
           projectClicksLabel: 'Project clicks',
           contactOpensLabel: 'Contact opens',
-          quoteUsageLabel: 'Quote usage',
+          toolUsageLabel: 'Tool usage',
           topActionLabel: 'Top action',
           noData: 'No data',
           distributionTitle: 'Simple distributions',
@@ -106,8 +106,8 @@ export class ControlCenterSiteActivityComponent implements OnInit {
         helper: this.content().interactionsUnit,
       },
       {
-        label: this.content().quoteUsageLabel,
-        value: String(snapshot.quoteUsage),
+        label: this.content().toolUsageLabel,
+        value: String(snapshot.toolUsage),
         helper: this.content().interactionsUnit,
       },
       {
@@ -132,7 +132,9 @@ export class ControlCenterSiteActivityComponent implements OnInit {
     const sectionEvents = events.filter((event) => event.type === 'section_view');
     const projectEvents = events.filter((event) => event.type === 'project_interaction');
     const contactEvents = events.filter((event) => event.action === 'open_contact');
-    const quoteEvents = events.filter((event) => event.type === 'quote_interaction');
+    const toolEvents = events.filter(
+      (event) => event.type === 'quote_interaction' || event.type === 'estimator_interaction',
+    );
     const actionEvents = events.filter((event) => event.type !== 'section_view');
 
     return {
@@ -140,7 +142,7 @@ export class ControlCenterSiteActivityComponent implements OnInit {
       sectionVisits: sectionEvents.length,
       projectClicks: projectEvents.length,
       contactOpens: contactEvents.length,
-      quoteUsage: quoteEvents.length,
+      toolUsage: toolEvents.length,
       topAction: this.buildDistribution(actionEvents)[0] ?? null,
       sectionDistribution: this.buildDistribution(sectionEvents),
       actionDistribution: this.buildDistribution(actionEvents),
@@ -179,13 +181,22 @@ export class ControlCenterSiteActivityComponent implements OnInit {
       case 'open_project_demo':
         return language === 'es' ? 'Apertura de demo' : 'Demo open';
       case 'preview_quote':
-        return language === 'es' ? 'Preview de cotizacion' : 'Quote preview';
-      case 'save_quote':
-        return language === 'es' ? 'Guardar cotizacion' : 'Save quote';
-      case 'discard_quote':
-        return language === 'es' ? 'Descartar preview' : 'Discard preview';
-      case 'new_quote':
-        return language === 'es' ? 'Nueva cotizacion' : 'New quote';
+      case 'preview_commercial_quote':
+        return language === 'es' ? 'Preview comercial' : 'Commercial quote preview';
+      case 'save_commercial_quote':
+        return language === 'es' ? 'Guardar cotizacion comercial' : 'Save commercial quote';
+      case 'discard_commercial_quote':
+        return language === 'es' ? 'Descartar cotizacion comercial' : 'Discard commercial quote';
+      case 'new_commercial_quote':
+        return language === 'es' ? 'Nueva cotizacion comercial' : 'New commercial quote';
+      case 'preview_estimator':
+        return language === 'es' ? 'Preview de estimacion' : 'Estimate preview';
+      case 'save_estimator':
+        return language === 'es' ? 'Guardar estimacion' : 'Save estimate';
+      case 'discard_estimator':
+        return language === 'es' ? 'Descartar estimacion' : 'Discard estimate';
+      case 'new_estimator':
+        return language === 'es' ? 'Nueva estimacion' : 'New estimate';
       default:
         return event.label;
     }
