@@ -55,6 +55,10 @@ app:
       secret: ${PORTFOLIO_JWT_SECRET}
       issuer: ${PORTFOLIO_JWT_ISSUER:portfolio-backend}
       expiration: ${PORTFOLIO_JWT_EXPIRATION:PT8H}
+    bootstrap-admin:
+      enabled: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:false}
+      username: ${PORTFOLIO_ADMIN_USERNAME:}
+      password: ${PORTFOLIO_ADMIN_PASSWORD:}
 
 logging:
   level:

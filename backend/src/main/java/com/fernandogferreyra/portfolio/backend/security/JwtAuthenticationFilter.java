@@ -36,12 +36,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authorizationHeader.substring(BEARER_PREFIX.length());
 
         try {
-            String subject = jwtTokenService.extractSubject(token);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                JwtTokenService.AuthenticatedJwt authenticatedJwt = jwtTokenService.parseAuthentication(token);
 
-            UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(subject, token, java.util.List.of());
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                UsernamePasswordAuthenticationToken authenticationToken =
+                    UsernamePasswordAuthenticationToken.authenticated(
+                        authenticatedJwt.username(),
+                        token,
+                        authenticatedJwt.authorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
         } catch (JwtException | IllegalArgumentException exception) {
             throw new BadCredentialsException("Invalid JWT token", exception);
         }

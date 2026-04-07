@@ -22,3 +22,12 @@ spring:
 logging:
   level:
     com.fernandogferreyra.portfolio.backend: INFO
+
+app:
+  security:
+    jwt:
+      secret: ${PORTFOLIO_TEST_JWT_SECRET:${PORTFOLIO_JWT_SECRET:test-jwt-secret-key-with-minimum-length-1234567890}}
+    bootstrap-admin:
+      enabled: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:true}
+      username: ${PORTFOLIO_ADMIN_USERNAME:ferchuz}
+      password: ${PORTFOLIO_ADMIN_PASSWORD:ferchuz-test-password}
