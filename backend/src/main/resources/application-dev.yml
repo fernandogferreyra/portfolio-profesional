@@ -16,6 +16,8 @@ spring:
       maximum-pool-size: 5
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    baseline-on-migrate: true
 
 debug: false
 

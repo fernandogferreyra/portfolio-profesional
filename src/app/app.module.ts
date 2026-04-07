@@ -1,4 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NgModule, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
@@ -6,7 +6,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AboutComponent } from './components/about/about.component';
+import { AdminLoginModalComponent } from './components/admin-login-modal/admin-login-modal.component';
 import { ContactComponent } from './components/contact/contact.component';
+import { ControlCenterComponent } from './components/control-center/control-center.component';
 import { CredentialsComponent } from './components/credentials/credentials.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -15,10 +17,12 @@ import { HomeProjectShowcaseComponent } from './components/home-project-showcase
 import { ProjectsComponent } from './components/projects/projects.component';
 import { SkillsComponent } from './components/skills/skills.component';
 import { RevealOnScrollDirective } from './directives/reveal-on-scroll.directive';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
     AppComponent,
+    AdminLoginModalComponent,
     HeaderComponent,
     FooterComponent,
     HomeComponent,
@@ -28,6 +32,7 @@ import { RevealOnScrollDirective } from './directives/reveal-on-scroll.directive
     SkillsComponent,
     ContactComponent,
     CredentialsComponent,
+    ControlCenterComponent,
     RevealOnScrollDirective,
   ],
   imports: [
@@ -38,6 +43,11 @@ import { RevealOnScrollDirective } from './directives/reveal-on-scroll.directive
   ],
   providers: [
     provideBrowserGlobalErrorListeners(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent],
 })

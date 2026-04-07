@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -8,4 +8,17 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'portfolio-ferchuz';
+  readonly loginModalOpen = signal(false);
+
+  openLoginModal(): void {
+    this.loginModalOpen.set(true);
+  }
+
+  closeLoginModal(): void {
+    this.loginModalOpen.set(false);
+  }
+
+  onAuthenticated(): void {
+    this.closeLoginModal();
+  }
 }

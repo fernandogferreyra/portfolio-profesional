@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+.control-center {
+  width: min(1880px, calc(100vw - 0.85rem));
+  margin: 0 auto;
+  padding: 1.2rem 0 4rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.control-center__hero {
+  padding: 1.3rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.9fr);
+}
+
+.control-center__hero-copy {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.control-center__lead {
+  margin: 0;
+  max-width: 72ch;
+  color: var(--color-text-soft);
+}
+
+.control-center__session {
+  display: grid;
+  gap: 0.35rem;
+  align-content: start;
+  padding: 1.1rem;
+}
+
+.control-center__session-label,
+.control-center__tag,
+.control-center__status {
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.control-center__session-label,
+.control-center__tag {
+  color: var(--color-primary);
+}
+
+.control-center__status {
+  color: var(--color-text-muted);
+}
+
+.control-center__logout,
+.control-center__action {
+  min-height: 2.75rem;
+  padding: 0.72rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.control-center__logout {
+  margin-top: 0.45rem;
+}
+
+.control-center__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.control-center__card {
+  padding: 1.2rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.control-center__card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.control-center__card p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.control-center__action {
+  justify-content: center;
+}
+
+.control-center__action:disabled {
+  opacity: 0.78;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1180px) {
+  .control-center__hero {
+    grid-template-columns: 1fr;
+  }
+
+  .control-center__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .control-center {
+    width: calc(100vw - 0.6rem);
+    padding-top: 0.95rem;
+  }
+
+  .control-center__hero,
+  .control-center__card {
+    padding: 1rem;
+  }
+
+  .control-center__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .control-center__logout,
+  .control-center__action {
+    width: 100%;
+  }
+}
