@@ -1,6 +1,6 @@
 package com.fernandogferreyra.portfolio.backend.exception;
 
-import com.fernandogferreyra.portfolio.backend.domain.dto.ApiFieldError;
+import com.fernandogferreyra.portfolio.backend.dto.ApiFieldError;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;

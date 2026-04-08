@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fernandogferreyra.portfolio.backend.domain.enums.ContactMessageStatus;
 import com.fernandogferreyra.portfolio.backend.domain.enums.EventType;
-import com.fernandogferreyra.portfolio.backend.module.analytics.repository.EventLogRepository;
-import com.fernandogferreyra.portfolio.backend.module.contact.repository.ContactMessageRepository;
+import com.fernandogferreyra.portfolio.backend.repository.analytics.EventLogRepository;
+import com.fernandogferreyra.portfolio.backend.repository.contact.ContactMessageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

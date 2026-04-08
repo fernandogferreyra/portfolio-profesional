@@ -1,8 +1,8 @@
 package com.fernandogferreyra.portfolio.backend.security;
 
 import com.fernandogferreyra.portfolio.backend.domain.enums.UserRole;
-import com.fernandogferreyra.portfolio.backend.module.auth.domain.entity.AppUser;
-import com.fernandogferreyra.portfolio.backend.module.auth.repository.AppUserRepository;
+import com.fernandogferreyra.portfolio.backend.domain.auth.entity.AppUser;
+import com.fernandogferreyra.portfolio.backend.repository.auth.AppUserRepository;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;

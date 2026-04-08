@@ -16,6 +16,9 @@ jobs:
   build:
     name: Build Angular App
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - name: Checkout repository
@@ -26,6 +29,7 @@ jobs:
         with:
           node-version: 20.x
           cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -38,13 +42,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: portfolio-build
-          path: dist/portfolio-ferchuz/browser
+          path: frontend/dist/portfolio-ferchuz/browser
 
   build-backend:
     name: Build Backend
     runs-on: ubuntu-latest
     env:
-      SPRING_PROFILES_ACTIVE: test
+      SPRING_PROFILES_ACTIVE: dev
+      PORTFOLIO_DB_URL: jdbc:postgresql://localhost:5432/portfolio_db
+      PORTFOLIO_DB_USERNAME: postgres
+      PORTFOLIO_DB_PASSWORD: postgres
       PORTFOLIO_TEST_DB_URL: jdbc:postgresql://localhost:5432/portfolio_db
       PORTFOLIO_TEST_DB_USERNAME: postgres
       PORTFOLIO_TEST_DB_PASSWORD: postgres
@@ -83,3 +90,6 @@ jobs:
 
       - name: Run backend tests
         run: ./mvnw test
+
+      - name: Package backend
+        run: ./mvnw package

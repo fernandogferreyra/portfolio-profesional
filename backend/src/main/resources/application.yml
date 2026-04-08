@@ -111,6 +111,138 @@ app:
         label: Deployment and environments
         base-hours: 14.00
         saas-eligible: true
+  budget-builder:
+    configuration-id: budget-builder-seed-v1
+    version: 2026-04-07-mvp
+    source: seed
+    currency: USD
+    created-at: 2026-04-07T00:00:00Z
+    working-hours-per-week: 32
+    hourly-rate:
+      base: 18.00
+      support-hourly-rate: 8.00
+      extra-hour-rate: 12.00
+    commercial-multiplier: 1.00
+    minimum-budget: 0.00
+    rounding-rules:
+      technical: ROUND_NEAREST_HOUR
+      commercial: ROUND_2_DECIMALS
+    module-catalog:
+      - id: DISCOVERY
+        category: analysis_design
+        name: Discovery
+        description: Discovery description
+        quantity: 1
+        tier: STANDARD
+        base-hours: 8.00
+        complexity-weight: 1.00
+        module-multiplier: 1.00
+        dependency-ids: []
+        optional: false
+      - id: CORE_BACKEND
+        category: backend
+        name: Core backend
+        description: Core backend description
+        quantity: 1
+        tier: STANDARD
+        base-hours: 12.00
+        complexity-weight: 1.00
+        module-multiplier: 1.00
+        dependency-ids:
+          - DISCOVERY
+        optional: false
+      - id: FRONTEND_APP
+        category: frontend
+        name: Frontend app
+        description: Frontend app description
+        quantity: 1
+        tier: STANDARD
+        base-hours: 10.00
+        complexity-weight: 1.00
+        module-multiplier: 1.00
+        dependency-ids:
+          - DISCOVERY
+        optional: true
+      - id: DATABASE_LAYER
+        category: backend
+        name: Database layer
+        description: Database layer description
+        quantity: 1
+        tier: STANDARD
+        base-hours: 8.00
+        complexity-weight: 1.00
+        module-multiplier: 1.00
+        dependency-ids:
+          - CORE_BACKEND
+        optional: true
+      - id: ADMIN_PANEL
+        category: frontend
+        name: Admin panel
+        description: Admin panel description
+        quantity: 1
+        tier: STANDARD
+        base-hours: 10.00
+        complexity-weight: 1.10
+        module-multiplier: 1.00
+        dependency-ids:
+          - CORE_BACKEND
+        optional: true
+    technology-catalog:
+      - id: default_web_stack
+        label: Default web stack
+        multiplier: 1.00
+        supported-project-types:
+          - standard_project
+      - id: outside_primary_stack
+        label: Outside primary stack
+        multiplier: 1.00
+        surcharge-rule-id: outside-stack-surcharge
+        supported-project-types:
+          - standard_project
+    surcharge-rules:
+      - id: management-contingency-fixed
+        code: management_contingency_fixed
+        label: Management contingency
+        reason: Covers management overhead and contingency.
+        mode: FIXED
+        value: 300.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: true
+      - id: outside-stack-surcharge
+        code: outside_stack_surcharge
+        label: Outside stack surcharge
+        reason: Applies when the project uses a stack outside the primary catalog.
+        mode: PERCENTAGE
+        value: 0.10
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: false
+    support-rules:
+      - id: support-basic
+        label: Basic support
+        cadence: MONTHLY
+        included-hours: 3.00
+        hourly-rate: 8.00
+        monthly-amount: 24.00
+        enabled-by-default: true
+    project-type-defaults:
+      - project-type: standard_project
+        default-module-ids:
+          - DISCOVERY
+          - CORE_BACKEND
+        default-surcharge-rule-ids:
+          - management-contingency-fixed
+        default-support-rule-id: support-basic
+    project-multipliers:
+      standard_project: 1.00
+    stack-multipliers:
+      default_web_stack: 1.00
+      outside_primary_stack: 1.00
+    complexity-multipliers:
+      LOW: 1.00
+      MEDIUM: 1.25
+      HIGH: 1.60
   security:
     jwt:
       secret: ${PORTFOLIO_JWT_SECRET}

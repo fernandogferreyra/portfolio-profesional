@@ -2,7 +2,7 @@
 
 ## Ultimo estado
 
-Proyecto portfolio con frontend Angular 20 autocontenido en `frontend/` y backend Spring Boot 3.3.5 en `backend/`, autenticacion JWT para acceso admin al `Control Center`, modulos privados iniciales operativos, CI activa sobre Angular + backend y validacion local completa de tests/build cerrada el 2026-04-08.
+Proyecto portfolio con frontend Angular 20 autocontenido en `frontend/` y backend Spring Boot 3.3.5 en `backend/`, autenticacion JWT para acceso admin al `Control Center`, modulos privados iniciales operativos, CI activa sobre Angular + backend y ultimo ajuste de pipeline/documentacion cerrado el 2026-04-08.
 
 Tambien queda definido a nivel documental el diseno objetivo de `Budget Builder` como reemplazo futuro del cotizador comercial actual, manteniendo separado el `estimation-tool` y sin implementar todavia cambios de codigo ni de backend.
 
@@ -23,6 +23,10 @@ Ademas queda alineado el estimador tecnico con backend como unica fuente de verd
 Tambien queda completada la reorganizacion estructural del repo: desaparece `module/*` como patron en backend, las features quedan repartidas en capas globales (`controller`, `service`, `service/impl`, `repository`, `domain/<feature>`, `dto/<feature>`, `mapper/<feature>`) y Angular queda movido a `frontend/`.
 
 Ademas queda completada la limpieza final de residuos estructurales del backend: se eliminaron todos los `package-info.java` que solo contenian documentacion residual sin metadata activa, `backend\\mvnw.cmd test` y `backend\\mvnw.cmd package` volvieron a pasar, y el backend levanto correctamente en perfil `dev` validando `health`, `auth` y una ruta admin protegida.
+
+Tambien queda ajustado el workflow de CI para ejecutar Angular desde `frontend/` y el backend desde `backend/`, activando `SPRING_PROFILES_ACTIVE=dev` en GitHub Actions y conservando el artifact `frontend/dist/portfolio-ferchuz/browser`; durante la validacion local del cambio aparecio ademas un bloqueo previo del backend por beans duplicados entre `controller/*` y `module/*`, fuera del alcance de este ajuste de CI.
+
+Tambien queda corregida la causa real del fallo del backend: se eliminaron por completo los residuos legacy bajo `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/`, se removio el paquete duplicado `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/dto/`, se alinearon imports al arbol horizontal vigente y se restauro la semilla `app.budget-builder` en `application.yml`; con eso `backend\\mvnw.cmd test` y `backend\\mvnw.cmd package` volvieron a pasar y el CI actual queda listo para commit.
 
 ## Historial de cambios
 
@@ -90,6 +94,14 @@ Ademas queda completada la limpieza final de residuos estructurales del backend:
   - Cambio: Se agrego `.gitattributes` en la raiz del repo con normalizacion basica de texto para mantener consistencia de finales de linea y atributos Git por defecto.
   - Archivos: `.gitattributes`, `DOCUMENTATION.md`
   - Decision: Adoptar una base minima y segura (`* text=auto`) sin introducir reglas extra ni cambios funcionales en el codigo.
+- Fecha: 2026-04-08
+  - Cambio: Se ajusto `.github/workflows/ci.yml` para ejecutar el frontend con `working-directory: frontend`, mantener el artifact en `frontend/dist/portfolio-ferchuz/browser` y correr el job backend desde `backend/` con `SPRING_PROFILES_ACTIVE=dev`, variables `PORTFOLIO_DB_*` explicitas y los pasos `./mvnw test` y `./mvnw package`.
+  - Archivos: `.github/workflows/ci.yml`, `DOCUMENTATION.md`
+  - Decision: Mantener el fix acotado a CI y declarar tanto `PORTFOLIO_DB_*` como `PORTFOLIO_TEST_DB_*`, porque el job backend debe iniciar con perfil `dev` pero los tests actuales siguen fijando `@ActiveProfiles("test")`.
+- Fecha: 2026-04-08
+  - Cambio: Se elimino definitivamente la estructura legacy `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/**`, se removio el duplicado `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/dto/**`, se alinearon imports/tests al arbol horizontal (`controller`, `service`, `service/impl`, `repository`, `domain/<feature>`, `dto/<feature>`, `mapper/<feature>`) y se restauro el bloque `app.budget-builder` requerido por `BudgetBuilderSeedProperties`.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/dto/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/security/AdminBootstrapInitializer.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/HealthController.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/exception/GlobalExceptionHandler.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/exception/ApiErrorResponse.java`, `backend/src/main/resources/application.yml`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/ApiIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/QuoteIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/SecurityIntegrationTest.java`, `DOCUMENTATION.md`
+  - Decision: La causa real del `ConflictingBeanDefinitionException` era la convivencia fisica de clases legacy bajo `module/*`; al quitarlas aparecio un segundo bloqueo de configuracion porque faltaba la semilla `app.budget-builder` en `application.yml`. Se corrigio solo infraestructura/configuracion del backend, sin cambiar logica funcional, y el workflow de CI ya queda validado por backend verde.
 
 ## Modulos cerrados
 
@@ -114,6 +126,7 @@ Ademas queda completada la limpieza final de residuos estructurales del backend:
 - Evolucionar `Actividad del Sitio` a una version persistida y mas robusta.
 - Externalizar la configuracion del motor comercial y/o tecnico para evitar reglas hardcodeadas.
 - Mantener la higiene basica del repo con configuracion minima de Git y sin abrir refactors estructurales nuevos fuera de necesidad real.
+- Mantener el backend exclusivamente en arquitectura horizontal y no reintroducir `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/*`.
 
 ## Riesgos / deudas tecnicas
 
