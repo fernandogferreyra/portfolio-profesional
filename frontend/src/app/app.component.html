@@ -1,0 +1,22 @@
+<div class="app-ambient" aria-hidden="true">
+  <span class="app-ambient-grid"></span>
+  <span class="app-ambient-orb app-ambient-orb--one"></span>
+  <span class="app-ambient-orb app-ambient-orb--two"></span>
+  <span class="app-ambient-orb app-ambient-orb--three"></span>
+</div>
+
+<div class="app-shell">
+  <app-header (privateAccessRequested)="openLoginModal()"></app-header>
+
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-footer></app-footer>
+</div>
+
+<app-admin-login-modal
+  *ngIf="loginModalOpen()"
+  (closed)="closeLoginModal()"
+  (authenticated)="onAuthenticated()"
+></app-admin-login-modal>

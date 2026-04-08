@@ -1,0 +1,393 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.commercial-quote {
+  padding: clamp(1.1rem, 2vw, 1.45rem);
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.commercial-quote__header,
+.commercial-quote__heading,
+.commercial-quote__panel-heading,
+.commercial-quote__builder,
+.commercial-quote__panel,
+.commercial-quote__side,
+.commercial-quote__detail,
+.commercial-quote__breakdown {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.commercial-quote__heading p,
+.commercial-quote__panel-heading p,
+.commercial-quote__hint,
+.commercial-quote__state {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.commercial-quote__workflow-note {
+  color: var(--color-primary);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.commercial-quote__layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  align-items: start;
+}
+
+.commercial-quote__builder,
+.commercial-quote__panel {
+  padding: 1rem;
+  min-width: 0;
+}
+
+.commercial-quote__field-grid,
+.commercial-quote__toggle-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.commercial-quote__field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.commercial-quote__field span,
+.commercial-quote__extras-top span:first-child,
+.commercial-quote__metric span,
+.commercial-quote__toggle span {
+  color: var(--color-text-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.commercial-quote__field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.commercial-quote__field select:focus-visible {
+  outline: none;
+  border-color: var(--color-border-hover);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-glow) 24%, transparent);
+}
+
+.commercial-quote__toggle {
+  position: relative;
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  min-height: 5.6rem;
+  padding: 0.95rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  cursor: pointer;
+}
+
+.commercial-quote__toggle input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.commercial-quote__toggle strong {
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.commercial-quote__toggle.is-selected,
+.commercial-quote__extra.is-selected {
+  border-color: var(--color-border-hover);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 84%, transparent), transparent 70%),
+    color-mix(in srgb, var(--color-surface) 94%, transparent);
+  box-shadow: 0 18px 36px -28px var(--color-primary-glow);
+}
+
+.commercial-quote__extras-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.commercial-quote__extras-top strong,
+.commercial-quote__detail-top strong,
+.commercial-quote__row strong,
+.commercial-quote__history-line strong {
+  color: var(--color-text);
+}
+
+.commercial-quote__extras-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.commercial-quote__extra {
+  position: relative;
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  min-height: 6.6rem;
+  padding: 0.95rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  cursor: pointer;
+}
+
+.commercial-quote__extra input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.commercial-quote__extra-name {
+  color: var(--color-text);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.commercial-quote__extra-note {
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.commercial-quote__submit,
+.commercial-quote__action {
+  min-height: 3rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.commercial-quote__submit {
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 76%, transparent), color-mix(in srgb, var(--color-accent) 50%, transparent)),
+    var(--color-surface);
+  color: var(--color-primary-contrast);
+}
+
+.commercial-quote__submit:disabled,
+.commercial-quote__action:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+}
+
+.commercial-quote__panel-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.commercial-quote__status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  background: color-mix(in srgb, var(--color-primary-soft) 86%, transparent);
+  color: var(--color-primary);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.commercial-quote__result-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.commercial-quote__metric,
+.commercial-quote__detail,
+.commercial-quote__breakdown {
+  min-width: 0;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+.commercial-quote__metric strong {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.commercial-quote__actions {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.commercial-quote__action {
+  border: 1px solid var(--glass-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.commercial-quote__action--primary {
+  border-color: color-mix(in srgb, var(--color-primary) 24%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 72%, transparent), color-mix(in srgb, var(--color-accent) 44%, transparent)),
+    var(--color-surface);
+  color: var(--color-primary-contrast);
+}
+
+.commercial-quote__action--ghost {
+  background: color-mix(in srgb, var(--color-surface) 84%, transparent);
+  color: var(--color-text-soft);
+}
+
+.commercial-quote__success {
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, #22c55e 26%, transparent);
+  background: color-mix(in srgb, #22c55e 12%, transparent);
+  color: #86efac;
+}
+
+.commercial-quote__rows {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.commercial-quote__row,
+.commercial-quote__history-item,
+.commercial-quote__detail-top {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.commercial-quote__row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 0.78rem 0.85rem;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-surface-elevated) 90%, transparent);
+  border: 1px solid var(--glass-border);
+}
+
+.commercial-quote__row div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.commercial-quote__row span,
+.commercial-quote__history-line span,
+.commercial-quote__detail-top span {
+  color: var(--color-text-muted);
+}
+
+.commercial-quote__history {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.commercial-quote__history-item {
+  width: 100%;
+  padding: 0.85rem 0.95rem;
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  text-align: left;
+  cursor: pointer;
+}
+
+.commercial-quote__history-item.is-active {
+  border-color: var(--color-border-hover);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 82%, transparent), transparent 72%),
+    color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+.commercial-quote__history-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.commercial-quote__history-line--meta {
+  font-size: 0.92rem;
+}
+
+.commercial-quote__detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.commercial-quote__error {
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, #ef4444 38%, transparent);
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #fda4af;
+}
+
+@media (max-width: 1120px) {
+  .commercial-quote__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 840px) {
+  .commercial-quote__actions,
+  .commercial-quote__toggle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .commercial-quote,
+  .commercial-quote__builder,
+  .commercial-quote__panel {
+    padding: 1rem;
+  }
+
+  .commercial-quote__field-grid,
+  .commercial-quote__extras-grid,
+  .commercial-quote__result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commercial-quote__row {
+    grid-template-columns: 1fr;
+  }
+}

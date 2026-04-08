@@ -1,0 +1,67 @@
+<div class="admin-login-backdrop" (click)="close()">
+  <section
+    class="admin-login-panel surface-card"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="content().title"
+    (click)="preventClose($event)"
+  >
+    <button
+      type="button"
+      class="admin-login-close motion-control"
+      [attr.aria-label]="content().closeAriaLabel"
+      (click)="close()"
+    >
+      <span aria-hidden="true">+</span>
+    </button>
+
+    <p class="section-eyebrow admin-login-eyebrow">{{ content().badge }}</p>
+    <h2 class="portfolio-card-title admin-login-title">{{ content().title }}</h2>
+    <p class="admin-login-description">{{ content().description }}</p>
+
+    <form class="admin-login-form" [formGroup]="loginForm" (ngSubmit)="submit()">
+      <label class="admin-login-field">
+        <span>{{ content().usernameLabel }}</span>
+        <input
+          type="text"
+          formControlName="username"
+          autocomplete="username"
+          [placeholder]="content().usernamePlaceholder"
+        />
+      </label>
+
+      <label class="admin-login-field">
+        <span>{{ content().passwordLabel }}</span>
+        <input
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          [placeholder]="content().passwordPlaceholder"
+        />
+      </label>
+
+      <p class="admin-login-helper">{{ content().helper }}</p>
+
+      <p class="admin-login-error" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+      <div class="admin-login-actions">
+        <button
+          type="button"
+          class="admin-login-secondary motion-control"
+          [disabled]="submitting()"
+          (click)="close()"
+        >
+          {{ content().cancelLabel }}
+        </button>
+
+        <button
+          type="submit"
+          class="admin-login-primary motion-control"
+          [disabled]="submitting()"
+        >
+          {{ submitting() ? content().submittingLabel : content().submitLabel }}
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

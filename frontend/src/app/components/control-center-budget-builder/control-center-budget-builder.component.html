@@ -1,0 +1,240 @@
+<section class="budget-builder surface-card">
+  <div class="budget-builder__header">
+    <div class="budget-builder__heading">
+      <div class="budget-builder__heading-top">
+        <div>
+          <p class="section-eyebrow">{{ content().eyebrow }}</p>
+          <h2 class="portfolio-section-title">{{ content().title }}</h2>
+        </div>
+
+        <button
+          type="button"
+          class="budget-builder__info-button motion-control"
+          [attr.aria-label]="content().infoLabel"
+          [attr.title]="content().infoDescription"
+        >
+          <span aria-hidden="true">i</span>
+        </button>
+      </div>
+
+      <p>{{ content().lead }}</p>
+      <p class="budget-builder__workflow-note">{{ content().workflowNote }}</p>
+    </div>
+  </div>
+
+  <div class="budget-builder__layout">
+    <form class="budget-builder__builder portfolio-subcard" [formGroup]="budgetForm" (ngSubmit)="calculateBudget()">
+      <div class="budget-builder__panel-heading">
+        <h3 class="portfolio-card-title">{{ content().formTitle }}</h3>
+        <p>{{ content().formLead }}</p>
+      </div>
+
+      <label class="budget-builder__field">
+        <span>{{ content().budgetNameLabel }}</span>
+        <input type="text" formControlName="budgetName" />
+      </label>
+
+      <div class="budget-builder__field-grid">
+        <label class="budget-builder__field">
+          <span>{{ content().projectTypeLabel }}</span>
+          <select formControlName="projectType">
+            <option *ngFor="let option of projectTypeOptions(); trackBy: trackById" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+
+        <label class="budget-builder__field">
+          <span>{{ content().technologyLabel }}</span>
+          <select formControlName="desiredStackId">
+            <option *ngFor="let option of technologyOptions(); trackBy: trackById" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+
+        <label class="budget-builder__field">
+          <span>{{ content().hourlyRateLabel }}</span>
+          <input type="number" min="0" step="1" formControlName="hourlyRate" />
+        </label>
+
+        <label class="budget-builder__field">
+          <span>{{ content().discountLabel }}</span>
+          <input type="number" min="0" step="1" formControlName="manualDiscount" />
+        </label>
+      </div>
+
+      <div class="budget-builder__modules-top">
+        <span>{{ content().layersLabel }}</span>
+        <strong>{{ countSelectedLayers() }} {{ content().selectedLayersLabel }}</strong>
+      </div>
+
+      <div class="budget-builder__toggle-grid">
+        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.includeFrontend.value">
+          <input type="checkbox" formControlName="includeFrontend" />
+          <span>{{ content().frontendLabel }}</span>
+          <strong>{{ content().frontendNote }}</strong>
+        </label>
+
+        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.includeBackend.value">
+          <input type="checkbox" formControlName="includeBackend" />
+          <span>{{ content().backendLabel }}</span>
+          <strong>{{ content().backendNote }}</strong>
+        </label>
+
+        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.includeDatabase.value">
+          <input type="checkbox" formControlName="includeDatabase" />
+          <span>{{ content().databaseLabel }}</span>
+          <strong>{{ content().databaseNote }}</strong>
+        </label>
+
+        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.supportEnabled.value">
+          <input type="checkbox" formControlName="supportEnabled" />
+          <span>{{ content().supportLabel }}</span>
+          <strong>
+            {{
+              budgetForm.controls.supportEnabled.value
+                ? content().supportEnabledLabel
+                : content().supportDisabledLabel
+            }}
+          </strong>
+        </label>
+      </div>
+
+      <p class="budget-builder__error" *ngIf="formError()">{{ formError() }}</p>
+
+      <button type="submit" class="budget-builder__submit motion-control" [disabled]="calculating()">
+        {{ content().calculateLabel }}
+      </button>
+    </form>
+
+    <section class="budget-builder__panel portfolio-subcard">
+      <div class="budget-builder__panel-heading">
+        <h3 class="portfolio-card-title">{{ content().resultTitle }}</h3>
+        <p>{{ content().resultLead }}</p>
+      </div>
+
+      <ng-container *ngIf="calculationResult() as result; else resultEmpty">
+        <div class="budget-builder__result-grid">
+          <div class="budget-builder__metric">
+            <span>{{ content().modulesLabel }}</span>
+            <strong>{{ result.modules.length }}</strong>
+          </div>
+
+          <div class="budget-builder__metric">
+            <span>{{ content().hoursLabel }}</span>
+            <strong>{{ result.technicalEstimate.totalHours | number:'1.0-2' }} h</strong>
+          </div>
+
+          <div class="budget-builder__metric">
+            <span>{{ content().subtotalLabel }}</span>
+            <strong>{{ formatCurrency(result.commercialBudget.baseAmount, result.commercialBudget.currency) }}</strong>
+          </div>
+
+          <div class="budget-builder__metric">
+            <span>{{ content().surchargesLabel }}</span>
+            <strong>{{ formatCurrency(summary()?.surchargeTotal ?? 0, result.commercialBudget.currency) }}</strong>
+          </div>
+
+          <div class="budget-builder__metric">
+            <span>{{ content().discountsLabel }}</span>
+            <strong>{{ formatCurrency(summary()?.discountTotal ?? 0, result.commercialBudget.currency) }}</strong>
+          </div>
+
+          <div class="budget-builder__metric">
+            <span>{{ content().finalOneTimeLabel }}</span>
+            <strong>{{ formatCurrency(result.commercialBudget.finalOneTimeTotal, result.commercialBudget.currency) }}</strong>
+          </div>
+        </div>
+
+        <div class="budget-builder__summary-card">
+          <div>
+            <span>{{ content().finalMonthlyLabel }}</span>
+            <strong>
+              {{
+                result.commercialBudget.finalMonthlyTotal > 0
+                  ? formatCurrency(result.commercialBudget.finalMonthlyTotal, result.commercialBudget.currency)
+                  : content().noMonthlyLabel
+              }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="budget-builder__section">
+          <div class="budget-builder__section-head">
+            <span class="section-eyebrow">{{ content().generatedModulesTitle }}</span>
+          </div>
+
+          <div class="budget-builder__rows">
+            <div class="budget-builder__row" *ngFor="let module of result.modules; trackBy: trackById">
+              <div>
+                <strong>{{ module.name }}</strong>
+                <span>{{ module.description }}</span>
+              </div>
+              <span>{{ module.estimatedHours | number:'1.0-2' }} h</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-builder__section">
+          <div class="budget-builder__section-head">
+            <span class="section-eyebrow">{{ content().surchargesTitle }}</span>
+          </div>
+
+          <div class="budget-builder__rows" *ngIf="result.commercialBudget.surchargeItems.length; else emptySurcharges">
+            <div class="budget-builder__row" *ngFor="let surcharge of result.commercialBudget.surchargeItems; trackBy: trackById">
+              <div>
+                <strong>{{ surcharge.label }}</strong>
+                <span>{{ surcharge.reason }}</span>
+              </div>
+              <span>{{ formatCurrency(surcharge.amount, result.commercialBudget.currency) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-builder__section">
+          <div class="budget-builder__section-head">
+            <span class="section-eyebrow">{{ content().discountsTitle }}</span>
+          </div>
+
+          <div class="budget-builder__rows" *ngIf="result.commercialBudget.discountItems.length; else emptyDiscounts">
+            <div class="budget-builder__row" *ngFor="let discount of result.commercialBudget.discountItems; trackBy: trackById">
+              <div>
+                <strong>{{ discount.label }}</strong>
+                <span>{{ discount.reason }}</span>
+              </div>
+              <span>{{ formatCurrency(discount.amount, result.commercialBudget.currency) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="budget-builder__section">
+          <div class="budget-builder__section-head">
+            <span class="section-eyebrow">{{ content().explanationTitle }}</span>
+          </div>
+
+          <div class="budget-builder__rows">
+            <div class="budget-builder__row" *ngFor="let item of result.commercialBudget.pricingExplanation; trackBy: trackById">
+              <div>
+                <strong>{{ item.title }}</strong>
+                <span>{{ item.description }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #resultEmpty>
+        <p class="budget-builder__state">{{ content().resultEmpty }}</p>
+      </ng-template>
+
+      <ng-template #emptySurcharges>
+        <p class="budget-builder__state">{{ content().emptyAdjustments }}</p>
+      </ng-template>
+
+      <ng-template #emptyDiscounts>
+        <p class="budget-builder__state">{{ content().emptyDiscounts }}</p>
+      </ng-template>
+    </section>
+  </div>
+</section>

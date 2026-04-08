@@ -1,0 +1,159 @@
+<section class="about-page">
+  <section class="surface-card about-hero" aria-labelledby="about-title">
+    <div class="about-hero-copy">
+      <p class="section-eyebrow" appRevealOnScroll [revealDelay]="0">{{ content().eyebrow }}</p>
+      <h1 id="about-title" class="about-hero__title portfolio-page-title" appRevealOnScroll [revealDelay]="60">
+        {{ content().heroTitle }}
+      </h1>
+      <p class="hero-lead" appRevealOnScroll [revealDelay]="120">{{ content().heroLead }}</p>
+
+      <div class="hero-badges">
+        <span
+          class="hero-badge motion-chip"
+          *ngFor="let badge of content().heroBadges; let i = index"
+          appRevealOnScroll
+          [revealDelay]="180 + i * 45"
+        >
+          {{ badge }}
+        </span>
+      </div>
+    </div>
+
+    <div class="about-hero-aside">
+      <article class="portrait-panel motion-panel portfolio-subcard" appRevealOnScroll="right" [revealDelay]="120">
+        <p class="section-eyebrow">{{ portraitContent().eyebrow }}</p>
+
+        <div class="portrait-frame" aria-hidden="true">
+          <span class="portrait-frame__halo"></span>
+          <span class="portrait-frame__shape"></span>
+        </div>
+
+        <div class="portrait-copy">
+          <h2 class="portfolio-card-title">{{ portraitContent().title }}</h2>
+          <p>{{ portraitContent().description }}</p>
+        </div>
+
+        <div class="portrait-tags">
+          <span class="portrait-tag motion-chip" *ngFor="let tag of portraitContent().tags">{{ tag }}</span>
+        </div>
+      </article>
+
+      <aside class="summary-panel motion-panel portfolio-subcard" appRevealOnScroll="right" [revealDelay]="180">
+        <p class="summary-label">{{ content().summaryTitle }}</p>
+        <p class="summary-copy">{{ content().summaryDescription }}</p>
+
+        <div class="stats-grid">
+          <article
+            class="stat-card motion-panel portfolio-subcard"
+            *ngFor="let stat of content().stats; let i = index"
+            appRevealOnScroll
+            [revealDelay]="220 + i * 45"
+          >
+            <strong>{{ stat.value }}</strong>
+            <span>{{ stat.label }}</span>
+          </article>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="about-capabilities">
+    <article
+      class="surface-card capability-card motion-panel portfolio-subcard"
+      *ngFor="let capability of capabilityCards(); let i = index"
+      appRevealOnScroll
+      [revealDelay]="80 + i * 55"
+    >
+      <h2 class="portfolio-card-title">{{ capability.title }}</h2>
+      <p>{{ capability.description }}</p>
+    </article>
+  </section>
+
+  <section class="about-split">
+    <section class="surface-card story-section" aria-labelledby="story-title" appRevealOnScroll="left" [revealDelay]="90">
+      <div class="section-heading">
+        <h2 id="story-title" class="portfolio-section-title">{{ content().storyTitle }}</h2>
+        <p>{{ content().storyDescription }}</p>
+      </div>
+
+      <div class="story-grid">
+        <div class="story-copy">
+          <p *ngFor="let paragraph of content().paragraphs">{{ paragraph }}</p>
+        </div>
+
+        <div class="journey-panel">
+          <article
+            class="journey-step motion-panel portfolio-subcard"
+            *ngFor="let step of content().journey; let i = index"
+            appRevealOnScroll="right"
+            [revealDelay]="110 + i * 55"
+          >
+            <h3 class="portfolio-card-title">{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="surface-card spotlight-section"
+      aria-labelledby="project-title"
+      appRevealOnScroll="right"
+      [revealDelay]="120"
+    >
+      <p class="section-eyebrow">{{ content().projectEyebrow }}</p>
+      <h2 id="project-title" class="portfolio-section-title">{{ content().projectTitle }}</h2>
+      <p class="spotlight-copy">{{ content().projectDescription }}</p>
+
+      <ul class="spotlight-list">
+        <li
+          class="motion-panel"
+          *ngFor="let highlight of content().projectHighlights; let i = index"
+          appRevealOnScroll
+          [revealDelay]="150 + i * 50"
+        >
+          {{ highlight }}
+        </li>
+      </ul>
+    </section>
+  </section>
+
+  <section class="about-bottom-grid">
+    <section class="surface-card" aria-labelledby="strengths-title" appRevealOnScroll="left" [revealDelay]="100">
+      <div class="section-heading section-heading--compact">
+        <h2 id="strengths-title" class="portfolio-section-title">{{ content().strengthsTitle }}</h2>
+        <p>{{ content().strengthsDescription }}</p>
+      </div>
+
+      <div class="strengths-grid">
+        <article
+          class="strength-card motion-panel portfolio-subcard"
+          *ngFor="let strength of content().professionalStrengths; let i = index"
+          appRevealOnScroll
+          [revealDelay]="130 + i * 50"
+        >
+          <h3 class="portfolio-card-title">{{ strength.title }}</h3>
+          <p>{{ strength.description }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="surface-card" aria-labelledby="interests-title" appRevealOnScroll="right" [revealDelay]="140">
+      <div class="section-heading section-heading--compact">
+        <h2 id="interests-title" class="portfolio-section-title">{{ content().interestsTitle }}</h2>
+        <p>{{ content().interestsDescription }}</p>
+      </div>
+
+      <div class="interest-cloud">
+        <span
+          class="interest-chip motion-chip"
+          *ngFor="let interest of content().technicalInterests; let i = index"
+          appRevealOnScroll
+          [revealDelay]="170 + i * 35"
+        >
+          {{ interest }}
+        </span>
+      </div>
+    </section>
+  </section>
+</section>

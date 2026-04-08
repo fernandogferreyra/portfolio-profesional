@@ -9,6 +9,10 @@ import { AboutComponent } from './components/about/about.component';
 import { AdminLoginModalComponent } from './components/admin-login-modal/admin-login-modal.component';
 import { ContactComponent } from './components/contact/contact.component';
 import { ControlCenterComponent } from './components/control-center/control-center.component';
+import { ControlCenterEstimatorComponent } from './components/control-center-estimator/control-center-estimator.component';
+import { ControlCenterQuoteComponent } from './components/control-center-quote/control-center-quote.component';
+import { ControlCenterQuoteMetricsComponent } from './components/control-center-quote-metrics/control-center-quote-metrics.component';
+import { ControlCenterSiteActivityComponent } from './components/control-center-site-activity/control-center-site-activity.component';
 import { CredentialsComponent } from './components/credentials/credentials.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { HeaderComponent } from './components/header/header.component';
@@ -33,6 +37,10 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     ContactComponent,
     CredentialsComponent,
     ControlCenterComponent,
+    ControlCenterQuoteComponent,
+    ControlCenterEstimatorComponent,
+    ControlCenterQuoteMetricsComponent,
+    ControlCenterSiteActivityComponent,
     RevealOnScrollDirective,
   ],
   imports: [

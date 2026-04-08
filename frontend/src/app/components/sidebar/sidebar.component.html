@@ -1,0 +1,16 @@
+<nav class="sidebar-panel" [attr.aria-label]="content().navigationAriaLabel">
+  <a class="sidebar-brand" routerLink="/">
+    <span class="sidebar-brand__title">Portfolio</span>
+    <span class="sidebar-brand__subtitle">Profesional</span>
+  </a>
+
+  <div class="sidebar-links">
+    <a routerLink="/" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="is-active">
+      {{ content().homeLabel }}
+    </a>
+    <a routerLink="/about" routerLinkActive="is-active">{{ content().aboutLabel }}</a>
+    <a routerLink="/projects" routerLinkActive="is-active">{{ content().projectsLabel }}</a>
+    <a routerLink="/skills" routerLinkActive="is-active">{{ content().skillsLabel }}</a>
+    <a routerLink="/contact" routerLinkActive="is-active">{{ content().contactLabel }}</a>
+  </div>
+</nav>
