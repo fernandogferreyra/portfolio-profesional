@@ -1,0 +1,196 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.budget-builder {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1.1rem, 2vw, 1.45rem);
+}
+
+.budget-builder__heading,
+.budget-builder__panel-heading,
+.budget-builder__builder,
+.budget-builder__panel,
+.budget-builder__section,
+.budget-builder__rows,
+.budget-builder__field,
+.budget-builder__toggle,
+.budget-builder__row div {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.budget-builder__heading p,
+.budget-builder__panel-heading p,
+.budget-builder__state,
+.budget-builder__row span {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.budget-builder__heading-top,
+.budget-builder__modules-top,
+.budget-builder__section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.budget-builder__workflow-note {
+  color: var(--color-primary);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.budget-builder__info-button,
+.budget-builder__submit {
+  font: inherit;
+  font-weight: 800;
+}
+
+.budget-builder__info-button {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 24%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary-soft) 82%, var(--color-surface));
+  color: var(--color-primary);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.budget-builder__layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+}
+
+.budget-builder__builder,
+.budget-builder__panel,
+.budget-builder__metric,
+.budget-builder__summary-card,
+.budget-builder__row,
+.budget-builder__toggle {
+  min-width: 0;
+  padding: 0.95rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+.budget-builder__field-grid,
+.budget-builder__toggle-grid,
+.budget-builder__result-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.budget-builder__field span,
+.budget-builder__modules-top span:first-child,
+.budget-builder__metric span,
+.budget-builder__toggle span,
+.budget-builder__summary-card span {
+  color: var(--color-text-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.budget-builder__field input,
+.budget-builder__field select {
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.budget-builder__field input:focus-visible,
+.budget-builder__field select:focus-visible {
+  outline: none;
+  border-color: var(--color-border-hover);
+}
+
+.budget-builder__modules-top strong,
+.budget-builder__metric strong,
+.budget-builder__summary-card strong,
+.budget-builder__row strong,
+.budget-builder__toggle strong {
+  color: var(--color-text);
+}
+
+.budget-builder__toggle {
+  position: relative;
+  min-height: 5.5rem;
+  cursor: pointer;
+}
+
+.budget-builder__toggle input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.budget-builder__toggle.is-selected {
+  border-color: var(--color-border-hover);
+  background: color-mix(in srgb, var(--color-primary-soft) 76%, var(--color-surface));
+}
+
+.budget-builder__submit {
+  min-height: 3rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+  border-radius: 999px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 76%, transparent), color-mix(in srgb, var(--color-accent) 50%, transparent));
+  color: var(--color-primary-contrast);
+  cursor: pointer;
+}
+
+.budget-builder__metric strong,
+.budget-builder__summary-card strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 1.05rem;
+}
+
+.budget-builder__row {
+  display: grid;
+  gap: 0.4rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.budget-builder__error {
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid color-mix(in srgb, #ef4444 38%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  color: #fda4af;
+}
+
+@media (max-width: 1120px) {
+  .budget-builder__layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  .budget-builder__field-grid,
+  .budget-builder__toggle-grid,
+  .budget-builder__result-grid,
+  .budget-builder__row {
+    grid-template-columns: 1fr;
+  }
+}

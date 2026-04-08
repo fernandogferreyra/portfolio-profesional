@@ -1,0 +1,156 @@
+<section class="contact-page">
+  <section class="surface-card contact-hero" aria-labelledby="contact-title">
+    <div class="contact-hero__copy">
+      <p class="section-eyebrow" appRevealOnScroll [revealDelay]="0">{{ ui().eyebrow }}</p>
+      <h1 id="contact-title" class="contact-hero__title portfolio-page-title" appRevealOnScroll [revealDelay]="60">
+        {{ ui().title }}
+      </h1>
+      <p appRevealOnScroll [revealDelay]="120">{{ ui().intro }}</p>
+    </div>
+
+    <div class="contact-hero__availability" appRevealOnScroll="right" [revealDelay]="120">
+      <p class="contact-hero__availability-label">{{ ui().availabilityTitle }}</p>
+      <div class="contact-chip-list">
+        <span
+          class="contact-chip motion-chip"
+          *ngFor="let item of availability(); let i = index"
+          appRevealOnScroll
+          [revealDelay]="150 + i * 45"
+        >
+          {{ item }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <div class="contact-grid">
+    <section class="surface-card contact-card" aria-labelledby="contact-channels-title" appRevealOnScroll="left" [revealDelay]="90">
+      <div class="section-heading">
+        <h2 id="contact-channels-title" class="portfolio-section-title">{{ ui().channelsTitle }}</h2>
+      </div>
+
+      <div class="contact-channel-list">
+        <article
+          class="contact-channel motion-panel portfolio-subcard"
+          *ngFor="let channel of channels(); let i = index"
+          appRevealOnScroll
+          [revealDelay]="110 + i * 50"
+        >
+          <span
+            class="contact-channel__icon"
+            aria-hidden="true"
+            [style.--channel-accent]="channel.accent"
+            [style.--channel-surface]="channel.accent + '22'"
+          >
+            <svg
+              [attr.viewBox]="channelIcons[channel.icon].viewBox"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path *ngFor="let path of channelIcons[channel.icon].paths" [attr.d]="path"></path>
+            </svg>
+          </span>
+
+          <div class="contact-channel__copy">
+            <p class="contact-channel__label">{{ channel.label }}</p>
+
+            <a
+              *ngIf="hasHref(channel); else plainChannelValue"
+              [href]="channel.href"
+              [attr.target]="channel.newTab ? '_blank' : null"
+              [attr.rel]="channel.newTab ? 'noopener' : null"
+            >
+              {{ channel.value }}
+            </a>
+
+            <ng-template #plainChannelValue>
+              <span class="contact-channel__value">{{ channel.value }}</span>
+            </ng-template>
+
+            <p class="contact-channel__note">{{ channel.note }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section
+      class="surface-card contact-card contact-card--form"
+      aria-labelledby="contact-form-title"
+      appRevealOnScroll="right"
+      [revealDelay]="120"
+    >
+      <div class="section-heading">
+        <h2 id="contact-form-title" class="portfolio-section-title">{{ ui().formTitle }}</h2>
+        <p>{{ ui().formDescription }}</p>
+        <p class="contact-form__destination">
+          <span>{{ ui().formDestinationLabel }}</span>
+          <strong>{{ contactRecipient }}</strong>
+        </p>
+      </div>
+
+      <form
+        class="contact-form-shell"
+        [formGroup]="contactForm"
+        (ngSubmit)="submitContactForm()"
+        aria-describedby="contact-form-note"
+        [attr.aria-busy]="isSubmitting()"
+        novalidate
+      >
+        <div class="contact-form__grid">
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="140">
+            <span>{{ ui().nameLabel }}</span>
+            <input type="text" formControlName="name" [placeholder]="ui().namePlaceholder" autocomplete="name" />
+            <small class="contact-form__error" *ngIf="controlError('name') as error">{{ error }}</small>
+          </label>
+
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="180">
+            <span>{{ ui().emailLabel }}</span>
+            <input type="email" formControlName="email" [placeholder]="ui().emailPlaceholder" autocomplete="email" />
+            <small class="contact-form__error" *ngIf="controlError('email') as error">{{ error }}</small>
+          </label>
+
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="220">
+            <span>{{ ui().contextLabel }}</span>
+            <input type="text" formControlName="context" [placeholder]="ui().contextPlaceholder" autocomplete="organization" />
+          </label>
+
+          <label class="contact-form__field" appRevealOnScroll [revealDelay]="260">
+            <span>{{ ui().subjectLabel }}</span>
+            <input type="text" formControlName="subject" [placeholder]="ui().subjectPlaceholder" />
+            <small class="contact-form__error" *ngIf="controlError('subject') as error">{{ error }}</small>
+          </label>
+
+          <label class="contact-form__field contact-form__field--full" appRevealOnScroll [revealDelay]="300">
+            <span>{{ ui().messageLabel }}</span>
+            <textarea formControlName="message" [placeholder]="ui().messagePlaceholder" rows="6"></textarea>
+            <small class="contact-form__error" *ngIf="controlError('message') as error">{{ error }}</small>
+          </label>
+        </div>
+
+        <p
+          class="contact-form-feedback"
+          *ngIf="formFeedback()"
+          [class.is-success]="formState() === 'success'"
+          [class.is-error]="formState() === 'error'"
+          aria-live="polite"
+        >
+          {{ formFeedback() }}
+        </p>
+
+        <button
+          type="submit"
+          class="contact-form-cta motion-control"
+          appRevealOnScroll
+          [revealDelay]="360"
+          [disabled]="isSubmitting()"
+        >
+          {{ isSubmitting() ? ui().formSubmittingLabel : ui().formButtonLabel }}
+        </button>
+        <p id="contact-form-note" class="contact-form-note">{{ ui().formNote }}</p>
+      </form>
+    </section>
+  </div>
+</section>
