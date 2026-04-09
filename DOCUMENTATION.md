@@ -40,6 +40,7 @@ Validacion actual cerrada:
 - En la Etapa 2 de rescate funcional desde la copia se recuperaron `Budget Builder` backend persistido y `quote` backend rico, manteniendo el repo actual como base limpia pero usando la copia como fuente de verdad funcional para contratos y reglas servidor-side.
 - En la etapa siguiente se realineo el frontend del estimador con el contrato rico de `quote` backend: `QuoteResult` y `QuoteItem` vuelven a exponer baseHours, riskBufferHours, totalWeeks, assumptions, horas PERT por item y dependencias, y el frontend ya compila y testea contra esa version servidor-side.
 - Se agrego la base de `release-please` como monorepo para `frontend` y `backend`, con workflow dedicado, manifest, config y changelogs separados por componente.
+- Se agrego `.github/pull_request_template.md` y se dejaron documentadas las rules sugeridas para `main` dentro de `docs/path-to-production.md`.
 
 Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/deploy y limpieza posterior de residuos frontend no visibles.
 
@@ -140,6 +141,12 @@ Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/
   - Archivos: `.release-please-manifest.json`, `release-please-config.json`, `.github/workflows/release-please.yml`, `frontend/CHANGELOG.md`, `backend/CHANGELOG.md`, `README.md`, `docs/path-to-production.md`, `DOCUMENTATION.md`
   - Decision: Versionado separado por componente y workflow independiente del `ci.yml`. Esto evita mezclar calidad de build con automatizacion de release y deja el camino preparado para PRs de versionado sobre `main`.
   - Proximos pasos: Revisar branch rules de `main`, adoptar Conventional Commits de forma consistente y validar en GitHub que `release-please` pueda crear PRs de release con los permisos actuales.
+
+- Fecha: 2026-04-09
+  - Cambio: Se agrego `.github/pull_request_template.md` y se formalizo en `docs/path-to-production.md` la configuracion sugerida de rules para `main`: PR obligatorio, resolucion de conversaciones y status checks minimos antes de merge.
+  - Archivos: `.github/pull_request_template.md`, `docs/path-to-production.md`, `README.md`, `DOCUMENTATION.md`
+  - Decision: Dejar el gobierno de PRs versionado dentro del repo aunque la activacion final de rules ocurra en GitHub Settings.
+  - Proximos pasos: Aplicar manualmente el ruleset en GitHub y validar que `main` quede bloqueada para merge directo.
 
 - Fecha: 2026-04-08
   - Cambio: Se rediseno el dashboard privado como herramienta profesional de uso real. `Budget Builder` paso a workspace vivo con preview automatico, decisiones visibles entre `Proyecto` y `SaaS`, contexto por opcion, breakdown tecnico/comercial, rail lateral sticky, reglas activas e historial integrado. El estimador tecnico paso a workspace vivo con preview automatico, formula PERT visible, buffer de riesgo, timeline, supuestos y desglose por modulo. El contenedor `Control Center` tambien se ajusto con resumen general y accesos directos a las superficies de trabajo.

@@ -99,6 +99,11 @@ Releases:
 - `release-please` queda configurado como workflow separado para `main`
 - genera PR de release, changelog y versionado por componente (`frontend` y `backend`)
 
+PRs:
+
+- el repo ya incluye `.github/pull_request_template.md`
+- se recomienda bloquear `main` para merge solo via PR con checks verdes
+
 ## Deuda abierta relevante
 
 - El portfolio publico todavia usa proyectos estaticos en frontend.

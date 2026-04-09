@@ -65,6 +65,22 @@ cd backend
 - activar `Require conversation resolution before merging`
 - exigir status checks verdes antes del merge
 
+### Ruleset sugerido en GitHub
+
+En `Settings > Rules > Rulesets > New ruleset`:
+
+1. Target branch: `main`
+2. Activar `Require a pull request before merging`
+3. Activar `Require conversation resolution before merging`
+4. Activar `Require status checks to pass before merging`
+5. Usar como checks minimos:
+   - `Build Angular App`
+   - `Build Backend`
+6. Opcional cuando el flujo madure:
+   - requerir aprobacion humana
+   - requerir branch up to date antes de merge
+   - bloquear force push directo a `main`
+
 ## 4. GitHub Actions
 
 - Los workflows viven en `.github/workflows/`.
@@ -134,6 +150,7 @@ cd backend
 - sin logica critica movida al frontend
 - `DOCUMENTATION.md` actualizado
 - handoff actualizado si el cambio afecta el panel privado
+- PR template completado
 
 ## 10. Proximos Pasos
 
