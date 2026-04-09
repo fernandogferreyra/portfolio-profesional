@@ -5,9 +5,12 @@
 /tmp
 /out-tsc
 /bazel-out
+/frontend/dist
+/frontend/coverage
 
 # Node
 /node_modules
+/frontend/node_modules
 npm-debug.log
 yarn-error.log
 
@@ -29,10 +32,15 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
+/.env
+/.env.*
+!/.env.example
 /.angular/cache
+/frontend/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
+/backend/target/
 /libpeerconnection.log
 testem.log
 /typings

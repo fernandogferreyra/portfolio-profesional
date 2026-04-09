@@ -1,94 +1,107 @@
-# PortfolioFerchuz
+# Portfolio Profesional
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
+Aplicacion full-stack para portfolio profesional con frontend Angular en `frontend/` y backend Spring Boot en `backend/`.
 
-## CI/CD base
+## Estado actual
 
-This repository includes a simple GitHub Actions workflow in `.github/workflows/ci.yml`.
+- Arquitectura monolitica por capas globales.
+- Backend como source of truth para auth JWT, contacto, proyectos, estimador tecnico y `Budget Builder` admin.
+- Frontend publico operativo y dashboard privado en `control-center`.
+- CI separada para frontend y backend en `.github/workflows/ci.yml`.
 
-What it does:
+## Estructura
 
-- Runs on `push` to `main`
-- Runs on `pull_request` targeting `main`
-- Installs dependencies with `npm ci`
-- Builds the Angular app in production mode with `npm run build:ci`
-- Fails the workflow if the build fails
-- Uploads the generated `dist/portfolio-ferchuz/browser` folder as an artifact named `portfolio-build`
+```text
+portfolio-profesional/
+  frontend/   # Angular 20
+  backend/    # Spring Boot 3.3.5 + Java 17
+  docs/
+  DOCUMENTATION.md
+```
 
-This leaves the repository ready for a future automatic deploy step. To add that later, the usual next step is a second job that depends on `build`, downloads the `portfolio-build` artifact, and publishes it to the selected platform such as GitHub Pages, Netlify, Vercel, Firebase Hosting, or a custom server.
+## Stack
 
-How to verify it locally:
+- Angular 20
+- TypeScript
+- Spring Boot 3.3.5
+- Java 17
+- Spring Security + JWT
+- Spring Data JPA
+- PostgreSQL
+- Flyway
+- OpenAPI / Swagger UI
+
+## Requisitos
+
+- Node.js 20.19+ para `frontend/`
+- Java 17 para `backend/`
+- PostgreSQL para desarrollo local del backend
+
+## Frontend
 
 ```bash
+cd frontend
 npm ci
+npm start
+```
+
+Comandos utiles:
+
+```bash
+npm test -- --watch=false --browsers=ChromeHeadless
 npm run build:ci
 ```
 
-How to verify it on GitHub:
+El frontend consume la API usando rutas relativas `/api` y en desarrollo usa `frontend/proxy.conf.json` hacia `http://localhost:8080`.
 
-1. Push a branch to GitHub
-2. Open a pull request against `main`, or push directly to `main`
-3. Check the `CI` workflow in the repository Actions tab
-4. Confirm the `Build Angular App` job finishes successfully
+## Backend
 
-## Development server
+Variables de entorno minimas para desarrollo:
 
-To start a local development server, run:
+- `PORTFOLIO_DB_URL`
+- `PORTFOLIO_DB_USERNAME`
+- `PORTFOLIO_DB_PASSWORD`
+- `PORTFOLIO_JWT_SECRET`
 
-```bash
-ng serve
-```
+Si queres bootstrap del admin para desarrollo local, ademas:
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- `PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED=true`
+- `PORTFOLIO_ADMIN_USERNAME=<usuario>`
+- `PORTFOLIO_ADMIN_PASSWORD=<password>`
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Arranque local:
 
 ```bash
-ng generate component component-name
+cd backend
+./mvnw spring-boot:run
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Si lo levantas desde VS Code, el `launch.json` ya usa `${workspaceFolder}/.env`. Crea un `.env` local a partir de `.env.example` con tus credenciales reales de PostgreSQL y tu `PORTFOLIO_JWT_SECRET`.
 
-```bash
-ng generate --help
+Swagger UI:
+
+```text
+http://localhost:8080/swagger-ui.html
 ```
 
-## Building
+## CI
 
-To build the project run:
+El workflow actual:
 
-```bash
-ng build
-```
+- instala dependencias frontend
+- ejecuta tests frontend
+- compila frontend en modo produccion
+- ejecuta tests backend
+- empaqueta backend
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Deuda abierta relevante
 
-For CI usage, this repository also includes:
+- El portfolio publico todavia usa proyectos estaticos en frontend.
+- El cotizador comercial historico sigue en `localStorage`; `site-activity` ya persiste en backend.
+- Falta dockerizacion y estrategia de deploy.
+- Los tests backend de integracion todavia dependen de PostgreSQL.
 
-```bash
-npm run build:ci
-```
+## Seguimiento
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Estado operativo: `docs/handoff-control-center.md`
+- Memoria tecnica: `DOCUMENTATION.md`

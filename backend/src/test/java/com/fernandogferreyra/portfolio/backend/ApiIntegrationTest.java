@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class ApiIntegrationTest {
+class ApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -125,5 +125,55 @@ class ApiIntegrationTest {
         org.junit.jupiter.api.Assertions.assertEquals(EventType.CONTACT_SUBMIT, persistedEvents.get(0).getEventType());
         org.junit.jupiter.api.Assertions.assertEquals("portfolio-web", persistedEvents.get(0).getSource());
         org.junit.jupiter.api.Assertions.assertTrue(persistedEvents.get(0).getMetadataJson().contains("\"path\":\"/contact\""));
+    }
+
+    @Test
+    void adminCanReadTrackedEvents() throws Exception {
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "eventType": "section_view",
+                      "source": "portfolio-web",
+                      "path": "/projects",
+                      "reference": "view:projects",
+                      "metadata": {
+                        "action": "view:projects",
+                        "label": "Proyectos",
+                        "route": "/projects"
+                      }
+                    }
+                    """))
+            .andExpect(status().isOk());
+
+        String loginResponse = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "username": "ferchuz",
+                      "password": "ferchuz-test-password"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String accessToken = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(loginResponse)
+            .path("data")
+            .path("accessToken")
+            .asText();
+
+        mockMvc.perform(get("/api/admin/events")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.message").value("Events retrieved"))
+            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data[0].type").value("section_view"))
+            .andExpect(jsonPath("$.data[0].action").value("view:projects"))
+            .andExpect(jsonPath("$.data[0].label").value("Proyectos"))
+            .andExpect(jsonPath("$.data[0].route").value("/projects"));
     }
 }

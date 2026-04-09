@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import(SecurityIntegrationTest.AdminProbeController.class)
-class SecurityIntegrationTest {
+class SecurityIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

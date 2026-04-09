@@ -2,34 +2,127 @@
 
 ## Ultimo estado
 
-Proyecto portfolio con frontend Angular 20 autocontenido en `frontend/` y backend Spring Boot 3.3.5 en `backend/`, autenticacion JWT para acceso admin al `Control Center`, modulos privados iniciales operativos, CI activa sobre Angular + backend y ultimo ajuste de pipeline/documentacion cerrado el 2026-04-08.
+Proyecto portfolio con frontend Angular 20 en `frontend/` y backend Spring Boot 3.3.5 en `backend/`, autenticacion JWT admin operativa, CI estabilizada y backend consolidado en arquitectura horizontal por capas globales (`controller`, `controller/admin`, `service`, `service/impl`, `repository`, `domain/<feature>`, `dto/<feature>`, `mapper/<feature>`), sin `module/*`.
 
-Tambien queda definido a nivel documental el diseno objetivo de `Budget Builder` como reemplazo futuro del cotizador comercial actual, manteniendo separado el `estimation-tool` y sin implementar todavia cambios de codigo ni de backend.
+La carpeta temporal `ferchuz/` se relevo solo como fuente funcional original. De ahi se reconstruyeron y alinearon las reglas reales del negocio sin integrar esa carpeta al producto: estimacion tecnica con PERT (`O + 4M + P / 6`), buffer fijo de riesgo, dependencias entre bloques, pricing comercial por categoria, cargos fijos, y formula SaaS mensual basada en recupero, infraestructura, soporte, margen, escala de usuarios y horas extra.
 
-Ademas queda relevada la logica real de las planillas Excel temporales ubicadas en `ferchuz/`, ya traducida a reglas conceptuales y bloques de configuracion reutilizables para el sistema.
+El backend queda como unica fuente de verdad para la logica critica. `Budget Builder` ya expone configuracion activa, `preview`, `save`, listado y detalle desde backend con persistencia propia; el estimador tecnico reutiliza el mismo calculo backend para preview y save, incluyendo horas base, buffer de riesgo, semanas estimadas y notas de dependencia. El frontend del dashboard privado consume esos endpoints reales y deja de depender de calculos locales para los flujos visibles.
 
-Tambien queda implementado en frontend el nucleo MVP historico del motor de `Budget Builder` como referencia local y base de pruebas, aunque el runtime de la UI minima ya no lo usa como fuente oficial del calculo.
+En la ultima pasada de saneamiento se elimino del repo el frontend Angular legacy de la raiz para dejar `frontend/` como unica aplicacion cliente real, se limpiaron del indice Git `frontend/node_modules`, `frontend/.angular/cache` y `frontend/dist`, se corrigio el spec roto del facade UI de `Budget Builder`, se endurecio `application-dev.yml`, se agrego validacion explicita de `issuer` al parseo JWT y se reescribieron los README publico y de backend para que reflejen el sistema real.
 
-Ademas queda conectada una primera pantalla minima del `Budget Builder` dentro del `Control Center`, ahora enlazada al endpoint backend oficial de `preview` mediante un facade de entrada HTTP y sin reemplazar todavia el cotizador comercial vigente.
+En la segunda ola se dejo preparada la base para tests backend autocontenidos con Testcontainers sobre PostgreSQL, se introdujo `ProjectsService` para consumir `GET /api/projects` en el portfolio publico sin perder la UI rica actual, y se agrego `.nvmrc` con `20.19.0` para fijar la version esperada de Node del repo sin depender de una instalacion global unica.
 
-Tambien queda definida a nivel documental la arquitectura backend propuesta para mover la logica oficial del `Budget Builder` a Spring Boot sin romper auth ni contratos ya existentes.
+En la tercera ola `Site Activity` paso a backend-first de forma incremental: el frontend ahora registra eventos via `POST /api/events` y el dashboard privado carga actividad persistida desde `GET /api/admin/events`.
 
-Ademas queda implementada la base backend oficial del `Budget Builder` para `preview`, con engine desacoplado en Spring Boot, endpoint admin protegido, semilla de configuracion activa en `application.yml` y verificacion automatizada del modulo dentro del build backend.
+En la quinta ola se abrio la consolidacion controlada del cotizador comercial historico. Se documento la paridad en `docs/budget-builder-parity.md`, el backend de `Budget Builder` paso a exponer `surchargeRules` y `maintenancePlans` en la configuracion activa, se semillaron los extras comerciales heredados del cotizador historico como reglas comerciales desactivadas por defecto y el calculo oficial ya soporta `maintenancePlanId` dentro del motor backend.
 
-Tambien queda reorganizado y limpiado el backend de `Budget Builder` para alinearse con la arquitectura horizontal existente del proyecto, sin residuos de la estructura vertical previa y sin cambiar comportamiento, endpoint ni contratos.
+En la sexta ola se incorporaron presets comerciales rapidos al backend oficial de `Budget Builder`. La configuracion activa ahora entrega `projectTypeDefaults` con `label` y `description` reales para `essential_web`, `business_site`, `operations_tool` y `product_platform`, ademas de los tipos ya existentes. El frontend consume esos metadatos desde backend, evitando hardcodear nuevos presets en la UI.
 
-Ademas queda alineado el estimador tecnico con backend como unica fuente de verdad: el preview ahora sale del backend sin persistencia, el save reutiliza exactamente el mismo calculo servidor y el frontend ya no conserva motor tecnico local operativo.
+En la septima ola se incorporaron stacks comerciales oficiales (`cms_fast`, `angular_spring`, `angular_dotnet`, `full_custom`) y se reorganizo `ControlCenterBudgetBuilderComponent` como flujo por pasos para evitar scroll largo. El editor ahora separa escenario, precio/stack, continuidad y alcance; tambien permite seleccionar extras comerciales opcionales y mantenimiento desde la configuracion backend oficial.
 
-Tambien queda completada la reorganizacion estructural del repo: desaparece `module/*` como patron en backend, las features quedan repartidas en capas globales (`controller`, `service`, `service/impl`, `repository`, `domain/<feature>`, `dto/<feature>`, `mapper/<feature>`) y Angular queda movido a `frontend/`.
+En una pasada posterior de UX se ajusto tambien la entrada del `Control Center` tomando como referencia la captura de `ferchuz/capturas de front/panel privado.jpg`: se movieron los accesos rapidos al tramo superior del workspace y las tarjetas operativas ahora incluyen CTA directa hacia cada superficie real (`Budget Builder`, `Estimador`, `Actividad`).
 
-Ademas queda completada la limpieza final de residuos estructurales del backend: se eliminaron todos los `package-info.java` que solo contenian documentacion residual sin metadata activa, `backend\\mvnw.cmd test` y `backend\\mvnw.cmd package` volvieron a pasar, y el backend levanto correctamente en perfil `dev` validando `health`, `auth` y una ruta admin protegida.
+En `Control Center` ya quedan operativos el `Budget Builder` real, el estimador tecnico sobre backend y la actividad del sitio. La seccion vieja del cotizador comercial local deja de renderizarse en la pantalla principal; `ferchuz/` sigue siendo solo referencia externa y no forma parte del sistema final.
 
-Tambien queda ajustado el workflow de CI para ejecutar Angular desde `frontend/` y el backend desde `backend/`, activando `SPRING_PROFILES_ACTIVE=dev` en GitHub Actions y conservando el artifact `frontend/dist/portfolio-ferchuz/browser`; durante la validacion local del cambio aparecio ademas un bloqueo previo del backend por beans duplicados entre `controller/*` y `module/*`, fuera del alcance de este ajuste de CI.
+Ademas queda redisenado el dashboard privado como workspace de uso real y no como formulario rigido: `Budget Builder` y `Estimador tecnico` ahora recalculan en vivo contra backend, muestran resumen lateral sticky, breakdown visible, contexto por opcion, formula amigable del calculo y lectura inmediata del impacto al mover parametros. En esta iteracion no hizo falta tocar backend: los DTOs y endpoints actuales ya entregaban suficiente informacion para soportar la nueva UX.
 
-Tambien queda corregida la causa real del fallo del backend: se eliminaron por completo los residuos legacy bajo `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/`, se removio el paquete duplicado `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/dto/`, se alinearon imports al arbol horizontal vigente y se restauro la semilla `app.budget-builder` en `application.yml`; con eso `backend\\mvnw.cmd test` y `backend\\mvnw.cmd package` volvieron a pasar y el CI actual queda listo para commit.
+Validacion actual cerrada:
+
+- `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`) sobre Windows con Node `20.19.0`
+- `backend\mvnw.cmd test` OK con Docker Desktop encendido y `JAVA_HOME=C:\Program Files\Java\jdk-17` (`24` tests, `BUILD SUCCESS`)
+- `npm run build` en `frontend/` OK
+- CI sigue consistente con `frontend/` + `backend/` y `SPRING_PROFILES_ACTIVE=dev`
+- En este entorno Linux de trabajo sigue sin ser util validar frontend con `node_modules` de Windows (`esbuild` win32) ni usar `./mvnw` por CRLF del wrapper Unix; para backend desde esta maquina la validacion operativa se resolvio usando `mvnw.cmd` bajo Windows.
+- Para levantar backend en `dev` desde VS Code ya no existen credenciales fallback: el `launch.json` usa `${workspaceFolder}/.env`, por lo que el repo ahora expone `.env.example` y espera un `.env` local no versionado con `PORTFOLIO_DB_*` y `PORTFOLIO_JWT_SECRET` reales.
+- El perfil `dev` tambien importa de forma opcional `../.env` y `.env` como properties locales, para que Spring Boot Dashboard pueda levantar incluso si el launcher de VS Code no inyecta `envFile` como variables de entorno.
+- Se agrego `V6__align_event_logs_event_type_check.sql` para alinear la restriccion `event_logs_event_type_check` con los tipos de evento actuales del backend. Esto corrige bases locales viejas donde el `CHECK` seguia rechazando `SECTION_VIEW` y otros eventos nuevos.
+
+Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/deploy y limpieza posterior de residuos frontend no visibles.
 
 ## Historial de cambios
 
+- Fecha: 2026-04-09
+  - Cambio: Se ejecuto una pasada de saneamiento estructural del repo y de la capa operativa. Se elimino el Angular legacy de la raiz para dejar `frontend/` como unico cliente real, se sacaron del indice Git los artefactos generados de frontend (`node_modules`, `.angular/cache`, `dist`), se corrigio el spec desfasado de `BudgetBuilderUiFacade`, se agregaron tests frontend al workflow de CI, se endurecieron los defaults inseguros de `application-dev.yml`, se valido `issuer` en `JwtTokenService` y se reescribieron `README.md` y `backend/README.md` con el estado real del sistema.
+  - Archivos: `.gitignore`, `.github/workflows/ci.yml`, `README.md`, `backend/README.md`, `backend/src/main/resources/application-dev.yml`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/security/JwtTokenService.java`, `frontend/src/app/components/control-center/budget-builder/services/budget-builder-ui.facade.spec.ts`, `angular.json`, `package.json`, `package-lock.json`, `proxy.conf.json`, `tsconfig*.json`, `public/**`, `src/**`, `DOCUMENTATION.md`
+  - Decision: Priorizar primero higiene de repo, coherencia documental y calidad basica de CI antes de abrir nuevas features. Se mantuvo la arquitectura vigente (`frontend/` + `backend/`) y no se movio logica critica al frontend.
+  - Proximos pasos: Volver autocontenidos los tests backend con Testcontainers o estrategia equivalente, integrar el portfolio publico con `GET /api/projects`, migrar `site-activity` a backend y decidir si el cotizador comercial local se persiste o se elimina definitivamente.
+
+- Fecha: 2026-04-09
+  - Cambio: Se abrio la segunda ola tecnica. En backend se agrego la base comun `AbstractIntegrationTest` con PostgreSQL Testcontainers y `@ServiceConnection`, se ajusto `application-test.yml` para dejar de depender de `PORTFOLIO_TEST_DB_*` y los tests de integracion pasan a heredar esa base. En frontend se agregaron `ProjectsService` y `projects.models.ts`, y `ProjectsComponent` ahora consume `GET /api/projects` para ordenar/poblar la lista publica manteniendo `PORTFOLIO_PROJECTS` como respaldo de detalle enriquecido. Tambien se agrego `.nvmrc` con Node `20.19.0`.
+  - Archivos: `backend/pom.xml`, `backend/src/test/resources/application-test.yml`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/AbstractIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/ApiIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/QuoteIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/SecurityIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/BudgetBuilderPreviewIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/PortfolioBackendApplicationTests.java`, `frontend/src/app/models/projects.models.ts`, `frontend/src/app/services/projects.service.ts`, `frontend/src/app/components/projects/projects.component.ts`, `frontend/src/app/components/projects/projects.component.spec.ts`, `.nvmrc`, `DOCUMENTATION.md`
+  - Decision: Mantener el cambio de proyectos en modo incremental: backend define la lista publica y el frontend conserva por ahora el detalle rico, media, acciones e i18n para no romper la pantalla actual. Para continuidad operativa se recomienda trabajar en tres carriles: frontend, backend y testing, con handoff corto al cierre de cada iteracion.
+  - Proximos pasos: Validar esta ola desde Windows/CI, agregar coverage o assert minima del nuevo `ProjectsService`, decidir si se normaliza `mvnw` a LF para evitar friccion en WSL y cerrar la migracion backend-first completa del portfolio publico.
+
+- Fecha: 2026-04-09
+  - Cambio: Se abrio la tercera ola tecnica enfocada en `Site Activity`. El backend ahora acepta la taxonomia real de actividad del frontend (`section_view`, `project_interaction`, `contact_interaction`, `quote_interaction`, `estimator_interaction`), expone `GET /api/admin/events` para lectura del dashboard y mapea la metadata persistida a un contrato alineado con `SiteActivityEvent`. El frontend paso a escribir eventos al backend y el panel admin a leer actividad persistida, manteniendo `localStorage` solo como fallback.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/enums/EventType.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/analytics/AnalyticsEventAdminResponse.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/AnalyticsEventService.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/AnalyticsEventServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/repository/analytics/EventLogRepository.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/mapper/analytics/AnalyticsEventMapper.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/admin/AnalyticsEventAdminController.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/ApiIntegrationTest.java`, `frontend/src/app/models/site-activity.models.ts`, `frontend/src/app/services/site-activity.service.ts`, `frontend/src/app/components/control-center-site-activity/control-center-site-activity.component.ts`, `DOCUMENTATION.md`
+  - Decision: Reutilizar `POST /api/events` y agregar solo la lectura admin necesaria para no abrir una migracion mas grande de analytics. Se preservo el contrato funcional del dashboard privado para minimizar riesgo y evitar refactor visual innecesario.
+  - Proximos pasos: Validar la nueva persistencia desde Windows/CI, decidir si se agrega rate limiting o filtros basicos sobre `POST /api/events`, y cuando el flujo este estable retirar el respaldo en `localStorage`.
+
+- Fecha: 2026-04-09
+  - Cambio: Se cerro la validacion de la remediacion de tests. El spec de `BudgetBuilderUiFacade` se alineo con el contrato backend actual y los tests frontend quedaron en verde. En backend se reemplazo la estrategia inicial de Testcontainers por un singleton compartido con `@DynamicPropertySource` para evitar que Spring/Hikari reciclara un datasource apuntando a puertos viejos entre clases de integracion.
+  - Archivos: `frontend/src/app/components/control-center/budget-builder/services/budget-builder-ui.facade.spec.ts`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/AbstractIntegrationTest.java`, `DOCUMENTATION.md`
+  - Decision: Mantener Testcontainers como camino oficial para integracion backend, pero con un solo PostgreSQL compartido por toda la suite. Se evita volver a `PORTFOLIO_TEST_DB_*` y tambien se evita usar `@DirtiesContext` como workaround principal.
+  - Proximos pasos: Si molesta el warning de dialecto en tests, remover `spring.jpa.database-platform` explicito de `application-test.yml`. Como mejora operativa aparte, normalizar `backend/mvnw` a LF si queres volver a ejecutar validaciones Unix nativas desde WSL.
+
+- Fecha: 2026-04-09
+  - Cambio: Se cerro la cuarta ola de `Site Activity`. El servicio frontend dejo de persistir eventos en `localStorage`, mantiene solo estado en memoria para UX inmediata y delega la persistencia real al backend. El panel admin sigue leyendo desde `GET /api/admin/events`, con error explicito si backend no responde.
+  - Archivos: `frontend/src/app/services/site-activity.service.ts`, `DOCUMENTATION.md`
+  - Decision: Considerar `Site Activity` ya backend-first de verdad y no mantener doble fuente de verdad local. Se conserva un estado en memoria corto para no degradar la experiencia en la misma sesion.
+  - Proximos pasos: Si queres cerrar del todo esta superficie, sumar un spec chico de `SiteActivityService` y luego atacar el destino final del cotizador comercial historico.
+
+- Fecha: 2026-04-09
+  - Cambio: Se abrio la quinta ola enfocada en consolidar el cotizador comercial historico dentro de `Budget Builder`. Se agrego `docs/budget-builder-parity.md` como documento de paridad y criterio de retiro seguro del flujo historico. En backend se extendio la configuracion activa para devolver `surchargeRules` y `maintenancePlans`, se semillaron extras comerciales del cotizador historico (`SEO`, `copy`, `deploy`, `training`, `priority delivery`) como reglas comerciales opcionales y el `BudgetCommercialPricer` ya incorpora `maintenancePlanId` en el calculo oficial. En frontend se ampliaron los contratos de configuracion de `Budget Builder` para reflejar esas nuevas piezas sin mover logica critica al cliente.
+  - Archivos: `docs/budget-builder-parity.md`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/BudgetBuilderSeedProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/budgetbuilder/model/ConfigurationSnapshot.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/budgetbuilder/engine/BudgetCommercialPricer.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/budgetbuilder/BudgetConfigurationResponse.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetConfigurationServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetBuilderServiceImpl.java`, `backend/src/main/resources/application.yml`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/BudgetBuilderPreviewIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/support/budgetbuilder/BudgetBuilderTestFixtures.java`, `frontend/src/app/components/control-center/budget-builder/models/budget-builder.models.ts`, `DOCUMENTATION.md`
+  - Decision: No migrar ni retirar todavia `control-center-quote`. Primero absorber en backend oficial las piezas faltantes del flujo historico. Se priorizo una base util de configuracion y calculo antes de abrir UX nueva o reescrituras de pantalla.
+  - Proximos pasos: Expandir presets comerciales rapidos y catalogo de stacks en backend, despues llevar eso a una UX rapida dentro de `ControlCenterBudgetBuilderComponent`, y solo al final retirar el cotizador historico.
+
+- Fecha: 2026-04-09
+  - Cambio: Se abrio la sexta ola de consolidacion del cotizador historico. Se modelaron presets comerciales rapidos como tipos de proyecto oficiales del backend (`essential_web`, `business_site`, `operations_tool`, `product_platform`) con `label` y `description` servidos por la configuracion activa. Tambien se ampliaron `projectMultipliers` y `technologyCatalog.supportedProjectTypes` para que esos presets ya formen parte del motor oficial. En frontend se extendio `ProjectTypeDefaultRule`, el facade de `Budget Builder` ya usa los metadatos servidos por backend y se ajustaron mocks/tests al nuevo contrato.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/BudgetBuilderSeedProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/budgetbuilder/model/ConfigurationSnapshot.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/budgetbuilder/BudgetConfigurationResponse.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetConfigurationServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetBuilderServiceImpl.java`, `backend/src/main/resources/application.yml`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/BudgetBuilderPreviewIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/support/budgetbuilder/BudgetBuilderTestFixtures.java`, `frontend/src/app/components/control-center/budget-builder/models/budget-builder.models.ts`, `frontend/src/app/components/control-center/budget-builder/services/budget-builder-ui.facade.ts`, `frontend/src/app/components/control-center/budget-builder/mocks/budget-builder.mock-data.ts`, `docs/budget-builder-parity.md`, `DOCUMENTATION.md`
+  - Decision: Modelar presets rapidos como configuracion backend y no como logica de pantalla. Esto preserva el principio de backend como source of truth y evita reintroducir un cotizador comercial paralelo en frontend.
+  - Proximos pasos: Expandir ahora el catalogo de stacks comerciales oficiales y despues abrir una UX rapida dentro de `ControlCenterBudgetBuilderComponent` que consuma esos presets sin duplicar motores.
+
+- Fecha: 2026-04-09
+  - Cambio: Se abrio la septima ola de consolidacion del cotizador historico. En backend se extendio `technologyCatalog` con stacks comerciales oficiales (`cms_fast`, `angular_spring`, `angular_dotnet`, `full_custom`) incluyendo descripciones y multiplicadores, y esos datos ya llegan a la configuracion activa del `Budget Builder`. En frontend se rediseño `ControlCenterBudgetBuilderComponent` como flujo por pasos con navegacion interna para evitar un scroll largo, se agrego seleccion de extras comerciales opcionales, seleccion de mantenimiento y se mantuvo el preview vivo sobre backend sin reintroducir calculo critico en cliente.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/BudgetBuilderSeedProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/budgetbuilder/model/ConfigurationSnapshot.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/budgetbuilder/BudgetConfigurationResponse.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetConfigurationServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetBuilderServiceImpl.java`, `backend/src/main/resources/application.yml`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/support/budgetbuilder/BudgetBuilderTestFixtures.java`, `frontend/src/app/components/control-center-budget-builder/control-center-budget-builder.component.ts`, `frontend/src/app/components/control-center-budget-builder/control-center-budget-builder.component.html`, `frontend/src/app/components/control-center-budget-builder/control-center-budget-builder.component.scss`, `frontend/src/app/components/control-center/budget-builder/models/budget-builder.models.ts`, `frontend/src/app/components/control-center/budget-builder/services/budget-builder-ui.facade.ts`, `frontend/src/app/components/control-center/budget-builder/mocks/budget-builder.mock-data.ts`, `docs/budget-builder-parity.md`, `DOCUMENTATION.md`
+  - Decision: La comodidad de uso se resolvio dentro del `Budget Builder` oficial y no reactivando el cotizador historico. Se priorizo un editor por pasos, con menos scroll y con las palancas comerciales visibles en cada etapa, manteniendo el backend como motor unico.
+  - Proximos pasos: Validar este flujo por pasos con escenarios reales de `ferchuz/`, ajustar defaults segun tu uso operativo y luego evaluar si ya hay base suficiente para ocultar definitivamente el cotizador historico.
+
+- Fecha: 2026-04-09
+  - Cambio: Se cerro la operativa local de arranque seguro para backend `dev`. Se agrego `.env.example`, se ignoran `.env` locales y se documento que el `launch.json` de VS Code requiere variables reales para `PORTFOLIO_DB_URL`, `PORTFOLIO_DB_USERNAME`, `PORTFOLIO_DB_PASSWORD` y `PORTFOLIO_JWT_SECRET`.
+  - Archivos: `.gitignore`, `.env.example`, `README.md`, `backend/README.md`, `DOCUMENTATION.md`
+  - Decision: No volver a defaults inseguros en `application-dev.yml`. La ergonomia de desarrollo se resuelve con `.env` local no versionado y no con credenciales hardcodeadas en el repo.
+  - Proximos pasos: Crear tu `.env` local real a partir de `.env.example`, volver a levantar backend desde VS Code y, si queres, documentar tambien una configuracion `tasks.json` para `spring-boot:run` con esos mismos envs.
+
+- Fecha: 2026-04-09
+  - Cambio: Se reforzo el arranque local de backend para Spring Boot Dashboard. `application-dev.yml` ahora importa opcionalmente `.env` desde la raiz del repo o desde `backend/`, evitando depender solo de `envFile` del launch de VS Code.
+  - Archivos: `backend/src/main/resources/application-dev.yml`, `backend/README.md`, `DOCUMENTATION.md`
+  - Decision: Mantener credenciales fuera del repo pero permitir que el perfil `dev` resuelva configuracion local tanto desde launch config como desde archivo `.env` estandar.
+  - Proximos pasos: Reintentar el arranque desde Spring Boot Dashboard y, cuando quede estable, continuar con el ajuste de UX del cotizador usando la captura dejada en `ferchuz/`.
+
+- Fecha: 2026-04-09
+  - Cambio: Se agrego la migracion `V6__align_event_logs_event_type_check.sql` para corregir restricciones viejas sobre `event_logs.event_type` en bases locales ya existentes. La nueva restriccion acepta tanto los nombres enum persistidos por JPA (`SECTION_VIEW`, etc.) como sus variantes lowercase historicas.
+  - Archivos: `backend/src/main/resources/db/migration/V6__align_event_logs_event_type_check.sql`, `DOCUMENTATION.md`
+  - Decision: Resolver la incompatibilidad a nivel schema y no deshacer la ampliacion funcional de `EventType`. Esto evita tocar datos manualmente y deja Flyway como mecanismo oficial de alineacion.
+  - Proximos pasos: Reiniciar backend `dev`, dejar que Flyway aplique `V6`, validar que cesen los errores al registrar `site activity` y luego continuar con el ajuste visual usando la captura de referencia.
+
+- Fecha: 2026-04-09
+  - Cambio: Se ajusto la entrada visual del `Control Center` para acercarla a la referencia de `ferchuz/capturas de front/panel privado.jpg`. Los quick links subieron al tramo superior del workspace y las tarjetas de superficie ahora exponen CTA directa a cada modulo operativo.
+  - Archivos: `frontend/src/app/components/control-center/control-center.component.html`, `frontend/src/app/components/control-center/control-center.component.scss`, `frontend/src/app/components/control-center/control-center.component.ts`, `DOCUMENTATION.md`
+  - Decision: Mantener la estructura actual del dashboard pero acercar la lectura inicial al layout de referencia sin reintroducir scroll innecesario ni duplicar navegacion.
+  - Proximos pasos: Validar manualmente el recorrido completo del panel privado con tu uso real y, si la lectura ya es suficientemente clara, preparar la estrategia de commit limpio.
+
+- Fecha: 2026-04-08
+  - Cambio: Se rediseno el dashboard privado como herramienta profesional de uso real. `Budget Builder` paso a workspace vivo con preview automatico, decisiones visibles entre `Proyecto` y `SaaS`, contexto por opcion, breakdown tecnico/comercial, rail lateral sticky, reglas activas e historial integrado. El estimador tecnico paso a workspace vivo con preview automatico, formula PERT visible, buffer de riesgo, timeline, supuestos y desglose por modulo. El contenedor `Control Center` tambien se ajusto con resumen general y accesos directos a las superficies de trabajo.
+  - Archivos: `frontend/src/app/components/control-center-budget-builder/control-center-budget-builder.component.ts`, `frontend/src/app/components/control-center-budget-builder/control-center-budget-builder.component.html`, `frontend/src/app/components/control-center-budget-builder/control-center-budget-builder.component.scss`, `frontend/src/app/components/control-center-estimator/control-center-estimator.component.ts`, `frontend/src/app/components/control-center-estimator/control-center-estimator.component.html`, `frontend/src/app/components/control-center-estimator/control-center-estimator.component.scss`, `frontend/src/app/components/control-center/control-center.component.ts`, `frontend/src/app/components/control-center/control-center.component.html`, `frontend/src/app/components/control-center/control-center.component.scss`, `DOCUMENTATION.md`
+  - Decision: No se modifico backend en esta fase porque `Budget Builder` ya expone configuracion, `preview`, `save`, `list` y `detail`, y el estimador tecnico ya devuelve `baseHours`, `riskBufferHours`, `totalWeeks`, `assumptions` y detalle por item. La mejora necesaria era de UX, no de logica ni de contrato.
+  - Proximos pasos: Validar el workspace redisenado en uso manual real, decidir si conviene abrir una iteracion chica solo para budgets del bundle Angular, y mantener fuera de alcance por ahora PDF, mensajeria real y docker/deploy.
+- Fecha: 2026-04-08
+  - Cambio: Se reconstruyo la logica real del negocio tomando `ferchuz/` como referencia funcional externa, se alineo el backend con PERT + buffer de riesgo + pricing comercial por categoria + formula SaaS mensual, se completo `Budget Builder` con persistencia y endpoints admin (`preview`, `save`, `list`, `detail`, `configuration/active`), y el dashboard privado paso a consumir backend real tanto para presupuesto comercial como para estimacion tecnica.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/BudgetBuilderSeedProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/QuoteEngineProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/admin/BudgetBuilderAdminController.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/budgetbuilder/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/budgetbuilder/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/quote/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/mapper/budgetbuilder/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/repository/budgetbuilder/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/BudgetBuilderService.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetBuilderServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetConfigurationServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/QuoteServiceImpl.java`, `backend/src/main/resources/application.yml`, `backend/src/main/resources/db/migration/V5__budget_builder_snapshots.sql`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/BudgetBuilderPreviewIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/QuoteIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/domain/budgetbuilder/**`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/service/impl/BudgetBuilderServiceImplTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/support/budgetbuilder/BudgetBuilderTestFixtures.java`, `frontend/src/app/components/control-center-budget-builder/**`, `frontend/src/app/components/control-center-estimator/**`, `frontend/src/app/components/control-center/budget-builder/**`, `frontend/src/app/components/control-center/control-center.component.html`, `frontend/src/app/models/quote.models.ts`, `DOCUMENTATION.md`
+  - Decision: `ferchuz/` queda solo como referencia funcional; la formula oficial y la persistencia viven en backend, el frontend queda limitado a UI + HTTP, no se reintroduce `module/*`, y el dashboard privado se apoya en contratos backend estables antes de abrir nuevos pendientes.
+  - Proximos pasos: Resolver PDF, mensajeria real, docker/deploy, limpiar residuos frontend no visibles del cotizador local historico y evaluar una pasada futura sobre budgets de Angular.
 - Fecha: 2026-04-07
   - Cambio: Se incorporo una base de trabajo para continuidad operativa con `AGENTS.md`, este documento de seguimiento y la actualizacion del handoff como resumen ejecutivo.
   - Archivos: `AGENTS.md`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
@@ -102,6 +195,10 @@ Tambien queda corregida la causa real del fallo del backend: se eliminaron por c
   - Cambio: Se elimino definitivamente la estructura legacy `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/**`, se removio el duplicado `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/dto/**`, se alinearon imports/tests al arbol horizontal (`controller`, `service`, `service/impl`, `repository`, `domain/<feature>`, `dto/<feature>`, `mapper/<feature>`) y se restauro el bloque `app.budget-builder` requerido por `BudgetBuilderSeedProperties`.
   - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/dto/**`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/security/AdminBootstrapInitializer.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/HealthController.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/exception/GlobalExceptionHandler.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/exception/ApiErrorResponse.java`, `backend/src/main/resources/application.yml`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/ApiIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/QuoteIntegrationTest.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/SecurityIntegrationTest.java`, `DOCUMENTATION.md`
   - Decision: La causa real del `ConflictingBeanDefinitionException` era la convivencia fisica de clases legacy bajo `module/*`; al quitarlas aparecio un segundo bloqueo de configuracion porque faltaba la semilla `app.budget-builder` en `application.yml`. Se corrigio solo infraestructura/configuracion del backend, sin cambiar logica funcional, y el workflow de CI ya queda validado por backend verde.
+- Fecha: 2026-04-08
+  - Cambio: Se actualizaron `AGENTS.md` y `docs/handoff-control-center.md` para dejar fija la continuidad operativa sobre la arquitectura final del repo, el rol del backend como source of truth, la prohibicion permanente de `module/*` y el proximo paso recomendado de abrir una nueva branch para continuar el dashboard privado.
+  - Archivos: `AGENTS.md`, `docs/handoff-control-center.md`, `DOCUMENTATION.md`
+  - Decision: Cerrar primero la continuidad documental antes de abrir la siguiente linea de trabajo, para evitar reintroducir estructura hibrida o mover logica critica al frontend.
 
 ## Modulos cerrados
 
@@ -1825,3 +1922,71 @@ Decision operativa:
 
 - la validacion de arranque real queda confirmada en perfil `dev`, que es el perfil operativo local del proyecto
 - el intento de arranque del jar con perfil `test` no se toma como flujo de deploy porque `H2` existe solo como dependencia de test y no forma parte del artefacto final
+
+## Auditoria tecnica integral 2026-04-09
+
+### Que se hizo
+
+- Se relevo el estado real del repo completo:
+  - arquitectura
+  - backend
+  - frontend
+  - integracion frontend-backend
+  - CI actual
+  - documentacion visible
+- Se valido ejecucion real de comandos de calidad:
+  - `npm run build` en `frontend/` -> OK con warnings de budget y estilos
+  - `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` -> FAIL por spec desalineada con `BudgetBuilderUiFacade`
+  - `backend\\mvnw.cmd test` -> FAIL en este entorno por dependencia real de PostgreSQL y credenciales de test no resueltas localmente
+- Se verifico que el repo sigue siendo un monolito por capas separado en `frontend/` y `backend/`, no microservicios.
+
+### Archivos modificados
+
+- `DOCUMENTATION.md`
+
+### Hallazgos principales
+
+- La base arquitectonica backend esta mejor encaminada que el frontend:
+  - backend con capas claras y fuente de verdad real
+  - frontend todavia en una sola `AppModule`, sin lazy loading y con bundle inicial alto
+- El repo tiene deuda fuerte de higiene:
+  - siguen trackeados residuos Angular en la raiz
+  - siguen trackeados `frontend/node_modules`
+  - siguen trackeados artefactos de `frontend/dist`
+- La documentacion publica esta desalineada:
+  - `README.md` raiz sigue casi como boilerplate de Angular
+  - `backend/README.md` describe una estructura vieja con `module/*` y testing con H2 que ya no coincide
+- La integracion full stack es parcial:
+  - contacto, auth, quote y budget builder usan backend
+  - `projects` visible sigue saliendo de data estatica en frontend
+  - actividad del sitio y cotizador comercial visible siguen dependiendo de `localStorage`
+- La seguridad existe pero no esta lista para produccion:
+  - JWT en `localStorage`
+  - sin refresh tokens
+  - sin revocacion
+  - sin rate limiting para endpoints publicos
+- La estrategia de testing no esta cerrada:
+  - CI no ejecuta tests frontend
+  - si se ejecutaran hoy, fallan
+  - tests backend de integracion dependen de PostgreSQL real
+
+### Decisiones tecnicas registradas
+
+- Mantener el diagnostico alineado con la arquitectura obligatoria del repo:
+  - monolito por capas
+  - backend como source of truth
+  - sin reabrir `module/*`
+- No se hicieron cambios funcionales ni refactors; esta tarea fue de auditoria tecnica y validacion real del estado actual.
+
+### Proximos pasos
+
+1. Limpiar el repo:
+   eliminar tracking de `frontend/node_modules`, `frontend/dist` y residuos Angular de la raiz.
+2. Reescribir `README.md` raiz y `backend/README.md` para que describan el sistema real.
+3. Corregir la suite frontend rota y agregarla al workflow CI.
+4. Estabilizar tests backend con estrategia reproducible:
+   PostgreSQL en Testcontainers o perfil de test realmente autocontenido.
+5. Pasar el frontend a arquitectura mas escalable:
+   lazy loading, poda de componentes residuales y cierre de dobles fuentes de datos.
+6. Endurecer seguridad para CD:
+   secretos obligatorios, bootstrap admin controlado, rate limiting y estrategia de sesion mas robusta.
