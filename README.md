@@ -105,3 +105,4 @@ El workflow actual:
 
 - Estado operativo: `docs/handoff-control-center.md`
 - Memoria tecnica: `DOCUMENTATION.md`
+- Camino a produccion: `docs/path-to-production.md`

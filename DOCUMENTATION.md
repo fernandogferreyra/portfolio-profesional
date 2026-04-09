@@ -36,6 +36,7 @@ Validacion actual cerrada:
 - Para levantar backend en `dev` desde VS Code ya no existen credenciales fallback: el `launch.json` usa `${workspaceFolder}/.env`, por lo que el repo ahora expone `.env.example` y espera un `.env` local no versionado con `PORTFOLIO_DB_*` y `PORTFOLIO_JWT_SECRET` reales.
 - El perfil `dev` tambien importa de forma opcional `../.env` y `.env` como properties locales, para que Spring Boot Dashboard pueda levantar incluso si el launcher de VS Code no inyecta `envFile` como variables de entorno.
 - Se agrego `V6__align_event_logs_event_type_check.sql` para alinear la restriccion `event_logs_event_type_check` con los tipos de evento actuales del backend. Esto corrige bases locales viejas donde el `CHECK` seguia rechazando `SECTION_VIEW` y otros eventos nuevos.
+- Se formalizo el proceso hacia produccion en `docs/path-to-production.md` y se amplió `AGENTS.md` con reglas de arquitectura y source of truth, tomando la copia como referencia funcional pero consolidando el proceso operativo en el repo actual limpio.
 
 Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/deploy y limpieza posterior de residuos frontend no visibles.
 
@@ -112,6 +113,12 @@ Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/
   - Archivos: `frontend/src/app/components/control-center/control-center.component.html`, `frontend/src/app/components/control-center/control-center.component.scss`, `frontend/src/app/components/control-center/control-center.component.ts`, `DOCUMENTATION.md`
   - Decision: Mantener la estructura actual del dashboard pero acercar la lectura inicial al layout de referencia sin reintroducir scroll innecesario ni duplicar navegacion.
   - Proximos pasos: Validar manualmente el recorrido completo del panel privado con tu uso real y, si la lectura ya es suficientemente clara, preparar la estrategia de commit limpio.
+
+- Fecha: 2026-04-09
+  - Cambio: Se cerro la etapa documental de proceso. Se amplió `AGENTS.md` con restricciones de arquitectura, backend como source of truth y prohibicion explicita de reabrir `module/*`. Ademas se agrego `docs/path-to-production.md` para formalizar tests, CI/CD minimo viable, PR obligatorio, rules para `main`, code review asistido, seguridad futura y `release-please` como automatizacion objetivo.
+  - Archivos: `AGENTS.md`, `docs/path-to-production.md`, `README.md`, `DOCUMENTATION.md`
+  - Decision: Mantener la copia como fuente de verdad funcional para el rescate de codigo, pero consolidar el proceso operativo oficial en el repo actual ya saneado.
+  - Proximos pasos: Iniciar el rescate funcional desde la copia empezando por `Budget Builder` backend persistido, luego alinear el estimador tecnico/quotes ricos y recien despues abrir `release-please`.
 
 - Fecha: 2026-04-08
   - Cambio: Se rediseno el dashboard privado como herramienta profesional de uso real. `Budget Builder` paso a workspace vivo con preview automatico, decisiones visibles entre `Proyecto` y `SaaS`, contexto por opcion, breakdown tecnico/comercial, rail lateral sticky, reglas activas e historial integrado. El estimador tecnico paso a workspace vivo con preview automatico, formula PERT visible, buffer de riesgo, timeline, supuestos y desglose por modulo. El contenedor `Control Center` tambien se ajusto con resumen general y accesos directos a las superficies de trabajo.
