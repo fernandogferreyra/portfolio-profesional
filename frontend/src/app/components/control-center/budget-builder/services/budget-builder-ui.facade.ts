@@ -3,24 +3,18 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import {
-  BillingCadence,
+  BudgetBuilderConfigView,
+  BudgetBuilderDetail,
+  BudgetBuilderPreviewRequestPayload,
   BudgetBuilderPreviewResult,
+  BudgetBuilderSaveRequestPayload,
+  BudgetBuilderSaveResponse,
+  BudgetBuilderSummary,
   BudgetComplexity,
-  BudgetPricingMode,
-  BudgetUrgency,
+  BillingCadence,
   ExplanationStage,
   ProjectTypeDefaultRule,
 } from '../models/budget-builder.models';
-import {
-  MOCK_BUDGET_PROJECT,
-  MOCK_CONFIGURATION_SNAPSHOT,
-} from '../mocks/budget-builder.mock-data';
-
-type UiLanguage = 'es' | 'en';
-
-type BudgetModuleSelectionMode = 'EXPLICIT' | 'PROJECT_DEFAULTS';
-
-type PricingAdjustmentMode = 'FIXED' | 'PERCENTAGE';
 
 type ApiResponse<T> = {
   success: boolean;
@@ -28,35 +22,10 @@ type ApiResponse<T> = {
   data: T;
 };
 
-type BudgetPreviewApiRequest = {
-  budgetName: string;
-  projectType: string;
-  pricingMode: BudgetPricingMode;
-  desiredStackId: string;
-  complexity: BudgetComplexity;
-  urgency: BudgetUrgency;
-  selectedModuleIds: string[];
-  moduleSelectionMode: BudgetModuleSelectionMode;
-  selectedSurchargeRuleIds: string[];
-  supportEnabled: boolean;
-  supportPlanId: string | null;
-  maintenancePlanId: string | null;
-  hourlyRateOverride: number;
-  manualDiscount: {
-    label: string;
-    reason: string;
-    mode: PricingAdjustmentMode;
-    value: number;
-    cadence: 'ONE_TIME' | 'MONTHLY';
-  } | null;
-  activeClients: number | null;
-  userScaleTierId: string | null;
-  notes: string[];
-};
-
 type BudgetPreviewApiResponse = {
   configurationSnapshotId: string;
   previewHash: string;
+  currency: string;
   totalHours: number;
   totalWeeks: number;
   baseAmount: number;
@@ -69,6 +38,8 @@ type BudgetPreviewApiResponse = {
     category: string;
     name: string;
     description: string;
+    dependencyIds: string[];
+    blockingNote: string | null;
     estimatedHours: number;
   }>;
   surcharges: Array<{
@@ -94,18 +65,24 @@ type BudgetPreviewApiResponse = {
   }>;
 };
 
-const DISCOVERY_MODULE_ID = 'DISCOVERY';
-const DEFAULT_PRICING_MODE: BudgetPricingMode = 'PROJECT';
-const DEFAULT_COMPLEXITY: BudgetComplexity = 'MEDIUM';
-const DEFAULT_URGENCY: BudgetUrgency = 'STANDARD';
-const DEFAULT_EXPLANATION_STAGE: ExplanationStage = 'COMMERCIAL';
-const DEFAULT_EXPLANATION_TONE: 'INFO' | 'UP' | 'DOWN' = 'INFO';
+type UiLanguage = 'es' | 'en';
 
-const MODULE_TOGGLE_IDS = {
-  includeFrontend: 'FRONTEND_APP',
-  includeBackend: 'CORE_BACKEND',
-  includeDatabase: 'DATABASE_LAYER',
-} as const;
+export interface BudgetBuilderUiFormValue {
+  budgetName: string;
+  projectType: string;
+  pricingMode: 'PROJECT' | 'SAAS';
+  desiredStackId: string;
+  complexity: BudgetComplexity;
+  urgency: 'STANDARD' | 'PRIORITY' | 'EXPRESS';
+  supportEnabled: boolean;
+  supportPlanId: string | null;
+  maintenancePlanId: string | null;
+  hourlyRate: number;
+  manualDiscount: number;
+  activeClients: number;
+  userScaleTierId: string | null;
+  extraMonthlyHours: number;
+}
 
 export interface BudgetBuilderUiOption {
   id: string;
@@ -113,20 +90,8 @@ export interface BudgetBuilderUiOption {
   description: string;
 }
 
-export interface BudgetBuilderUiFormValue {
-  budgetName: string;
-  projectType: string;
-  includeFrontend: boolean;
-  includeBackend: boolean;
-  includeDatabase: boolean;
-  hourlyRate: number;
-  supportEnabled: boolean;
-  manualDiscount: number;
-  desiredStackId: string;
-}
-
-function sanitizeNonNegativeNumber(value: number): number {
-  return Number.isFinite(value) ? Math.max(value, 0) : 0;
+function sanitizeNonNegativeNumber(value: number | null | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(value, 0) : 0;
 }
 
 function toCadence(value: string | null | undefined): BillingCadence {
@@ -141,7 +106,7 @@ function toExplanationStage(value: string | null | undefined): ExplanationStage 
     case 'NEGOTIATION':
       return value;
     default:
-      return DEFAULT_EXPLANATION_STAGE;
+      return 'COMMERCIAL';
   }
 }
 
@@ -152,45 +117,66 @@ function toExplanationTone(value: string | null | undefined): 'INFO' | 'UP' | 'D
     case 'INFO':
       return value;
     default:
-      return DEFAULT_EXPLANATION_TONE;
+      return 'INFO';
   }
 }
 
-function localizeProjectType(projectType: string, language: UiLanguage): BudgetBuilderUiOption {
+function localizeProjectType(
+  projectType: string,
+  language: UiLanguage,
+  providedLabel?: string | null,
+  providedDescription?: string | null,
+): BudgetBuilderUiOption {
   const catalog: Record<string, BudgetBuilderUiOption> = {
     standard_project:
       language === 'es'
         ? {
             id: 'standard_project',
             label: 'Proyecto estandar',
-            description: 'Base comercial general para proyectos a medida.',
+            description: 'Entrega one-shot con costo de implementacion y soporte opcional.',
           }
         : {
             id: 'standard_project',
             label: 'Standard project',
-            description: 'General commercial baseline for custom delivery projects.',
+            description: 'One-shot delivery with implementation cost and optional support.',
+          },
+    saas_product:
+      language === 'es'
+        ? {
+            id: 'saas_product',
+            label: 'Producto SaaS',
+            description: 'Producto con recupero mensual, infraestructura y tier por usuarios.',
+          }
+        : {
+            id: 'saas_product',
+            label: 'SaaS product',
+            description: 'Product pricing with monthly recovery, infrastructure, and user tiers.',
           },
   };
 
-  return (
-    catalog[projectType] ??
-    (language === 'es'
-      ? {
-          id: projectType,
-          label: projectType.replaceAll('_', ' '),
-          description: 'Tipo de proyecto configurable desde el snapshot activo.',
-        }
-      : {
-          id: projectType,
-          label: projectType.replaceAll('_', ' '),
-          description: 'Project type configured from the active snapshot.',
-        })
-  );
+  if (catalog[projectType]) {
+    return catalog[projectType];
+  }
+
+  return language === 'es'
+    ? {
+        id: projectType,
+        label: providedLabel?.trim() || projectType.replaceAll('_', ' '),
+        description:
+          providedDescription?.trim() || 'Tipo de proyecto disponible desde la configuracion activa.',
+      }
+    : {
+        id: projectType,
+        label: providedLabel?.trim() || projectType.replaceAll('_', ' '),
+        description:
+          providedDescription?.trim() || 'Project type available from the active configuration.',
+      };
 }
 
 function localizeTechnology(
   technologyId: string,
   fallbackLabel: string,
+  fallbackDescription: string,
   language: UiLanguage,
 ): BudgetBuilderUiOption {
   const catalog: Record<string, BudgetBuilderUiOption> = {
@@ -199,24 +185,24 @@ function localizeTechnology(
         ? {
             id: 'default_web_stack',
             label: 'Stack principal',
-            description: 'Usa el stack principal sin recargo adicional.',
+            description: 'Usa el stack principal sin recargo comercial extra.',
           }
         : {
             id: 'default_web_stack',
             label: 'Primary stack',
-            description: 'Uses the primary stack without extra surcharge.',
+            description: 'Uses the primary stack without extra commercial surcharge.',
           },
     outside_primary_stack:
       language === 'es'
         ? {
             id: 'outside_primary_stack',
             label: 'Tecnologia fuera de stack',
-            description: 'Aplica recargo comercial por stack fuera del catalogo principal.',
+            description: 'Activa recargo por stack fuera del catalogo principal.',
           }
         : {
             id: 'outside_primary_stack',
             label: 'Outside stack technology',
-            description: 'Applies a commercial surcharge for a stack outside the main catalog.',
+            description: 'Activates the surcharge for technology outside the main catalog.',
           },
   };
 
@@ -226,12 +212,12 @@ function localizeTechnology(
       ? {
           id: technologyId,
           label: fallbackLabel,
-          description: 'Tecnologia disponible en el snapshot activo.',
+          description: fallbackDescription?.trim() || 'Tecnologia disponible en la configuracion activa.',
         }
       : {
           id: technologyId,
           label: fallbackLabel,
-          description: 'Technology available in the active snapshot.',
+          description: fallbackDescription?.trim() || 'Technology available in the active configuration.',
         })
   );
 }
@@ -242,83 +228,83 @@ function localizeTechnology(
 export class BudgetBuilderUiFacade {
   private readonly http = inject(HttpClient);
 
-  readonly currency = MOCK_CONFIGURATION_SNAPSHOT.currency;
-
-  createInitialFormValue(): BudgetBuilderUiFormValue {
-    return {
-      budgetName: MOCK_BUDGET_PROJECT.name,
-      projectType: MOCK_BUDGET_PROJECT.projectType,
-      includeFrontend: false,
-      includeBackend: true,
-      includeDatabase: false,
-      hourlyRate: MOCK_CONFIGURATION_SNAPSHOT.hourlyRate.base,
-      supportEnabled: MOCK_BUDGET_PROJECT.supportEnabled !== false,
-      manualDiscount: 0,
-      desiredStackId: MOCK_BUDGET_PROJECT.desiredStackId,
-    };
-  }
-
-  getProjectTypeOptions(language: UiLanguage): BudgetBuilderUiOption[] {
-    const projectTypes = MOCK_CONFIGURATION_SNAPSHOT.projectTypeDefaults.map((rule) => rule.projectType);
-
-    return [...new Set(projectTypes)].map((projectType) =>
-      localizeProjectType(projectType, language),
-    );
-  }
-
-  getTechnologyOptions(language: UiLanguage): BudgetBuilderUiOption[] {
-    return MOCK_CONFIGURATION_SNAPSHOT.technologyCatalog.map((technology) =>
-      localizeTechnology(technology.id, technology.label, language),
-    );
-  }
-
-  calculateBudget(formValue: BudgetBuilderUiFormValue): Observable<BudgetBuilderPreviewResult> {
-    const request = this.buildRequest(formValue);
-
+  getActiveConfiguration(): Observable<BudgetBuilderConfigView> {
     return this.http
-      .post<ApiResponse<BudgetPreviewApiResponse>>('/api/admin/budget-builder/preview', request)
+      .get<ApiResponse<BudgetBuilderConfigView>>('/api/admin/budget-builder/configuration/active')
+      .pipe(map((response) => response.data));
+  }
+
+  previewBudget(payload: BudgetBuilderPreviewRequestPayload): Observable<BudgetBuilderPreviewResult> {
+    return this.http
+      .post<ApiResponse<BudgetPreviewApiResponse>>('/api/admin/budget-builder/preview', payload)
       .pipe(map((response) => this.toPreviewResult(response.data)));
   }
 
-  private buildRequest(formValue: BudgetBuilderUiFormValue): BudgetPreviewApiRequest {
-    const selectedModuleIds = this.resolveSelectedModuleIds(formValue);
-    const projectDefaults = this.resolveProjectDefaults(formValue.projectType);
-    const hasSelectedWork = selectedModuleIds.length > 0;
-    const manualDiscount = sanitizeNonNegativeNumber(formValue.manualDiscount);
+  saveBudget(payload: BudgetBuilderSaveRequestPayload): Observable<BudgetBuilderSaveResponse> {
+    return this.http
+      .post<ApiResponse<BudgetBuilderSaveResponse>>('/api/admin/budget-builder', payload)
+      .pipe(map((response) => response.data));
+  }
+
+  getBudgets(): Observable<BudgetBuilderSummary[]> {
+    return this.http
+      .get<ApiResponse<BudgetBuilderSummary[]>>('/api/admin/budget-builder')
+      .pipe(map((response) => response.data));
+  }
+
+  getBudgetById(id: string): Observable<BudgetBuilderDetail> {
+    return this.http
+      .get<ApiResponse<BudgetBuilderDetail>>(`/api/admin/budget-builder/${id}`)
+      .pipe(map((response) => response.data));
+  }
+
+  createInitialFormValue(configuration: BudgetBuilderConfigView): BudgetBuilderUiFormValue {
+    const defaultProjectType = configuration.projectTypeDefaults[0]?.projectType ?? '';
+    const defaultSupportRuleId =
+      configuration.projectTypeDefaults[0]?.defaultSupportRuleId ??
+      configuration.supportPlans[0]?.id ??
+      null;
+    const defaultMaintenanceRuleId = configuration.projectTypeDefaults[0]?.defaultMaintenanceRuleId ?? null;
+    const defaultTechnologyId = configuration.technologies[0]?.id ?? '';
+    const defaultUserScaleTierId = configuration.userScaleTiers[0]?.id ?? null;
 
     return {
-      budgetName: formValue.budgetName.trim() || 'Budget Builder MVP',
-      projectType: formValue.projectType,
-      pricingMode: DEFAULT_PRICING_MODE,
-      desiredStackId: formValue.desiredStackId,
-      complexity: DEFAULT_COMPLEXITY,
-      urgency: DEFAULT_URGENCY,
-      selectedModuleIds,
-      moduleSelectionMode: 'EXPLICIT',
-      selectedSurchargeRuleIds: hasSelectedWork
-        ? [...(projectDefaults?.defaultSurchargeRuleIds ?? [])]
-        : [],
-      supportEnabled: hasSelectedWork ? formValue.supportEnabled : false,
-      supportPlanId:
-        hasSelectedWork && formValue.supportEnabled
-          ? projectDefaults?.defaultSupportRuleId ?? null
-          : null,
-      maintenancePlanId: null,
-      hourlyRateOverride: sanitizeNonNegativeNumber(formValue.hourlyRate),
-      manualDiscount:
-        manualDiscount > 0
-          ? {
-              label: 'Manual discount',
-              reason: 'UI negotiation adjustment',
-              mode: 'FIXED',
-              value: manualDiscount,
-              cadence: 'ONE_TIME',
-            }
-          : null,
-      activeClients: null,
-      userScaleTierId: null,
-      notes: [],
+      budgetName: 'Operations MVP',
+      projectType: defaultProjectType,
+      pricingMode: 'PROJECT',
+      desiredStackId: defaultTechnologyId,
+      complexity: configuration.complexityOptions.includes('MEDIUM')
+        ? 'MEDIUM'
+        : (configuration.complexityOptions[0] ?? 'MEDIUM'),
+      urgency: 'STANDARD',
+      supportEnabled: true,
+      supportPlanId: defaultSupportRuleId,
+      maintenancePlanId: defaultMaintenanceRuleId,
+      hourlyRate: sanitizeNonNegativeNumber(configuration.defaultHourlyRate),
+      manualDiscount: 0,
+      activeClients: 10,
+      userScaleTierId: defaultUserScaleTierId,
+      extraMonthlyHours: 0,
     };
+  }
+
+  getProjectTypeOptions(configuration: BudgetBuilderConfigView, language: UiLanguage): BudgetBuilderUiOption[] {
+    return configuration.projectTypeDefaults.map((rule) =>
+      localizeProjectType(rule.projectType, language, rule.label, rule.description),
+    );
+  }
+
+  getTechnologyOptions(configuration: BudgetBuilderConfigView, language: UiLanguage): BudgetBuilderUiOption[] {
+    return configuration.technologies.map((technology) =>
+      localizeTechnology(technology.id, technology.label, technology.description, language),
+    );
+  }
+
+  resolveProjectDefaults(
+    configuration: BudgetBuilderConfigView,
+    projectType: string,
+  ): ProjectTypeDefaultRule | null {
+    return configuration.projectTypeDefaults.find((rule) => rule.projectType === projectType) ?? null;
   }
 
   private toPreviewResult(response: BudgetPreviewApiResponse): BudgetBuilderPreviewResult {
@@ -330,6 +316,8 @@ export class BudgetBuilderUiFacade {
         category: module.category,
         name: module.name,
         description: module.description,
+        dependencyIds: [...module.dependencyIds],
+        blockingNote: module.blockingNote,
         estimatedHours: sanitizeNonNegativeNumber(module.estimatedHours),
       })),
       technicalEstimate: {
@@ -337,7 +325,7 @@ export class BudgetBuilderUiFacade {
         totalWeeks: sanitizeNonNegativeNumber(response.totalWeeks),
       },
       commercialBudget: {
-        currency: this.currency,
+        currency: response.currency,
         baseAmount: sanitizeNonNegativeNumber(response.baseAmount),
         oneTimeSubtotal: sanitizeNonNegativeNumber(response.oneTimeSubtotal),
         monthlySubtotal: sanitizeNonNegativeNumber(response.monthlySubtotal),
@@ -369,25 +357,5 @@ export class BudgetBuilderUiFacade {
         })),
       },
     };
-  }
-
-  private resolveSelectedModuleIds(formValue: BudgetBuilderUiFormValue): string[] {
-    const deliveryModules = Object.entries(MODULE_TOGGLE_IDS)
-      .filter(([controlName]) => formValue[controlName as keyof typeof MODULE_TOGGLE_IDS])
-      .map(([, moduleId]) => moduleId);
-
-    if (deliveryModules.length === 0) {
-      return [];
-    }
-
-    return [DISCOVERY_MODULE_ID, ...deliveryModules];
-  }
-
-  private resolveProjectDefaults(projectType: string): ProjectTypeDefaultRule | null {
-    return (
-      MOCK_CONFIGURATION_SNAPSHOT.projectTypeDefaults.find(
-        (rule) => rule.projectType === projectType,
-      ) ?? null
-    );
   }
 }

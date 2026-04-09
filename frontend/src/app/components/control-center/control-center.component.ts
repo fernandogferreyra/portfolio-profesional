@@ -19,22 +19,53 @@ export class ControlCenterComponent {
     this.languageService.language() === 'es'
       ? {
           eyebrow: 'Centro de Mando',
-          title: 'Panel privado FERCHUZ',
+          title: 'Workspace privado FERCHUZ',
           lead:
-            'Base inicial para operaciones internas. El portfolio publico sigue intacto y este espacio concentra accesos administrativos futuros.',
+            'Mesa de trabajo privada para cotizar, estimar y revisar actividad con backend como fuente de verdad.',
           statusLabel: 'Sesion activa',
           sessionLiveLabel: 'Online',
           sessionUserLabel: 'Usuario',
           sessionRoleLabel: 'Rol',
           sessionStateLabel: 'Estado',
           sessionStateValue: 'Acceso operativo',
-          moduleCount: 7,
-          modulesLabel: 'modulos listos',
-          accessLabel: 'acceso seguro',
-          toolsEyebrow: 'Workspace privado',
-          toolsTitle: 'Herramientas internas preparadas para crecer sin ensuciar el portfolio publico.',
+          moduleCount: 3,
+          modulesLabel: 'workspaces activos',
+          accessLabel: 'backend seguro',
+          toolsEyebrow: 'Workspace operativo',
+          toolsTitle: 'Superficies internas para cerrar alcance, esfuerzo y precio sin salir del dashboard.',
           toolsLead:
-            'Cada modulo ya tiene un espacio claro dentro del dashboard. El siguiente paso puede implementarse sobre esta base sin rehacer el layout.',
+            'No es un panel de marketing. Es una mesa de trabajo para leer impacto en vivo y guardar decisiones tecnicas o comerciales.',
+          workspaceCards: [
+            {
+              title: 'Cotizacion en vivo',
+              description:
+                'Budget Builder recalcula total inicial, mensualidad, recargos, descuentos y horas al mover opciones clave.',
+              tag: 'Comercial',
+              cta: 'Ir a Budget Builder',
+              href: '#budget-builder-workspace',
+            },
+            {
+              title: 'Estimacion tecnica',
+              description:
+                'El estimador expone PERT, buffer de riesgo, timeline y desglose por modulo para validar esfuerzo rapido.',
+              tag: 'Tecnico',
+              cta: 'Ir a Estimador',
+              href: '#technical-estimator-workspace',
+            },
+            {
+              title: 'Panel activo',
+              description:
+                'Actividad del sitio, estado operativo y lectura rapida del workspace sin salir del dashboard.',
+              tag: 'Operacion',
+              cta: 'Ir a Actividad',
+              href: '#site-activity-workspace',
+            },
+          ],
+          quickLinks: [
+            { href: '#budget-builder-workspace', label: 'Ir a Budget Builder' },
+            { href: '#technical-estimator-workspace', label: 'Ir a Estimador' },
+            { href: '#site-activity-workspace', label: 'Ir a Actividad' },
+          ],
           logoutLabel: 'Cerrar sesion',
           modules: [
             {
@@ -57,22 +88,53 @@ export class ControlCenterComponent {
         }
       : {
           eyebrow: 'Control Center',
-          title: 'FERCHUZ private hub',
+          title: 'FERCHUZ private workspace',
           lead:
-            'Initial internal operations layer. The public portfolio remains untouched and this space centralizes future admin access points.',
+            'Private operating desk to quote, estimate, and review activity with backend as the source of truth.',
           statusLabel: 'Active session',
           sessionLiveLabel: 'Online',
           sessionUserLabel: 'User',
           sessionRoleLabel: 'Role',
           sessionStateLabel: 'State',
           sessionStateValue: 'Operational access',
-          moduleCount: 7,
-          modulesLabel: 'modules ready',
-          accessLabel: 'secure access',
-          toolsEyebrow: 'Private workspace',
-          toolsTitle: 'Internal tools arranged to scale without disturbing the public portfolio.',
+          moduleCount: 3,
+          modulesLabel: 'active workspaces',
+          accessLabel: 'secure backend',
+          toolsEyebrow: 'Operating workspace',
+          toolsTitle: 'Internal surfaces to close scope, effort, and pricing without leaving the dashboard.',
           toolsLead:
-            'Each module already has a clear place inside the dashboard. The next feature can plug into this layout without a visual reset.',
+            'This is not a marketing panel. It is a workbench to read live impact and store technical or commercial decisions.',
+          workspaceCards: [
+            {
+              title: 'Live quoting',
+              description:
+                'Budget Builder recalculates one-time total, monthly billing, surcharges, discounts, and hours as key options move.',
+              tag: 'Commercial',
+              cta: 'Go to Budget Builder',
+              href: '#budget-builder-workspace',
+            },
+            {
+              title: 'Technical estimation',
+              description:
+                'The estimator exposes PERT, risk buffer, timeline, and per-module breakdown to validate effort quickly.',
+              tag: 'Technical',
+              cta: 'Go to Estimator',
+              href: '#technical-estimator-workspace',
+            },
+            {
+              title: 'Active panel',
+              description:
+                'Site activity, operating state, and fast workspace reading without leaving the dashboard.',
+              tag: 'Operations',
+              cta: 'Go to Activity',
+              href: '#site-activity-workspace',
+            },
+          ],
+          quickLinks: [
+            { href: '#budget-builder-workspace', label: 'Go to Budget Builder' },
+            { href: '#technical-estimator-workspace', label: 'Go to Estimator' },
+            { href: '#site-activity-workspace', label: 'Go to Activity' },
+          ],
           logoutLabel: 'Sign out',
           modules: [
             {

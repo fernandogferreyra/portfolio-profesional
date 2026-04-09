@@ -1,8 +1,15 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { filter } from 'rxjs';
+import { filter, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
-import { SiteActivityEvent, SiteActivityEventType } from '../models/site-activity.models';
+import {
+  SiteActivityEvent,
+  SiteActivityEventType,
+  SiteActivityListResponse,
+  SiteActivityTrackRequest,
+} from '../models/site-activity.models';
 
 interface RouteActivityDescriptor {
   path: string;
@@ -10,7 +17,6 @@ interface RouteActivityDescriptor {
   contactOpen?: boolean;
 }
 
-const STORAGE_KEY = 'portfolio.site-activity';
 const MAX_EVENTS = 400;
 const ROUTE_TRACK_DEDUP_MS = 1200;
 
@@ -28,10 +34,11 @@ const ROUTE_ACTIVITY_MAP: RouteActivityDescriptor[] = [
   providedIn: 'root',
 })
 export class SiteActivityService {
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
   readonly storageError = signal<string | null>(null);
-  readonly events = signal<SiteActivityEvent[]>(this.readStoredEvents());
+  readonly events = signal<SiteActivityEvent[]>([]);
 
   private lastTrackedRoutePath: string | null = null;
   private lastTrackedRouteAt = 0;
@@ -44,6 +51,22 @@ export class SiteActivityService {
       });
 
     this.trackRouteVisit(this.router.url);
+  }
+
+  loadAdminEvents(limit = MAX_EVENTS): void {
+    this.http
+      .get<SiteActivityListResponse>(`/api/admin/events?limit=${limit}`)
+      .pipe(
+        map((response) => response.data),
+        catchError(() => {
+          this.storageError.set('No se pudo cargar la actividad persistida del backend.');
+          return of([]);
+        }),
+      )
+      .subscribe((events) => {
+        this.storageError.set(null);
+        this.events.set(events);
+      });
   }
 
   trackProjectSelection(projectId: string): void {
@@ -131,7 +154,7 @@ export class SiteActivityService {
     ].slice(0, MAX_EVENTS);
 
     this.events.set(nextEvents);
-    this.writeStoredEvents(nextEvents);
+    this.trackBackendEvent(type, action, label, route);
   }
 
   private normalizeRoute(url: string): string {
@@ -148,43 +171,34 @@ export class SiteActivityService {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
-  private readStoredEvents(): SiteActivityEvent[] {
-    try {
-      const rawValue = globalThis.localStorage?.getItem(STORAGE_KEY);
-      this.storageError.set(null);
+  private trackBackendEvent(
+    type: SiteActivityEventType,
+    action: string,
+    label: string,
+    route: string | null,
+  ): void {
+    const payload: SiteActivityTrackRequest = {
+      eventType: type,
+      path: route,
+      source: 'portfolio-web',
+      reference: action,
+      metadata: {
+        action,
+        label,
+        route: route ?? '',
+      },
+    };
 
-      if (!rawValue) {
-        return [];
-      }
-
-      const parsedValue = JSON.parse(rawValue);
-      if (!Array.isArray(parsedValue)) {
-        return [];
-      }
-
-      return parsedValue.filter(
-        (item): item is SiteActivityEvent =>
-          Boolean(
-            item &&
-              typeof item.id === 'string' &&
-              typeof item.type === 'string' &&
-              typeof item.action === 'string' &&
-              typeof item.label === 'string' &&
-              typeof item.createdAt === 'string',
-          ),
-      );
-    } catch {
-      this.storageError.set('No se pudo leer la actividad local almacenada.');
-      return [];
-    }
-  }
-
-  private writeStoredEvents(events: SiteActivityEvent[]): void {
-    try {
-      globalThis.localStorage?.setItem(STORAGE_KEY, JSON.stringify(events));
-      this.storageError.set(null);
-    } catch {
-      this.storageError.set('No se pudo persistir la actividad local del sitio.');
-    }
+    this.http
+      .post('/api/events', payload)
+      .pipe(
+        catchError(() => {
+          this.storageError.set('No se pudo registrar la actividad del sitio en backend.');
+          return of(null);
+        }),
+      )
+      .subscribe(() => {
+        this.storageError.set(null);
+      });
   }
 }

@@ -4,6 +4,7 @@ import {
   ElementRef,
   HostListener,
   Inject,
+  OnInit,
   Renderer2,
   ViewChild,
   computed,
@@ -11,11 +12,15 @@ import {
   signal,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { PORTFOLIO_PROJECTS, SKILL_ICONS } from '../../data/portfolio.data';
-import { ProjectActionType, SkillIconId, localizeText } from '../../data/portfolio.models';
+import { PortfolioProject, ProjectActionType, SkillIconId, localizeText } from '../../data/portfolio.models';
+import { ProjectSummaryResponse } from '../../models/projects.models';
 import { LanguageService } from '../../services/language.service';
 import { MotionService } from '../../services/motion.service';
+import { ProjectsService } from '../../services/projects.service';
 import { SiteActivityService } from '../../services/site-activity.service';
 
 interface ProjectActionView {
@@ -83,9 +88,10 @@ const STACK_ICON_RULES: Array<{ pattern: RegExp; icon: SkillIconId }> = [
   templateUrl: './projects.component.html',
   styleUrl: './projects.component.scss',
 })
-export class ProjectsComponent {
+export class ProjectsComponent implements OnInit {
   private readonly languageService = inject(LanguageService);
   private readonly motionService = inject(MotionService);
+  private readonly projectsService = inject(ProjectsService);
   private readonly siteActivityService = inject(SiteActivityService);
 
   @ViewChild('projectDialog') projectDialog?: ElementRef<HTMLElement>;
@@ -93,6 +99,7 @@ export class ProjectsComponent {
 
   readonly currentLanguage = this.languageService.language;
   readonly selectedProjectId = signal(PORTFOLIO_PROJECTS[0].id);
+  readonly projectCatalog = signal(PORTFOLIO_PROJECTS);
   readonly skillIcons = SKILL_ICONS;
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
@@ -130,7 +137,7 @@ export class ProjectsComponent {
   readonly projects = computed<ProjectView[]>(() => {
     const language = this.currentLanguage();
 
-    return PORTFOLIO_PROJECTS.map((project) => {
+    return this.projectCatalog().map((project) => {
       const stack = project.stack.map((technology) => ({
         name: technology,
         icon: this.resolveTechnologyIcon(technology),
@@ -193,6 +200,24 @@ export class ProjectsComponent {
     private readonly renderer: Renderer2,
     @Inject(DOCUMENT) private readonly document: Document,
   ) {}
+
+  ngOnInit(): void {
+    this.projectsService
+      .getProjects()
+      .pipe(catchError(() => of([])))
+      .subscribe((projects) => {
+        if (!projects.length) {
+          return;
+        }
+
+        const mergedProjects = this.mergeProjects(projects);
+        this.projectCatalog.set(mergedProjects);
+
+        if (!mergedProjects.some((project) => project.id === this.selectedProjectId())) {
+          this.selectedProjectId.set(mergedProjects[0]?.id ?? PORTFOLIO_PROJECTS[0].id);
+        }
+      });
+  }
 
   selectProject(projectId: string): void {
     if (projectId === this.selectedProjectId()) {
@@ -307,5 +332,68 @@ export class ProjectsComponent {
   private resolveTechnologyIcon(technology: string): SkillIconId {
     const matchedRule = STACK_ICON_RULES.find((rule) => rule.pattern.test(technology));
     return matchedRule?.icon ?? 'architecture';
+  }
+
+  private mergeProjects(projects: ProjectSummaryResponse[]): PortfolioProject[] {
+    return projects.map((project) => {
+      const staticProject = PORTFOLIO_PROJECTS.find((entry) => entry.id === project.slug);
+
+      if (staticProject) {
+        return {
+          ...staticProject,
+          name: project.name,
+          year: project.year,
+          stack: project.stack.length ? project.stack : staticProject.stack,
+          summary: {
+            ...staticProject.summary,
+            es: project.summary,
+          },
+        };
+      }
+
+      return this.createFallbackProject(project);
+    });
+  }
+
+  private createFallbackProject(project: ProjectSummaryResponse): PortfolioProject {
+    return {
+      id: project.slug,
+      name: project.name,
+      year: project.year,
+      category: {
+        es: this.formatCategory(project.category),
+        en: this.formatCategory(project.category),
+      },
+      summary: {
+        es: project.summary,
+        en: project.summary,
+      },
+      description: {
+        es: project.summary,
+        en: project.summary,
+      },
+      stack: project.stack,
+      metrics: [],
+      sections: [],
+      features: [],
+      actions: project.repositoryUrl
+        ? [
+            {
+              id: 'repo',
+              type: 'external',
+              label: { es: 'Codigo', en: 'Code' },
+              url: project.repositoryUrl,
+            },
+          ]
+        : [],
+    };
+  }
+
+  private formatCategory(category: string): string {
+    return category
+      .split(/[_-]/)
+      .filter(Boolean)
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
   }
 }

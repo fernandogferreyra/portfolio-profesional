@@ -59,17 +59,36 @@
     </div>
   </div>
 
+  <nav class="control-center__quick-links control-center__quick-links--hero" aria-label="Workspace shortcuts">
+    <a
+      class="control-center__quick-link motion-control"
+      *ngFor="let link of content().quickLinks"
+      [href]="link.href"
+    >
+      {{ link.label }}
+    </a>
+  </nav>
+
   <div class="control-center__tools-head">
     <p class="section-eyebrow">{{ content().toolsEyebrow }}</p>
     <h2 class="portfolio-section-title">{{ content().toolsTitle }}</h2>
     <p>{{ content().toolsLead }}</p>
   </div>
 
+  <div class="control-center__workspace-grid">
+    <article class="control-center__workspace-card portfolio-subcard" *ngFor="let item of content().workspaceCards">
+      <span class="control-center__tag">{{ item.tag }}</span>
+      <strong>{{ item.title }}</strong>
+      <p>{{ item.description }}</p>
+      <a class="control-center__workspace-link motion-control" [href]="item.href">{{ item.cta }}</a>
+    </article>
+  </div>
+
   <app-control-center-budget-builder></app-control-center-budget-builder>
-  <app-control-center-quote></app-control-center-quote>
   <app-control-center-estimator></app-control-center-estimator>
-  <app-control-center-quote-metrics></app-control-center-quote-metrics>
-  <app-control-center-site-activity></app-control-center-site-activity>
+  <div id="site-activity-workspace">
+    <app-control-center-site-activity></app-control-center-site-activity>
+  </div>
 
   <div class="control-center__grid">
     <article

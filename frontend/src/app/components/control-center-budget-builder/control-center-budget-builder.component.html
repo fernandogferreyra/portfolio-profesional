@@ -1,240 +1,603 @@
-<section class="budget-builder surface-card">
-  <div class="budget-builder__header">
-    <div class="budget-builder__heading">
-      <div class="budget-builder__heading-top">
-        <div>
-          <p class="section-eyebrow">{{ content().eyebrow }}</p>
-          <h2 class="portfolio-section-title">{{ content().title }}</h2>
-        </div>
-
-        <button
-          type="button"
-          class="budget-builder__info-button motion-control"
-          [attr.aria-label]="content().infoLabel"
-          [attr.title]="content().infoDescription"
-        >
-          <span aria-hidden="true">i</span>
-        </button>
-      </div>
-
+<section class="budget-workspace surface-card" id="budget-builder-workspace">
+  <header class="budget-workspace__header">
+    <div class="budget-workspace__heading">
+      <p class="section-eyebrow">{{ content().eyebrow }}</p>
+      <h2 class="portfolio-section-title">{{ content().title }}</h2>
       <p>{{ content().lead }}</p>
-      <p class="budget-builder__workflow-note">{{ content().workflowNote }}</p>
+      <p class="budget-workspace__note">{{ content().note }}</p>
     </div>
-  </div>
 
-  <div class="budget-builder__layout">
-    <form class="budget-builder__builder portfolio-subcard" [formGroup]="budgetForm" (ngSubmit)="calculateBudget()">
-      <div class="budget-builder__panel-heading">
-        <h3 class="portfolio-card-title">{{ content().formTitle }}</h3>
-        <p>{{ content().formLead }}</p>
-      </div>
+    <div class="budget-workspace__header-cards">
+      <article class="budget-workspace__header-card portfolio-subcard">
+        <span>{{ content().pricingModeLabel }}</span>
+        <strong>{{ budgetForm.controls.pricingMode.value === 'SAAS' ? content().saasMode : content().projectMode }}</strong>
+        <small>{{ previewStatus() }}</small>
+      </article>
 
-      <label class="budget-builder__field">
-        <span>{{ content().budgetNameLabel }}</span>
-        <input type="text" formControlName="budgetName" />
-      </label>
+      <article class="budget-workspace__header-card portfolio-subcard">
+        <span>{{ content().projectTypeLabel }}</span>
+        <strong>{{ getProjectTypeLabel(budgetForm.controls.projectType.value) }}</strong>
+        <small>{{ getProjectImpact(budgetForm.controls.projectType.value) }}</small>
+      </article>
+    </div>
+  </header>
 
-      <div class="budget-builder__field-grid">
-        <label class="budget-builder__field">
-          <span>{{ content().projectTypeLabel }}</span>
-          <select formControlName="projectType">
-            <option *ngFor="let option of projectTypeOptions(); trackBy: trackById" [value]="option.id">
-              {{ option.label }}
-            </option>
-          </select>
-        </label>
+  <p class="budget-workspace__state" *ngIf="loadingConfiguration()">{{ content().configurationLoading }}</p>
 
-        <label class="budget-builder__field">
-          <span>{{ content().technologyLabel }}</span>
-          <select formControlName="desiredStackId">
-            <option *ngFor="let option of technologyOptions(); trackBy: trackById" [value]="option.id">
-              {{ option.label }}
-            </option>
-          </select>
-        </label>
-
-        <label class="budget-builder__field">
-          <span>{{ content().hourlyRateLabel }}</span>
-          <input type="number" min="0" step="1" formControlName="hourlyRate" />
-        </label>
-
-        <label class="budget-builder__field">
-          <span>{{ content().discountLabel }}</span>
-          <input type="number" min="0" step="1" formControlName="manualDiscount" />
-        </label>
-      </div>
-
-      <div class="budget-builder__modules-top">
-        <span>{{ content().layersLabel }}</span>
-        <strong>{{ countSelectedLayers() }} {{ content().selectedLayersLabel }}</strong>
-      </div>
-
-      <div class="budget-builder__toggle-grid">
-        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.includeFrontend.value">
-          <input type="checkbox" formControlName="includeFrontend" />
-          <span>{{ content().frontendLabel }}</span>
-          <strong>{{ content().frontendNote }}</strong>
-        </label>
-
-        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.includeBackend.value">
-          <input type="checkbox" formControlName="includeBackend" />
-          <span>{{ content().backendLabel }}</span>
-          <strong>{{ content().backendNote }}</strong>
-        </label>
-
-        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.includeDatabase.value">
-          <input type="checkbox" formControlName="includeDatabase" />
-          <span>{{ content().databaseLabel }}</span>
-          <strong>{{ content().databaseNote }}</strong>
-        </label>
-
-        <label class="budget-builder__toggle motion-control" [class.is-selected]="budgetForm.controls.supportEnabled.value">
-          <input type="checkbox" formControlName="supportEnabled" />
-          <span>{{ content().supportLabel }}</span>
-          <strong>
-            {{
-              budgetForm.controls.supportEnabled.value
-                ? content().supportEnabledLabel
-                : content().supportDisabledLabel
-            }}
-          </strong>
-        </label>
-      </div>
-
-      <p class="budget-builder__error" *ngIf="formError()">{{ formError() }}</p>
-
-      <button type="submit" class="budget-builder__submit motion-control" [disabled]="calculating()">
-        {{ content().calculateLabel }}
-      </button>
-    </form>
-
-    <section class="budget-builder__panel portfolio-subcard">
-      <div class="budget-builder__panel-heading">
-        <h3 class="portfolio-card-title">{{ content().resultTitle }}</h3>
-        <p>{{ content().resultLead }}</p>
-      </div>
-
-      <ng-container *ngIf="calculationResult() as result; else resultEmpty">
-        <div class="budget-builder__result-grid">
-          <div class="budget-builder__metric">
-            <span>{{ content().modulesLabel }}</span>
-            <strong>{{ result.modules.length }}</strong>
-          </div>
-
-          <div class="budget-builder__metric">
-            <span>{{ content().hoursLabel }}</span>
-            <strong>{{ result.technicalEstimate.totalHours | number:'1.0-2' }} h</strong>
-          </div>
-
-          <div class="budget-builder__metric">
-            <span>{{ content().subtotalLabel }}</span>
-            <strong>{{ formatCurrency(result.commercialBudget.baseAmount, result.commercialBudget.currency) }}</strong>
-          </div>
-
-          <div class="budget-builder__metric">
-            <span>{{ content().surchargesLabel }}</span>
-            <strong>{{ formatCurrency(summary()?.surchargeTotal ?? 0, result.commercialBudget.currency) }}</strong>
-          </div>
-
-          <div class="budget-builder__metric">
-            <span>{{ content().discountsLabel }}</span>
-            <strong>{{ formatCurrency(summary()?.discountTotal ?? 0, result.commercialBudget.currency) }}</strong>
-          </div>
-
-          <div class="budget-builder__metric">
-            <span>{{ content().finalOneTimeLabel }}</span>
-            <strong>{{ formatCurrency(result.commercialBudget.finalOneTimeTotal, result.commercialBudget.currency) }}</strong>
-          </div>
+  <div class="budget-workspace__layout" *ngIf="!loadingConfiguration()">
+    <div class="budget-workspace__editor">
+      <section class="budget-workspace__panel portfolio-subcard budget-workspace__panel--steps">
+        <div class="budget-workspace__panel-head">
+          <h3 class="portfolio-card-title">{{ content().scenarioTitle }}</h3>
+          <p>{{ content().note }}</p>
         </div>
 
-        <div class="budget-builder__summary-card">
-          <div>
-            <span>{{ content().finalMonthlyLabel }}</span>
-            <strong>
-              {{
-                result.commercialBudget.finalMonthlyTotal > 0
-                  ? formatCurrency(result.commercialBudget.finalMonthlyTotal, result.commercialBudget.currency)
-                  : content().noMonthlyLabel
-              }}
-            </strong>
-          </div>
+        <div class="budget-workspace__step-grid">
+          <button
+            type="button"
+            class="budget-workspace__step motion-control"
+            *ngFor="let step of workflowSteps(); trackBy: trackById"
+            [class.is-active]="step.selected"
+            (click)="goToStep(step.id === 'pricing' ? 'pricing' : step.id === 'continuity' ? 'continuity' : step.id === 'scope' ? 'scope' : 'scenario')"
+          >
+            <strong>{{ step.title }}</strong>
+            <span>{{ step.description }}</span>
+            <small>{{ step.impact }}</small>
+          </button>
         </div>
+      </section>
 
-        <div class="budget-builder__section">
-          <div class="budget-builder__section-head">
-            <span class="section-eyebrow">{{ content().generatedModulesTitle }}</span>
-          </div>
+      <section class="budget-workspace__panel portfolio-subcard" [formGroup]="budgetForm">
+        <ng-container [ngSwitch]="currentStep()">
+          <ng-container *ngSwitchCase="'scenario'">
+            <div class="budget-workspace__panel-head">
+              <h3 class="portfolio-card-title">{{ content().scenarioTitle }}</h3>
+              <p>{{ content().note }}</p>
+            </div>
 
-          <div class="budget-builder__rows">
-            <div class="budget-builder__row" *ngFor="let module of result.modules; trackBy: trackById">
-              <div>
+            <label class="budget-workspace__field">
+              <span>{{ content().budgetNameLabel }}</span>
+              <input type="text" formControlName="budgetName" />
+            </label>
+
+            <div class="budget-workspace__choice-grid">
+              <button
+                type="button"
+                class="budget-workspace__choice motion-control"
+                *ngFor="let option of projectCards(); trackBy: trackById"
+                [class.is-active]="option.selected"
+                (click)="selectProjectType(option.id)"
+              >
+                <strong>{{ option.title }}</strong>
+                <span>{{ option.description }}</span>
+                <small>{{ option.impact }}</small>
+              </button>
+            </div>
+
+            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--two">
+              <button
+                type="button"
+                class="budget-workspace__choice motion-control"
+                *ngFor="let option of pricingCards(); trackBy: trackById"
+                [class.is-active]="option.selected"
+                (click)="selectPricingMode(option.id === 'SAAS' ? 'SAAS' : 'PROJECT')"
+              >
+                <strong>{{ option.title }}</strong>
+                <span>{{ option.description }}</span>
+                <small>{{ option.impact }}</small>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'pricing'">
+            <div class="budget-workspace__panel-head">
+              <h3 class="portfolio-card-title">{{ content().leversTitle }}</h3>
+              <p>{{ content().detailsLead }}</p>
+            </div>
+
+            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--two">
+              <button
+                type="button"
+                class="budget-workspace__choice motion-control"
+                *ngFor="let option of technologyOptions(); trackBy: trackById"
+                [class.is-active]="budgetForm.controls.desiredStackId.value === option.id"
+                (click)="budgetForm.controls.desiredStackId.setValue(option.id)"
+              >
+                <strong>{{ option.label }}</strong>
+                <span>{{ option.description }}</span>
+                <small>{{ getTechnologyImpact(option.id) }}</small>
+              </button>
+            </div>
+
+            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--three">
+              <button
+                type="button"
+                class="budget-workspace__choice motion-control"
+                *ngFor="let option of complexityCards(); trackBy: trackById"
+                [class.is-active]="option.selected"
+                (click)="selectComplexity(option.id === 'LOW' ? 'LOW' : option.id === 'HIGH' ? 'HIGH' : 'MEDIUM')"
+              >
+                <strong>{{ option.title }}</strong>
+                <span>{{ option.description }}</span>
+                <small>{{ option.impact }}</small>
+              </button>
+            </div>
+
+            <div class="budget-workspace__field-grid">
+              <label class="budget-workspace__field">
+                <span>{{ content().urgencyLabel }}</span>
+                <select formControlName="urgency">
+                  <option value="STANDARD">{{ getUrgencyLabel('STANDARD') }}</option>
+                  <option value="PRIORITY">{{ getUrgencyLabel('PRIORITY') }}</option>
+                  <option value="EXPRESS">{{ getUrgencyLabel('EXPRESS') }}</option>
+                </select>
+                <small>{{ getUrgencyImpact(budgetForm.controls.urgency.value) }}</small>
+              </label>
+
+              <label class="budget-workspace__field">
+                <span>{{ content().hourlyRateLabel }}</span>
+                <input type="number" min="0" step="1" formControlName="hourlyRate" />
+                <small>
+                  {{
+                    currentLanguage() === 'es'
+                      ? 'Override para categorias basadas en tiempo.'
+                      : 'Override for time-based categories.'
+                  }}
+                </small>
+              </label>
+
+              <label class="budget-workspace__field">
+                <span>{{ content().discountLabel }}</span>
+                <input type="number" min="0" step="1" formControlName="manualDiscount" />
+                <small>
+                  {{
+                    currentLanguage() === 'es'
+                      ? 'Se ve luego en descuentos del breakdown.'
+                      : 'Shows later inside the discounts breakdown.'
+                  }}
+                </small>
+              </label>
+            </div>
+
+            <div class="budget-workspace__panel-head" *ngIf="selectableSurchargeOptions().length">
+              <h4 class="portfolio-card-title">{{ content().extrasLabel }}</h4>
+              <p>
+                {{
+                  currentLanguage() === 'es'
+                    ? 'Selecciona extras comerciales opcionales sin tocar las reglas base del preset.'
+                    : 'Select optional commercial extras without changing the preset base rules.'
+                }}
+              </p>
+            </div>
+
+            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--two" [formGroup]="extraSelection">
+              <button
+                type="button"
+                class="budget-workspace__choice motion-control"
+                *ngFor="let option of selectableSurchargeOptions(); trackBy: trackById"
+                [class.is-active]="option.selected"
+                (click)="toggleExtra(option.id)"
+              >
+                <strong>{{ option.title }}</strong>
+                <span>{{ option.description }}</span>
+                <small>{{ option.impact }}</small>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'continuity'">
+            <div class="budget-workspace__panel-head">
+              <h3 class="portfolio-card-title">{{ content().continuityTitle }}</h3>
+            </div>
+
+            <label class="budget-workspace__toggle">
+              <input type="checkbox" formControlName="supportEnabled" />
+              <span>{{ content().supportLabel }}</span>
+              <strong>{{ budgetForm.controls.supportEnabled.value ? content().supportOn : content().supportOff }}</strong>
+              <small>{{ getSupportImpact() }}</small>
+            </label>
+
+            <div class="budget-workspace__support-grid" *ngIf="budgetForm.controls.supportEnabled.value">
+              <button
+                type="button"
+                class="budget-workspace__support-option motion-control"
+                *ngFor="let plan of supportPlanOptions(); trackBy: trackById"
+                [class.is-active]="budgetForm.controls.supportPlanId.value === plan.id"
+                (click)="budgetForm.controls.supportPlanId.setValue(plan.id)"
+              >
+                <strong>{{ plan.label }}</strong>
+                <span>{{ getSupportPlanImpact(plan) }}</span>
+              </button>
+            </div>
+
+            <div class="budget-workspace__panel-head" *ngIf="maintenancePlanOptions().length">
+              <h4 class="portfolio-card-title">{{ content().maintenancePlanLabel }}</h4>
+            </div>
+
+            <div class="budget-workspace__support-grid">
+              <button
+                type="button"
+                class="budget-workspace__support-option motion-control"
+                [class.is-active]="budgetForm.controls.maintenancePlanId.value === null"
+                (click)="budgetForm.controls.maintenancePlanId.setValue(null)"
+              >
+                <strong>{{ content().noMaintenance }}</strong>
+                <span>{{ getMaintenanceImpact(null) }}</span>
+              </button>
+
+              <button
+                type="button"
+                class="budget-workspace__support-option motion-control"
+                *ngFor="let plan of maintenancePlanOptions(); trackBy: trackById"
+                [class.is-active]="budgetForm.controls.maintenancePlanId.value === plan.id"
+                (click)="budgetForm.controls.maintenancePlanId.setValue(plan.id)"
+              >
+                <strong>{{ plan.label }}</strong>
+                <span>{{ getMaintenanceImpact(plan) }}</span>
+              </button>
+            </div>
+
+            <div class="budget-workspace__field-grid" *ngIf="isSaasPricing()">
+              <label class="budget-workspace__field">
+                <span>{{ content().activeClientsLabel }}</span>
+                <input type="number" min="1" step="1" formControlName="activeClients" />
+                <small>
+                  {{
+                    currentLanguage() === 'es'
+                      ? 'Afecta la lectura del tier recurrente.'
+                      : 'Affects the recurring tier reading.'
+                  }}
+                </small>
+              </label>
+
+              <label class="budget-workspace__field">
+                <span>{{ content().extraHoursLabel }}</span>
+                <input type="number" min="0" step="1" formControlName="extraMonthlyHours" />
+                <small>
+                  {{
+                    currentLanguage() === 'es'
+                      ? 'Suma horas mensuales extra al calculo SaaS.'
+                      : 'Adds extra monthly hours to the SaaS calculation.'
+                  }}
+                </small>
+              </label>
+            </div>
+
+            <div class="budget-workspace__support-grid" *ngIf="isSaasPricing()">
+              <button
+                type="button"
+                class="budget-workspace__support-option motion-control"
+                *ngFor="let tier of userScaleOptions(); trackBy: trackById"
+                [class.is-active]="budgetForm.controls.userScaleTierId.value === tier.id"
+                (click)="budgetForm.controls.userScaleTierId.setValue(tier.id)"
+              >
+                <strong>{{ tier.label }}</strong>
+                <span>{{ getUserScaleImpact(tier) }}</span>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngSwitchDefault>
+            <div class="budget-workspace__panel-topline">
+              <div class="budget-workspace__panel-head">
+                <h3 class="portfolio-card-title">{{ content().scopeTitle }}</h3>
+              </div>
+              <strong>{{ selectedModulesCount() }} {{ content().selectedModulesLabel }}</strong>
+            </div>
+
+            <div class="budget-workspace__module-grid" [formGroup]="moduleSelection">
+              <button
+                type="button"
+                class="budget-workspace__module motion-control"
+                *ngFor="let module of moduleOptions(); trackBy: trackById"
+                [class.is-active]="isModuleSelected(module.id)"
+                (click)="toggleModule(module.id)"
+              >
                 <strong>{{ module.name }}</strong>
                 <span>{{ module.description }}</span>
-              </div>
-              <span>{{ module.estimatedHours | number:'1.0-2' }} h</span>
+                <small>{{ getCategoryLabel(module.category) }} | {{ getModuleFormula(module) }}</small>
+                <small>{{ getModuleDependencies(module) }}</small>
+              </button>
             </div>
-          </div>
+          </ng-container>
+        </ng-container>
+
+        <div class="budget-workspace__pager">
+          <button type="button" class="budget-workspace__action motion-control" (click)="goToPreviousStep()" [disabled]="isFirstStep()">
+            {{ content().stepBack }}
+          </button>
+          <button type="button" class="budget-workspace__action budget-workspace__action--primary motion-control" (click)="goToNextStep()" [disabled]="isLastStep()">
+            {{ content().stepNext }}
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="budget-workspace__analysis">
+      <section class="budget-workspace__panel portfolio-subcard">
+        <div class="budget-workspace__panel-head">
+          <h3 class="portfolio-card-title">{{ content().detailsTitle }}</h3>
+          <p>{{ content().detailsLead }}</p>
         </div>
 
-        <div class="budget-builder__section">
-          <div class="budget-builder__section-head">
-            <span class="section-eyebrow">{{ content().surchargesTitle }}</span>
+        <p class="budget-workspace__state" *ngIf="!calculationResult()">{{ previewStatus() }}</p>
+
+        <ng-container *ngIf="calculationResult() as result">
+          <div class="budget-workspace__metrics">
+            <article class="budget-workspace__metric" *ngFor="let metric of summaryMetrics(); trackBy: trackById">
+              <span>{{ metric.label }}</span>
+              <strong>{{ metric.value }}</strong>
+              <small>{{ metric.note }}</small>
+            </article>
           </div>
 
-          <div class="budget-builder__rows" *ngIf="result.commercialBudget.surchargeItems.length; else emptySurcharges">
-            <div class="budget-builder__row" *ngFor="let surcharge of result.commercialBudget.surchargeItems; trackBy: trackById">
-              <div>
-                <strong>{{ surcharge.label }}</strong>
-                <span>{{ surcharge.reason }}</span>
-              </div>
-              <span>{{ formatCurrency(surcharge.amount, result.commercialBudget.currency) }}</span>
+          <section class="budget-workspace__subsection">
+            <div class="budget-workspace__subsection-head">
+              <span class="section-eyebrow">{{ content().technicalFormula }}</span>
             </div>
-          </div>
+
+            <div class="budget-workspace__rows">
+              <article class="budget-workspace__row" *ngFor="let row of technicalRows(); trackBy: trackById">
+                <div>
+                  <strong>{{ row.label }}</strong>
+                  <span>{{ row.note }}</span>
+                </div>
+                <strong>{{ row.value }}</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="budget-workspace__subsection">
+            <div class="budget-workspace__subsection-head">
+              <span class="section-eyebrow">{{ content().commercialBreakdown }}</span>
+            </div>
+
+            <div class="budget-workspace__rows">
+              <article
+                class="budget-workspace__row"
+                *ngFor="let row of commercialRows(); trackBy: trackById"
+                [class.is-highlight]="row.highlight"
+              >
+                <div>
+                  <strong>{{ row.label }}</strong>
+                  <span>{{ row.note }}</span>
+                </div>
+                <strong>{{ formatCurrency(row.amount, currentCurrency()) }}</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="budget-workspace__subsection">
+            <div class="budget-workspace__subsection-head">
+              <span class="section-eyebrow">{{ content().surcharges }}</span>
+            </div>
+
+            <div class="budget-workspace__rows" *ngIf="result.commercialBudget.surchargeItems.length; else noSurcharges">
+              <article class="budget-workspace__row" *ngFor="let item of result.commercialBudget.surchargeItems; trackBy: trackById">
+                <div>
+                  <strong>{{ item.label }}</strong>
+                  <span>{{ item.reason }}</span>
+                </div>
+                <strong>{{ formatCurrency(item.amount, currentCurrency()) }}</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="budget-workspace__subsection">
+            <div class="budget-workspace__subsection-head">
+              <span class="section-eyebrow">{{ content().discounts }}</span>
+            </div>
+
+            <div class="budget-workspace__rows" *ngIf="result.commercialBudget.discountItems.length; else noDiscounts">
+              <article class="budget-workspace__row" *ngFor="let item of result.commercialBudget.discountItems; trackBy: trackById">
+                <div>
+                  <strong>{{ item.label }}</strong>
+                  <span>{{ item.reason }}</span>
+                </div>
+                <strong>{{ formatCurrency(item.amount, currentCurrency()) }}</strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="budget-workspace__subsection">
+            <div class="budget-workspace__subsection-head">
+              <span class="section-eyebrow">{{ content().explanation }}</span>
+            </div>
+
+            <div class="budget-workspace__rows" *ngIf="result.commercialBudget.pricingExplanation.length; else noExplanation">
+              <article class="budget-workspace__row" *ngFor="let item of result.commercialBudget.pricingExplanation; trackBy: trackById">
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.description }}</span>
+                  <small>{{ getStageLabel(item.stage) }}</small>
+                </div>
+                <strong>
+                  {{
+                    item.amountDelta
+                      ? formatCurrency(item.amountDelta, currentCurrency())
+                      : (currentLanguage() === 'es' ? 'Info' : 'Info')
+                  }}
+                </strong>
+              </article>
+            </div>
+          </section>
+
+          <section class="budget-workspace__subsection">
+            <div class="budget-workspace__subsection-head">
+              <span class="section-eyebrow">{{ content().calculatedModules }}</span>
+            </div>
+
+            <div class="budget-workspace__rows" *ngIf="result.modules.length; else noModules">
+              <article class="budget-workspace__row" *ngFor="let module of result.modules; trackBy: trackById">
+                <div>
+                  <strong>{{ module.name }}</strong>
+                  <span>{{ module.description }}</span>
+                  <small *ngIf="module.blockingNote">{{ module.blockingNote }}</small>
+                  <small *ngIf="module.dependencyIds.length">
+                    {{ module.dependencyIds.join(' -> ') }}
+                  </small>
+                </div>
+                <strong>{{ module.estimatedHours | number:'1.0-2' }} h</strong>
+              </article>
+            </div>
+          </section>
+        </ng-container>
+      </section>
+    </div>
+
+    <aside class="budget-workspace__rail">
+      <section class="budget-workspace__panel portfolio-subcard budget-workspace__panel--sticky">
+        <div class="budget-workspace__panel-head">
+          <h3 class="portfolio-card-title">{{ content().summaryTitle }}</h3>
+          <p>{{ content().summaryLead }}</p>
         </div>
 
-        <div class="budget-builder__section">
-          <div class="budget-builder__section-head">
-            <span class="section-eyebrow">{{ content().discountsTitle }}</span>
-          </div>
-
-          <div class="budget-builder__rows" *ngIf="result.commercialBudget.discountItems.length; else emptyDiscounts">
-            <div class="budget-builder__row" *ngFor="let discount of result.commercialBudget.discountItems; trackBy: trackById">
-              <div>
-                <strong>{{ discount.label }}</strong>
-                <span>{{ discount.reason }}</span>
-              </div>
-              <span>{{ formatCurrency(discount.amount, result.commercialBudget.currency) }}</span>
-            </div>
-          </div>
+        <div class="budget-workspace__total">
+          <span>{{ content().oneTimeTotal }}</span>
+          <strong>{{ summaryMetrics()[0].value }}</strong>
+          <small>{{ summaryMetrics()[1].value }}</small>
         </div>
 
-        <div class="budget-builder__section">
-          <div class="budget-builder__section-head">
-            <span class="section-eyebrow">{{ content().explanationTitle }}</span>
-          </div>
+        <div class="budget-workspace__context">
+          <article class="budget-workspace__context-row">
+            <span>{{ content().projectTypeLabel }}</span>
+            <strong>{{ getProjectTypeLabel(budgetForm.controls.projectType.value) }}</strong>
+            <small>{{ getProjectImpact(budgetForm.controls.projectType.value) }}</small>
+          </article>
 
-          <div class="budget-builder__rows">
-            <div class="budget-builder__row" *ngFor="let item of result.commercialBudget.pricingExplanation; trackBy: trackById">
-              <div>
-                <strong>{{ item.title }}</strong>
-                <span>{{ item.description }}</span>
-              </div>
-            </div>
-          </div>
+          <article class="budget-workspace__context-row">
+            <span>{{ content().stackLabel }}</span>
+            <strong>{{ selectedTechnology()?.label || getTechnologyLabel(budgetForm.controls.desiredStackId.value) }}</strong>
+            <small>{{ getTechnologyImpact(budgetForm.controls.desiredStackId.value) }}</small>
+          </article>
+
+          <article class="budget-workspace__context-row">
+            <span>{{ content().supportLabel }}</span>
+            <strong>{{ getSupportSummary() }}</strong>
+            <small>{{ getSupportImpact() }}</small>
+          </article>
+
+          <article class="budget-workspace__context-row" *ngIf="isSaasPricing()">
+            <span>{{ content().userScaleLabel }}</span>
+            <strong>{{ selectedUserScale()?.label || '-' }}</strong>
+            <small>{{ getUserScaleImpact() }}</small>
+          </article>
         </div>
-      </ng-container>
 
-      <ng-template #resultEmpty>
-        <p class="budget-builder__state">{{ content().resultEmpty }}</p>
-      </ng-template>
+        <div class="budget-workspace__actions">
+          <button
+            type="button"
+            class="budget-workspace__action budget-workspace__action--primary motion-control"
+            (click)="saveBudget()"
+            [disabled]="!canSavePreview()"
+          >
+            {{ saving() ? content().saving : content().save }}
+          </button>
 
-      <ng-template #emptySurcharges>
-        <p class="budget-builder__state">{{ content().emptyAdjustments }}</p>
-      </ng-template>
+          <button type="button" class="budget-workspace__action motion-control" (click)="resetWorkspace()">
+            {{ content().reset }}
+          </button>
 
-      <ng-template #emptyDiscounts>
-        <p class="budget-builder__state">{{ content().emptyDiscounts }}</p>
-      </ng-template>
-    </section>
+          <button
+            type="button"
+            class="budget-workspace__action budget-workspace__action--ghost motion-control"
+            (click)="clearNegotiationAdjustments()"
+          >
+            {{ content().clearNegotiation }}
+          </button>
+        </div>
+
+        <p class="budget-workspace__success" *ngIf="saveFeedback()">{{ saveFeedback() }}</p>
+        <p class="budget-workspace__error" *ngIf="formError()">{{ formError() }}</p>
+
+        <div class="budget-workspace__rules">
+          <div class="budget-workspace__subsection-head">
+            <span class="section-eyebrow">{{ content().activeRulesTitle }}</span>
+          </div>
+
+          <article class="budget-workspace__rule" *ngFor="let category of categoryOptions(); trackBy: trackById">
+            <div>
+              <strong>{{ category.label }}</strong>
+              <span>{{ category.billingType }}</span>
+            </div>
+            <strong>{{ formatCurrency(category.rate, currentCurrency()) }}</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="budget-workspace__panel portfolio-subcard">
+        <div class="budget-workspace__panel-head">
+          <h3 class="portfolio-card-title">{{ content().historyTitle }}</h3>
+          <p>{{ content().historyLead }}</p>
+        </div>
+
+        <p class="budget-workspace__state" *ngIf="loadingHistory()">{{ content().historyLoading }}</p>
+        <p class="budget-workspace__error" *ngIf="historyError()">{{ historyError() }}</p>
+
+        <div class="budget-workspace__history" *ngIf="!loadingHistory() && recentHistory().length">
+          <button
+            type="button"
+            class="budget-workspace__history-item motion-control"
+            *ngFor="let budget of recentHistory(); trackBy: trackById"
+            [class.is-active]="selectedHistoryId() === budget.id"
+            (click)="selectHistoryItem(budget.id)"
+          >
+            <strong>{{ budget.budgetName }}</strong>
+            <span>{{ budget.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <small>{{ formatCurrency(budget.finalOneTimeTotal, budget.currency) }}</small>
+          </button>
+        </div>
+
+        <p class="budget-workspace__state" *ngIf="!loadingHistory() && !recentHistory().length">
+          {{ content().historyEmpty }}
+        </p>
+
+        <div class="budget-workspace__history-detail">
+          <div class="budget-workspace__subsection-head">
+            <span class="section-eyebrow">{{ content().historyDetailTitle }}</span>
+          </div>
+
+          <p class="budget-workspace__state" *ngIf="loadingHistoryDetail()">{{ content().historyDetailLoading }}</p>
+          <p class="budget-workspace__error" *ngIf="historyDetailError()">{{ historyDetailError() }}</p>
+
+          <ng-container *ngIf="!loadingHistoryDetail() && !historyDetailError()">
+            <ng-container *ngIf="selectedHistoryResult() as detail; else noHistoryDetail">
+              <article class="budget-workspace__history-card">
+                <strong>{{ selectedHistoryDetail()?.budgetName }}</strong>
+                <span>{{ selectedHistoryDetail()?.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                <small>{{ formatCurrency(detail.commercialBudget.finalOneTimeTotal, detail.commercialBudget.currency) }}</small>
+                <small>
+                  {{
+                    detail.commercialBudget.finalMonthlyTotal > 0
+                      ? formatCurrency(detail.commercialBudget.finalMonthlyTotal, detail.commercialBudget.currency)
+                      : content().noMonthly
+                  }}
+                </small>
+              </article>
+            </ng-container>
+          </ng-container>
+        </div>
+      </section>
+    </aside>
   </div>
+
+  <ng-template #noSurcharges>
+    <p class="budget-workspace__state">{{ content().noSurcharges }}</p>
+  </ng-template>
+
+  <ng-template #noDiscounts>
+    <p class="budget-workspace__state">{{ content().noDiscounts }}</p>
+  </ng-template>
+
+  <ng-template #noExplanation>
+    <p class="budget-workspace__state">{{ content().noExplanation }}</p>
+  </ng-template>
+
+  <ng-template #noModules>
+    <p class="budget-workspace__state">{{ content().noModulesDetail }}</p>
+  </ng-template>
+
+  <ng-template #noHistoryDetail>
+    <p class="budget-workspace__state">{{ content().historyDetailEmpty }}</p>
+  </ng-template>
 </section>

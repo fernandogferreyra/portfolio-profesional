@@ -2,6 +2,7 @@ package com.fernandogferreyra.portfolio.backend.config;
 
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BillingCadence;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BudgetComplexity;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.CategoryBillingType;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.PricingAdjustmentMode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
@@ -44,6 +45,10 @@ public class BudgetBuilderSeedProperties {
     @Min(1)
     private int workingHoursPerWeek;
 
+    @NotNull
+    @DecimalMin("0.00")
+    private BigDecimal riskBufferHours = BigDecimal.ZERO;
+
     @Valid
     @NotNull
     private HourlyRateProperties hourlyRate = new HourlyRateProperties();
@@ -66,6 +71,10 @@ public class BudgetBuilderSeedProperties {
 
     @Valid
     @NotEmpty
+    private List<CategoryProperties> categoryRules = new ArrayList<>();
+
+    @Valid
+    @NotEmpty
     private List<TechnologyProperties> technologyCatalog = new ArrayList<>();
 
     @Valid
@@ -75,6 +84,18 @@ public class BudgetBuilderSeedProperties {
     @Valid
     @NotEmpty
     private List<SupportProperties> supportRules = new ArrayList<>();
+
+    @Valid
+    @NotEmpty
+    private List<MaintenanceProperties> maintenanceRules = new ArrayList<>();
+
+    @Valid
+    @NotEmpty
+    private List<UserScaleProperties> userScaleRules = new ArrayList<>();
+
+    @Valid
+    @NotNull
+    private SaasPricingProperties saasPricing = new SaasPricingProperties();
 
     @Valid
     @NotEmpty
@@ -146,13 +167,39 @@ public class BudgetBuilderSeedProperties {
         private BigDecimal baseHours = BigDecimal.ZERO;
         @NotNull
         @DecimalMin("0.00")
+        private BigDecimal optimisticHours = BigDecimal.ZERO;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal probableHours = BigDecimal.ZERO;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal pessimisticHours = BigDecimal.ZERO;
+        @NotNull
+        @DecimalMin("0.00")
         private BigDecimal complexityWeight = BigDecimal.ONE;
         @NotNull
         @DecimalMin("0.00")
         private BigDecimal moduleMultiplier = BigDecimal.ONE;
         @NotNull
         private List<String> dependencyIds = new ArrayList<>();
+        private String blockingNote;
         private boolean optional;
+    }
+
+    @Getter
+    @Setter
+    public static class CategoryProperties {
+        @NotBlank
+        private String id;
+        @NotBlank
+        private String label;
+        @NotNull
+        private CategoryBillingType billingType = CategoryBillingType.TIME_BASED;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal rate = BigDecimal.ZERO;
+        @NotNull
+        private BillingCadence cadence = BillingCadence.ONE_TIME;
     }
 
     @Getter
@@ -162,6 +209,8 @@ public class BudgetBuilderSeedProperties {
         private String id;
         @NotBlank
         private String label;
+        @NotBlank
+        private String description;
         @NotNull
         @DecimalMin("0.00")
         private BigDecimal multiplier = BigDecimal.ONE;
@@ -216,9 +265,58 @@ public class BudgetBuilderSeedProperties {
 
     @Getter
     @Setter
+    public static class MaintenanceProperties {
+        @NotBlank
+        private String id;
+        @NotBlank
+        private String label;
+        @NotNull
+        private BillingCadence cadence = BillingCadence.MONTHLY;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal monthlyAmount = BigDecimal.ZERO;
+        private boolean enabledByDefault;
+    }
+
+    @Getter
+    @Setter
+    public static class UserScaleProperties {
+        @NotBlank
+        private String id;
+        @NotBlank
+        private String label;
+        @Min(1)
+        private Integer minUsers = 1;
+        private Integer maxUsers;
+        @NotNull
+        private PricingAdjustmentMode mode = PricingAdjustmentMode.FIXED;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal value = BigDecimal.ZERO;
+    }
+
+    @Getter
+    @Setter
+    public static class SaasPricingProperties {
+        @Min(1)
+        private Integer recoveryMonths = 24;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal monthlyInfrastructureCost = BigDecimal.ZERO;
+        @NotNull
+        @DecimalMin("0.00")
+        private BigDecimal marginPercentage = BigDecimal.ZERO;
+    }
+
+    @Getter
+    @Setter
     public static class ProjectTypeDefaultProperties {
         @NotBlank
         private String projectType;
+        @NotBlank
+        private String label;
+        @NotBlank
+        private String description;
         @NotNull
         private List<String> defaultModuleIds = new ArrayList<>();
         @NotNull

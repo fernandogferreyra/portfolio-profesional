@@ -20,20 +20,35 @@ describe('BudgetBuilderUiFacade', () => {
     httpMock.verify();
   });
 
-  it('maps the minimal UI contract to the backend preview request', () => {
+  it('sends the backend preview payload unchanged', () => {
     let response: unknown;
 
     facade
-      .calculateBudget({
+      .previewBudget({
         budgetName: 'Commerce MVP',
         projectType: 'standard_project',
-        includeFrontend: true,
-        includeBackend: true,
-        includeDatabase: true,
-        hourlyRate: 20,
-        supportEnabled: true,
-        manualDiscount: 50,
+        pricingMode: 'PROJECT',
         desiredStackId: 'default_web_stack',
+        complexity: 'MEDIUM',
+        urgency: 'STANDARD',
+        selectedModuleIds: ['DISCOVERY', 'FRONTEND_APP', 'CORE_BACKEND', 'DATABASE_LAYER'],
+        moduleSelectionMode: 'EXPLICIT',
+        selectedSurchargeRuleIds: ['management-contingency-fixed'],
+        supportEnabled: true,
+        supportPlanId: 'support-basic',
+        maintenancePlanId: null,
+        hourlyRateOverride: 20,
+        manualDiscount: {
+          label: 'Manual discount',
+          reason: 'UI negotiation adjustment',
+          mode: 'FIXED',
+          value: 50,
+          cadence: 'ONE_TIME',
+        },
+        activeClients: null,
+        userScaleTierId: null,
+        extraMonthlyHours: null,
+        notes: [],
       })
       .subscribe((result) => {
         response = result;
@@ -52,20 +67,21 @@ describe('BudgetBuilderUiFacade', () => {
       moduleSelectionMode: 'EXPLICIT',
       selectedSurchargeRuleIds: ['management-contingency-fixed'],
       supportEnabled: true,
-      supportPlanId: 'support-basic',
-      maintenancePlanId: null,
-      hourlyRateOverride: 20,
+        supportPlanId: 'support-basic',
+        maintenancePlanId: null,
+        hourlyRateOverride: 20,
       manualDiscount: {
         label: 'Manual discount',
         reason: 'UI negotiation adjustment',
         mode: 'FIXED',
         value: 50,
         cadence: 'ONE_TIME',
-      },
-      activeClients: null,
-      userScaleTierId: null,
-      notes: [],
-    });
+        },
+        activeClients: null,
+        userScaleTierId: null,
+        extraMonthlyHours: null,
+        notes: [],
+      });
 
     request.flush({
       success: true,
@@ -73,6 +89,7 @@ describe('BudgetBuilderUiFacade', () => {
       data: {
         configurationSnapshotId: 'budget-builder-seed-v1',
         previewHash: 'preview-hash',
+        currency: 'USD',
         totalHours: 48,
         totalWeeks: 1.5,
         baseAmount: 960,
@@ -113,16 +130,25 @@ describe('BudgetBuilderUiFacade', () => {
     let response: ReturnType<typeof jasmine.createSpy> | unknown;
 
     facade
-      .calculateBudget({
+      .previewBudget({
         budgetName: 'External stack quote',
         projectType: 'standard_project',
-        includeFrontend: false,
-        includeBackend: true,
-        includeDatabase: false,
-        hourlyRate: 18,
-        supportEnabled: false,
-        manualDiscount: 0,
+        pricingMode: 'PROJECT',
         desiredStackId: 'outside_primary_stack',
+        complexity: 'MEDIUM',
+        urgency: 'STANDARD',
+        selectedModuleIds: ['DISCOVERY', 'CORE_BACKEND'],
+        moduleSelectionMode: 'EXPLICIT',
+        selectedSurchargeRuleIds: ['management-contingency-fixed'],
+        supportEnabled: false,
+        supportPlanId: null,
+        maintenancePlanId: null,
+        hourlyRateOverride: 18,
+        manualDiscount: null,
+        activeClients: null,
+        userScaleTierId: null,
+        extraMonthlyHours: null,
+        notes: [],
       })
       .subscribe((result) => {
         response = result;
@@ -140,6 +166,7 @@ describe('BudgetBuilderUiFacade', () => {
       data: {
         configurationSnapshotId: 'budget-builder-seed-v1',
         previewHash: 'outside-stack-preview',
+        currency: 'USD',
         totalHours: 20,
         totalWeeks: 0.6,
         baseAmount: 360,
@@ -153,6 +180,8 @@ describe('BudgetBuilderUiFacade', () => {
             category: 'analysis_design',
             name: 'Discovery',
             description: 'Initial scoping and solution framing.',
+            dependencyIds: [],
+            blockingNote: null,
             estimatedHours: 8,
           },
           {
@@ -160,6 +189,8 @@ describe('BudgetBuilderUiFacade', () => {
             category: 'backend',
             name: 'Core backend',
             description: 'Core APIs and business rules.',
+            dependencyIds: [],
+            blockingNote: null,
             estimatedHours: 12,
           },
         ],
@@ -201,6 +232,8 @@ describe('BudgetBuilderUiFacade', () => {
           category: 'analysis_design',
           name: 'Discovery',
           description: 'Initial scoping and solution framing.',
+          dependencyIds: [],
+          blockingNote: null,
           estimatedHours: 8,
         },
         {
@@ -208,6 +241,8 @@ describe('BudgetBuilderUiFacade', () => {
           category: 'backend',
           name: 'Core backend',
           description: 'Core APIs and business rules.',
+          dependencyIds: [],
+          blockingNote: null,
           estimatedHours: 12,
         },
       ],

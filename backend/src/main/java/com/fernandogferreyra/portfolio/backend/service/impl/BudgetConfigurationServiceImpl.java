@@ -26,6 +26,7 @@ public class BudgetConfigurationServiceImpl implements BudgetConfigurationServic
             properties.getCurrency(),
             properties.getCreatedAt(),
             properties.getWorkingHoursPerWeek(),
+            properties.getRiskBufferHours(),
             new ConfigurationSnapshot.HourlyRateConfig(
                 properties.getHourlyRate().getBase(),
                 properties.getHourlyRate().getSupportHourlyRate(),
@@ -46,17 +47,31 @@ public class BudgetConfigurationServiceImpl implements BudgetConfigurationServic
                     module.getQuantity(),
                     module.getTier(),
                     module.getBaseHours(),
+                    module.getOptimisticHours(),
+                    module.getProbableHours(),
+                    module.getPessimisticHours(),
                     module.getComplexityWeight(),
                     module.getModuleMultiplier(),
                     List.copyOf(module.getDependencyIds()),
+                    module.getBlockingNote(),
                     module.isOptional(),
                     null
+                ))
+                .toList(),
+            properties.getCategoryRules().stream()
+                .map(rule -> new ConfigurationSnapshot.CategoryRule(
+                    rule.getId(),
+                    rule.getLabel(),
+                    rule.getBillingType(),
+                    rule.getRate(),
+                    rule.getCadence()
                 ))
                 .toList(),
             properties.getTechnologyCatalog().stream()
                 .map(technology -> new ConfigurationSnapshot.TechnologyRule(
                     technology.getId(),
                     technology.getLabel(),
+                    technology.getDescription(),
                     technology.getMultiplier(),
                     technology.getSurchargeRuleId(),
                     List.copyOf(technology.getSupportedProjectTypes())
@@ -86,9 +101,35 @@ public class BudgetConfigurationServiceImpl implements BudgetConfigurationServic
                     rule.isEnabledByDefault()
                 ))
                 .toList(),
+            properties.getMaintenanceRules().stream()
+                .map(rule -> new ConfigurationSnapshot.MaintenanceRule(
+                    rule.getId(),
+                    rule.getLabel(),
+                    rule.getCadence(),
+                    rule.getMonthlyAmount(),
+                    rule.isEnabledByDefault()
+                ))
+                .toList(),
+            properties.getUserScaleRules().stream()
+                .map(rule -> new ConfigurationSnapshot.UserScaleRule(
+                    rule.getId(),
+                    rule.getLabel(),
+                    rule.getMinUsers(),
+                    rule.getMaxUsers(),
+                    rule.getMode(),
+                    rule.getValue()
+                ))
+                .toList(),
+            new ConfigurationSnapshot.SaasPricingRules(
+                properties.getSaasPricing().getRecoveryMonths(),
+                properties.getSaasPricing().getMonthlyInfrastructureCost(),
+                properties.getSaasPricing().getMarginPercentage()
+            ),
             properties.getProjectTypeDefaults().stream()
                 .map(rule -> new ConfigurationSnapshot.ProjectTypeDefaultRule(
                     rule.getProjectType(),
+                    rule.getLabel(),
+                    rule.getDescription(),
                     List.copyOf(rule.getDefaultModuleIds()),
                     List.copyOf(rule.getDefaultSurchargeRuleIds()),
                     rule.getDefaultSupportRuleId(),

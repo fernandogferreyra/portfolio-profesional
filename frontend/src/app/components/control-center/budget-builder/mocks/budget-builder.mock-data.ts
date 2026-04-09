@@ -100,6 +100,7 @@ export const MOCK_CONFIGURATION_SNAPSHOT: ConfigurationSnapshot = {
     {
       id: 'default_web_stack',
       label: 'Default web stack',
+      description: 'Primary delivery stack without extra commercial surcharge.',
       multiplier: 1,
       surchargeRuleId: null,
       supportedProjectTypes: ['standard_project'],
@@ -107,6 +108,7 @@ export const MOCK_CONFIGURATION_SNAPSHOT: ConfigurationSnapshot = {
     {
       id: 'outside_primary_stack',
       label: 'Outside primary stack',
+      description: 'Technology outside the main stack catalog with commercial uplift.',
       multiplier: 1,
       surchargeRuleId: 'outside-stack-surcharge',
       supportedProjectTypes: ['standard_project'],
@@ -178,6 +180,8 @@ export const MOCK_CONFIGURATION_SNAPSHOT: ConfigurationSnapshot = {
   projectTypeDefaults: [
     {
       projectType: 'standard_project',
+      label: 'Standard project',
+      description: 'One-shot delivery with implementation cost and optional support.',
       defaultModuleIds: ['DISCOVERY', 'CORE_BACKEND'],
       defaultSurchargeRuleIds: ['management-contingency-fixed'],
       defaultSupportRuleId: 'support-basic',

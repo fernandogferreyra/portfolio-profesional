@@ -121,6 +121,7 @@ export class ControlCenterSiteActivityComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.siteActivityService.loadAdminEvents();
     this.loading.set(false);
   }
 

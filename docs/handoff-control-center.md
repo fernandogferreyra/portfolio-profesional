@@ -1,79 +1,171 @@
 # Handoff Control Center
 
-Estado al 2026-04-07.
+Estado al 2026-04-09.
 
 ## 1. Estado actual del proyecto
 
-- Frontend: Angular 20 SPA en la raiz del repo, con Router, Reactive Forms, signals, Karma/Jasmine y proxy de desarrollo para `/api`.
-- Backend: Spring Boot 3.3.5 en `backend/`, Java 17, Spring Web, Data JPA, Validation, Security, JWT, Flyway y Swagger.
-- Seguridad: login por `POST /api/auth/login`, JWT en frontend, interceptor `Authorization: Bearer`, guard para `/control-center` y rol admin `ROLE_FERCHUZ`.
-- CI: GitHub Actions en `.github/workflows/ci.yml` construye Angular en modo production y ejecuta tests backend con Maven sobre PostgreSQL.
-- DB: PostgreSQL en local dev y en CI/test. Flyway habilitado. En `dev` usa `baseline-on-migrate: true`.
-- Estado general: auth admin, Centro de Mando y primeros modulos privados funcionando. Build y tests OK al cierre de este handoff.
+- Frontend Angular 20 desacoplado en `frontend/`.
+- Backend Spring Boot 3.3.5 desacoplado en `backend/`.
+- Arquitectura backend consolidada en capas globales:
+  - `controller/`
+  - `controller/admin/`
+  - `service/`
+  - `service/impl/`
+  - `repository/`
+  - `domain/<feature>/`
+  - `dto/<feature>/`
+  - `mapper/<feature>/`
+- La carpeta `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/` ya no existe y no debe volver a existir.
+- El backend es la fuente de verdad de la logica critica; el frontend queda limitado a UI y consumo HTTP.
+- CI en GitHub Actions queda verde para frontend + backend.
+- Base de datos: PostgreSQL en local dev y en CI/test. Flyway activo.
+- Si una base local vieja rechaza `SECTION_VIEW` u otros eventos nuevos en `event_logs`, reiniciar con la migracion `V6__align_event_logs_event_type_check.sql` aplicada por Flyway.
 
-## 2. Que esta implementado hoy
+## 2. Arquitectura final adoptada
 
-- Login FERCHUZ: boton privado en navbar, modal de login, persistencia de JWT y estado autenticado.
-- Centro de Mando: ruta privada `/control-center`, visible solo con sesion admin.
-- Cotizador comercial: modulo separado para presupuesto/comercial. Trabaja con alcance, stack, soporte, mantenimiento y extras. Preview, guardado y historial locales en `localStorage`.
-- Estimador tecnico: modulo separado para horas, esfuerzo, complejidad, modulos y tiempo aproximado. Preview tecnico y guardado contra backend existente.
-- Metricas de Cotizacion: KPIs y distribuciones porcentuales basadas en el historial del cotizador comercial.
-- Actividad del Sitio: MVP de tracking local con visitas a secciones, interacciones en proyectos, apertura de contacto y uso de herramientas del Centro de Mando.
-- Placeholders restantes: Mensajeria y Presupuestos PDF.
+- Frontend:
+  - vive solo en `frontend/`
+  - mantiene consumo relativo de `/api`
+  - usa proxy de desarrollo hacia `http://localhost:8080`
+- Backend:
+  - vive solo en `backend/`
+  - no usa estructura vertical por feature
+  - no usa ni debe reintroducir `module/*`
+- Regla operativa:
+  - logica oficial en backend
+  - frontend solo vista, estado de pantalla y clientes HTTP
 
-## 3. Decisiones tecnicas importantes
+## 3. Implementado hoy
 
-- Proxy Angular: `proxy.conf.json` redirige `/api` a `http://localhost:8080` solo en desarrollo. Los servicios mantienen URLs relativas.
-- Bootstrap admin dev/test: `AdminBootstrapInitializer` garantiza usuario `ferchuz`, rol `ROLE_FERCHUZ`, `enabled=true` y rehashea password si hace falta.
-- Credenciales: en `dev` la password esperada es `ferchuz-dev-password`. En `test` es `ferchuz-test-password`.
-- Flyway + PostgreSQL: el perfil `dev` usa `baseline-on-migrate: true` para evitar el error de schema no vacio sin tabla de historial.
-- Cotizador preview/save: el backend actual guarda al hacer `POST /api/quote`, por eso el cotizador comercial hace preview local y persiste solo en frontend.
-- Estimador tecnico: quedo enfocado solo en tiempo y esfuerzo. La UI ya no muestra dinero, costo ni tarifa.
-- Analytics MVP: `Actividad del Sitio` usa `localStorage`, sin backend ni proveedor externo.
-- Theme selector layering: la causa real estaba en `app.component.scss`, donde `app-header` y `main` compartian el mismo stacking level. Se corrigio subiendo el host `app-header` por encima de `main`.
+- Login admin FERCHUZ operativo con JWT.
+- Ruta privada `/control-center` operativa.
+- Centro de Mando visible solo con sesion admin.
+- `Budget Builder` ya consume el backend oficial para configuracion activa, `preview`, `save`, historial y detalle.
+- `Budget Builder` ya expone tambien `surchargeRules` y `maintenancePlans` dentro de la configuracion activa para absorber gradualmente el cotizador historico.
+- `Budget Builder` ya expone presets comerciales rapidos oficiales (`essential_web`, `business_site`, `operations_tool`, `product_platform`) con `label` y `description` servidos por backend.
+- `Budget Builder` ya expone stacks comerciales oficiales (`cms_fast`, `angular_spring`, `angular_dotnet`, `full_custom`) y la UI privada ya funciona por pasos para evitar scroll largo.
+- La entrada del `Control Center` ahora usa accesos rapidos arriba y CTA directa en cada tarjeta operativa, alineada con la referencia de `ferchuz/capturas de front/panel privado.jpg`.
+- El estimador tecnico ya usa backend como source of truth para `preview` y `save`, con PERT, buffer de riesgo y dependencias visibles en UI.
+- `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
+- La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
+- El portfolio publico sigue operativo.
+- La vista publica de proyectos ya queda preparada para consumir `GET /api/projects` de forma incremental sin perder el detalle rico que todavia vive en frontend.
 
-## 4. Problemas detectados y deudas tecnicas
+## 4. Estado funcional relevante
 
-- El preview comercial duplica reglas en frontend y puede derivar del backend si la logica cambia.
-- Falta separar en backend un flujo real `preview` vs `save`.
-- El historial del cotizador comercial y la actividad del sitio viven en `localStorage`; no hay persistencia compartida ni server-side.
-- El estimador tecnico sigue guardando contra un endpoint/backend cuyo modelo interno incluye costo, aunque esa informacion ya no se muestra en la UI.
-- La build sigue mostrando warnings de budgets de bundle y estilos, aunque compila y tests pasan.
-- Falta una capa de configuracion editable para motores de cotizacion/estimacion.
+### Budget Builder
 
-## 5. Proximos pasos recomendados
+- Backend oficial activo para configuracion, `preview`, `save`, `list` y `detail`.
+- Endpoint admin protegido disponible.
+- Engine, configuracion, pricing y persistencia viven en backend.
+- El frontend ya no calcula el flujo oficial en runtime.
+- La logica comercial ya refleja la referencia funcional de `ferchuz/`:
+  - pricing por categoria
+  - cargos fijos
+  - soporte mensual
+  - modo SaaS con recupero, infraestructura, margen, escala de usuarios y horas extra
+  - base inicial para extras comerciales y mantenimiento heredados del cotizador historico
+  - presets comerciales rapidos ya modelados en configuracion activa
+  - stacks comerciales oficiales ya modelados en configuracion activa
+  - UX por pasos con extras y mantenimiento seleccionables
+- Pendiente:
+  - configuracion editable
+  - exportacion PDF
+  - ajustes de UX menores del dashboard privado
 
-- Validar el cotizador comercial contra Excel, videos o reglas reales de negocio antes de seguir expandiendolo.
-- Revisar si el cotizador refleja realmente la logica comercial deseada o si debe persistirse en backend.
-- Implementar Presupuestos PDF.
-- Implementar Mensajeria real.
-- Evolucionar `Actividad del Sitio` a una version persistida y mas robusta.
-- Externalizar la configuracion del motor comercial y/o tecnico para no tener reglas hardcodeadas.
+### Estimador tecnico
 
-## 6. Como levantar el proyecto
+- Preview y save alineados contra backend.
+- El frontend ya no conserva motor tecnico visible como fuente de verdad.
+- `QuoteService` consume backend para ambos flujos.
+- La formula ya refleja la referencia funcional relevada:
+  - PERT por bloque
+  - buffer fijo de riesgo
+  - timeline en semanas
+  - dependencias/notas de bloqueo visibles
+- Pendiente:
+  - evolucion funcional dentro del dashboard privado sin romper el contrato vigente
+  - limpieza posterior de residuos frontend no visibles del flujo historico
+
+## 5. Endpoints/backend ya disponibles
+
+- Publicos:
+  - `GET /api/health`
+  - `POST /api/auth/login`
+  - `GET /api/projects`
+  - `POST /api/contact`
+  - `POST /api/events`
+  - `POST /api/quote`
+- Admin:
+  - `GET /api/admin/events`
+  - `GET /api/admin/quotes`
+  - `GET /api/admin/quotes/{id}`
+  - `POST /api/admin/quotes/preview`
+  - `POST /api/admin/budget-builder/preview`
+  - `POST /api/admin/budget-builder`
+  - `GET /api/admin/budget-builder`
+- `GET /api/admin/budget-builder/{id}`
+- `GET /api/admin/budget-builder/configuration/active`
+
+## 5.1 Documentos de trabajo activos
+
+- `docs/budget-builder-parity.md` define la estrategia de consolidacion del cotizador historico dentro de `Budget Builder` y el criterio de retiro seguro.
+
+## 6. CI y validacion
+
+- CI actual:
+  - ejecuta frontend desde `frontend/`
+  - ejecuta backend desde `backend/`
+  - usa artifact `frontend/dist/portfolio-ferchuz/browser`
+  - activa backend con `SPRING_PROFILES_ACTIVE=dev`
+- Validacion local vigente:
+  - `backend\mvnw.cmd test` OK con Docker Desktop encendido y `JAVA_HOME=C:\Program Files\Java\jdk-17`
+  - `backend\mvnw.cmd package` OK
+  - `npm run build` en `frontend/` OK
+  - `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`)
+- Nota operativa local:
+  - backend test ahora queda preparado para Testcontainers; si Docker esta disponible ya no depende de `PORTFOLIO_TEST_DB_*`
+  - la base de integracion usa un unico PostgreSQL Testcontainer compartido para toda la suite y evita reciclar pools hacia puertos viejos entre clases
+- Nota operativa WSL/Linux:
+  - el repo ahora fija Node `20.19.0` en `.nvmrc`
+  - no reutilizar `frontend/node_modules` entre Windows y WSL por dependencias nativas como `esbuild`
+  - la nueva base de tests backend usa Testcontainers, por lo que Docker debe estar disponible en el entorno que ejecute `test`
+  - El contexto Spring ya no falla por duplicados legacy.
+
+## 7. Deuda funcional pendiente
+
+- Presupuestos PDF.
+- Mensajeria real.
+- Docker / deploy.
+- Configuracion editable del motor comercial y tecnico.
+- Limpieza posterior de residuos frontend no visibles del cotizador local historico.
+- Resolucion futura de warnings de budgets en Angular.
+- Integrar presets comerciales rapidos y stacks comerciales del cotizador historico dentro del backend oficial de `Budget Builder`.
+
+## 8. Como levantar el proyecto
 
 - Backend dev:
-  - Requisito: PostgreSQL local disponible.
-  - Comando en PowerShell:
+  - requisito: PostgreSQL local disponible
   - `cd backend`
   - `$env:SPRING_PROFILES_ACTIVE='dev'`
   - `.\mvnw.cmd spring-boot:run`
 - Frontend:
-  - Desde la raiz:
+  - `cd frontend`
   - `npm start`
-- Proxy:
-  - En desarrollo, Angular reenvia `/api/*` a `http://localhost:8080` usando `proxy.conf.json`.
 - Credenciales dev:
-  - Usuario: `ferchuz`
-  - Password: `ferchuz-dev-password`
-  - Si el backend arranca en perfil `dev`, el bootstrap vuelve a dejar ese usuario consistente.
+  - usuario: `ferchuz`
+  - password: `ferchuz-dev-password`
 
-## 7. Que no romper manana
+## 9. Que no romper
 
-- No romper el portfolio publico ni redisenar navbar/header.
-- No hardcodear URLs backend en servicios frontend; mantener `/api` relativo + proxy dev.
-- No cambiar el contrato de rol admin actual: `ROLE_FERCHUZ`.
-- No volver a mezclar Cotizador comercial con Estimador tecnico.
-- No perder el fix del theme selector: `app-header` debe seguir por encima de `main`.
-- No asumir persistencia backend para `Actividad del Sitio` ni para el historial comercial: hoy son locales.
-- Antes de cerrar nuevos cambios, volver a correr `npm run build` y `npm test -- --watch=false`.
+- No reintroducir `module/*`.
+- No mover logica critica al frontend.
+- No romper el contrato actual de admin `ROLE_FERCHUZ`.
+- No hardcodear URLs absolutas al backend en frontend; mantener `/api`.
+- No mezclar nuevamente `Budget Builder`, cotizador comercial y estimador tecnico.
+- No tocar el portfolio publico si el cambio no lo requiere.
+
+## 10. Proximo paso recomendado
+
+- Continuar en `feature/dashboard-private` con los pendientes no funcionales de esta fase: PDF, mensajeria real y docker/deploy, manteniendo backend como source of truth y sin reintroducir estructuras hibridas.
+- Para iteraciones siguientes trabajar en tres carriles claros: frontend, backend y testing, dejando handoff corto al cierre de cada ola.

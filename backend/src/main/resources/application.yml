@@ -52,15 +52,16 @@ app:
     allowed-origins: ${PORTFOLIO_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
   quote:
     hourly-rate: 35.00
+    risk-buffer-hours: 1.00
     saas-module-multiplier: 1.15
     complexity-multipliers:
-      LOW: 1.00
-      MEDIUM: 1.25
-      HIGH: 1.60
+      LOW: 0.90
+      MEDIUM: 1.00
+      HIGH: 1.20
     project-types:
       LANDING_PAGE:
         label: Landing page
-        multiplier: 0.80
+        multiplier: 0.75
         saas: false
       CORPORATE_WEBSITE:
         label: Corporate website
@@ -68,56 +69,107 @@ app:
         saas: false
       INTERNAL_TOOL:
         label: Internal tool
-        multiplier: 1.20
+        multiplier: 1.10
         saas: false
       ECOMMERCE:
         label: Ecommerce platform
-        multiplier: 1.45
+        multiplier: 1.30
         saas: false
       SAAS_PLATFORM:
         label: SaaS platform
-        multiplier: 1.65
+        multiplier: 1.40
         saas: true
     modules:
       DISCOVERY:
         label: Discovery and planning
-        base-hours: 8.00
+        base-hours: 4.00
+        optimistic-hours: 3.00
+        probable-hours: 4.00
+        pessimistic-hours: 6.00
+        dependency-ids: []
+        dependency-note:
         saas-eligible: false
       UI_FOUNDATION:
         label: UI foundation
-        base-hours: 12.00
+        base-hours: 6.00
+        optimistic-hours: 4.00
+        probable-hours: 6.00
+        pessimistic-hours: 8.00
+        dependency-ids:
+          - DISCOVERY
+        dependency-note: UI foundation starts after discovery closes the base scope.
         saas-eligible: false
       AUTHENTICATION:
         label: Authentication and roles
-        base-hours: 16.00
+        base-hours: 5.00
+        optimistic-hours: 3.00
+        probable-hours: 5.00
+        pessimistic-hours: 8.00
+        dependency-ids:
+          - DISCOVERY
+          - CORE_BACKEND
+        dependency-note: Authentication depends on the backend contract and user model.
         saas-eligible: true
       CORE_BACKEND:
         label: Core backend API
-        base-hours: 22.00
+        base-hours: 8.00
+        optimistic-hours: 6.00
+        probable-hours: 8.00
+        pessimistic-hours: 12.00
+        dependency-ids:
+          - DISCOVERY
+        dependency-note: Core backend starts after the initial scope and data contracts are defined.
         saas-eligible: true
       DASHBOARD:
         label: Admin or client dashboard
-        base-hours: 20.00
+        base-hours: 7.00
+        optimistic-hours: 5.00
+        probable-hours: 7.00
+        pessimistic-hours: 10.00
+        dependency-ids:
+          - CORE_BACKEND
+        dependency-note: Dashboard delivery depends on core backend endpoints being ready.
         saas-eligible: true
       PAYMENTS:
         label: Payments and subscriptions
-        base-hours: 18.00
+        base-hours: 6.00
+        optimistic-hours: 4.00
+        probable-hours: 6.00
+        pessimistic-hours: 9.00
+        dependency-ids:
+          - CORE_BACKEND
+          - AUTHENTICATION
+        dependency-note: Payments depend on authentication and backend orchestration.
         saas-eligible: true
       ANALYTICS:
         label: Analytics and tracking
-        base-hours: 10.00
+        base-hours: 4.00
+        optimistic-hours: 2.00
+        probable-hours: 4.00
+        pessimistic-hours: 6.00
+        dependency-ids:
+          - CORE_BACKEND
+        dependency-note: Analytics depends on the main flows emitting events.
         saas-eligible: true
       DEVOPS:
         label: Deployment and environments
-        base-hours: 14.00
+        base-hours: 4.00
+        optimistic-hours: 3.00
+        probable-hours: 4.00
+        pessimistic-hours: 7.00
+        dependency-ids:
+          - CORE_BACKEND
+          - DASHBOARD
+        dependency-note: Deploy depends on stable application flows and environment readiness.
         saas-eligible: true
   budget-builder:
     configuration-id: budget-builder-seed-v1
-    version: 2026-04-07-mvp
+    version: 2026-04-08-reference
     source: seed
     currency: USD
-    created-at: 2026-04-07T00:00:00Z
+    created-at: 2026-04-08T00:00:00Z
     working-hours-per-week: 32
+    risk-buffer-hours: 1.00
     hourly-rate:
       base: 18.00
       support-hourly-rate: 8.00
@@ -126,80 +178,181 @@ app:
     minimum-budget: 0.00
     rounding-rules:
       technical: ROUND_NEAREST_HOUR
-      commercial: ROUND_2_DECIMALS
+      commercial: ROUND_UP_INTEGER
     module-catalog:
-      - id: DISCOVERY
+      - id: ANALYSIS_DISCOVERY
         category: analysis_design
-        name: Discovery
-        description: Discovery description
+        name: Analysis and design
+        description: Discovery, scope validation, and solution framing before implementation.
         quantity: 1
         tier: STANDARD
-        base-hours: 8.00
+        base-hours: 15.00
+        optimistic-hours: 12.00
+        probable-hours: 15.00
+        pessimistic-hours: 18.00
         complexity-weight: 1.00
         module-multiplier: 1.00
         dependency-ids: []
+        blocking-note:
         optional: false
-      - id: CORE_BACKEND
+      - id: BACKEND_DEVELOPMENT
         category: backend
-        name: Core backend
-        description: Core backend description
+        name: Backend development
+        description: Data model, APIs, and core business rules.
+        quantity: 1
+        tier: STANDARD
+        base-hours: 18.00
+        optimistic-hours: 15.00
+        probable-hours: 18.00
+        pessimistic-hours: 21.00
+        complexity-weight: 1.00
+        module-multiplier: 1.00
+        dependency-ids:
+          - ANALYSIS_DISCOVERY
+        blocking-note: Depends on finishing the analysis and design block.
+        optional: false
+      - id: FRONTEND_DELIVERY
+        category: frontend
+        name: Frontend delivery
+        description: UI implementation, API integration, states, and validations.
         quantity: 1
         tier: STANDARD
         base-hours: 12.00
+        optimistic-hours: 10.00
+        probable-hours: 12.00
+        pessimistic-hours: 14.00
         complexity-weight: 1.00
         module-multiplier: 1.00
         dependency-ids:
-          - DISCOVERY
-        optional: false
-      - id: FRONTEND_APP
-        category: frontend
-        name: Frontend app
-        description: Frontend app description
+          - ANALYSIS_DISCOVERY
+          - BACKEND_DEVELOPMENT
+        blocking-note: API integration depends on the backend contract being available.
+        optional: true
+      - id: QA_VALIDATION
+        category: testing
+        name: Testing and validation
+        description: Functional validation, test cases, and bug-fix verification.
         quantity: 1
         tier: STANDARD
-        base-hours: 10.00
+        base-hours: 5.00
+        optimistic-hours: 4.00
+        probable-hours: 5.00
+        pessimistic-hours: 6.00
         complexity-weight: 1.00
         module-multiplier: 1.00
         dependency-ids:
-          - DISCOVERY
+          - BACKEND_DEVELOPMENT
+          - FRONTEND_DELIVERY
+        blocking-note: Depends on the main implementation blocks being ready.
         optional: true
-      - id: DATABASE_LAYER
-        category: backend
-        name: Database layer
-        description: Database layer description
+      - id: DEPLOY_RELEASE
+        category: deploy
+        name: Deploy and release
+        description: Environment setup, deployment, and release hardening.
         quantity: 1
         tier: STANDARD
-        base-hours: 8.00
+        base-hours: 9.00
+        optimistic-hours: 7.00
+        probable-hours: 9.00
+        pessimistic-hours: 11.00
         complexity-weight: 1.00
         module-multiplier: 1.00
         dependency-ids:
-          - CORE_BACKEND
+          - QA_VALIDATION
+        blocking-note: Deployment starts after validation closes the functional scope.
         optional: true
-      - id: ADMIN_PANEL
-        category: frontend
-        name: Admin panel
-        description: Admin panel description
-        quantity: 1
-        tier: STANDARD
-        base-hours: 10.00
-        complexity-weight: 1.10
-        module-multiplier: 1.00
-        dependency-ids:
-          - CORE_BACKEND
-        optional: true
+    category-rules:
+      - id: analysis_design
+        label: Analysis and design
+        billing-type: TIME_BASED
+        rate: 15.00
+        cadence: ONE_TIME
+      - id: backend
+        label: Backend development
+        billing-type: TIME_BASED
+        rate: 20.00
+        cadence: ONE_TIME
+      - id: frontend
+        label: Frontend development
+        billing-type: TIME_BASED
+        rate: 18.00
+        cadence: ONE_TIME
+      - id: testing
+        label: Testing
+        billing-type: TIME_BASED
+        rate: 15.00
+        cadence: ONE_TIME
+      - id: deploy
+        label: Deploy and configuration
+        billing-type: TIME_BASED
+        rate: 18.00
+        cadence: ONE_TIME
     technology-catalog:
       - id: default_web_stack
         label: Default web stack
+        description: Primary delivery stack without extra commercial surcharge.
         multiplier: 1.00
         supported-project-types:
+          - essential_web
+          - business_site
+          - operations_tool
+          - product_platform
           - standard_project
+          - saas_product
       - id: outside_primary_stack
         label: Outside primary stack
+        description: Technology outside the main stack catalog with commercial uplift.
         multiplier: 1.00
         surcharge-rule-id: outside-stack-surcharge
         supported-project-types:
+          - essential_web
+          - business_site
+          - operations_tool
+          - product_platform
           - standard_project
+          - saas_product
+      - id: cms_fast
+        label: CMS agil
+        description: Implementacion rapida para salir antes con foco comercial.
+        multiplier: 0.82
+        supported-project-types:
+          - essential_web
+          - business_site
+      - id: angular_spring
+        label: Angular + Spring Boot
+        description: Stack fuerte para experiencia moderna y backend robusto.
+        multiplier: 1.18
+        supported-project-types:
+          - business_site
+          - operations_tool
+          - product_platform
+          - standard_project
+          - saas_product
+      - id: angular_dotnet
+        label: Angular + .NET
+        description: Opcion enterprise con buena integracion corporativa.
+        multiplier: 1.14
+        supported-project-types:
+          - operations_tool
+          - product_platform
+      - id: full_custom
+        label: Custom fullstack
+        description: Construccion flexible para alcance especial, producto o negocio propio.
+        multiplier: 1.32
+        supported-project-types:
+          - operations_tool
+          - product_platform
+          - saas_product
     surcharge-rules:
+      - id: hosting-licenses-fixed
+        code: hosting_licenses_fixed
+        label: Hosting and licenses
+        reason: Fixed infrastructure and licensing cost for standard project delivery.
+        mode: FIXED
+        value: 250.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: true
       - id: management-contingency-fixed
         code: management_contingency_fixed
         label: Management contingency
@@ -218,6 +371,51 @@ app:
         applies-to: ONE_TIME
         stage: COMMERCIAL
         enabled-by-default: false
+      - id: seo-pack
+        code: seo_pack
+        label: SEO base
+        reason: Baseline SEO structure, metadata, and indexing preparation.
+        mode: FIXED
+        value: 210.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: false
+      - id: copy-tuning
+        code: copy_tuning
+        label: Commercial copy tuning
+        reason: Commercial messaging refinement for clearer conversion-oriented copy.
+        mode: FIXED
+        value: 180.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: false
+      - id: deploy-assist
+        code: deploy_assist
+        label: Assisted deployment
+        reason: Commercial packaging for launch support, hosting setup, and assisted release.
+        mode: FIXED
+        value: 160.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: false
+      - id: training
+        code: training
+        label: Training
+        reason: Guided handoff and operational training for the client team.
+        mode: FIXED
+        value: 140.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: false
+      - id: priority-delivery
+        code: priority_delivery
+        label: Priority delivery
+        reason: Commercial uplift for accelerated delivery and reserved execution window.
+        mode: FIXED
+        value: 280.00
+        applies-to: ONE_TIME
+        stage: COMMERCIAL
+        enabled-by-default: false
     support-rules:
       - id: support-basic
         label: Basic support
@@ -226,23 +424,135 @@ app:
         hourly-rate: 8.00
         monthly-amount: 24.00
         enabled-by-default: true
+    maintenance-rules:
+      - id: maintenance-standard
+        label: Standard maintenance
+        cadence: MONTHLY
+        monthly-amount: 90.00
+        enabled-by-default: false
+    user-scale-rules:
+      - id: basic
+        label: Basic
+        min-users: 1
+        max-users: 10
+        mode: FIXED
+        value: 10.00
+      - id: intermediate
+        label: Intermediate
+        min-users: 11
+        max-users: 50
+        mode: FIXED
+        value: 25.00
+      - id: pro
+        label: Pro
+        min-users: 51
+        max-users: 150
+        mode: FIXED
+        value: 50.00
+      - id: enterprise
+        label: Enterprise
+        min-users: 151
+        max-users:
+        mode: FIXED
+        value: 150.00
+    saas-pricing:
+      recovery-months: 24
+      monthly-infrastructure-cost: 80.00
+      margin-percentage: 0.40
     project-type-defaults:
-      - project-type: standard_project
+      - project-type: essential_web
+        label: Presencia esencial
+        description: Landing o sitio compacto para mostrar propuesta y captar oportunidades.
         default-module-ids:
-          - DISCOVERY
-          - CORE_BACKEND
+          - ANALYSIS_DISCOVERY
+          - FRONTEND_DELIVERY
+          - QA_VALIDATION
+          - DEPLOY_RELEASE
+        default-surcharge-rule-ids:
+          - hosting-licenses-fixed
+        default-support-rule-id: support-basic
+      - project-type: business_site
+        label: Sitio comercial
+        description: Web corporativa con secciones, mensajes de venta y estructura lista para crecer.
+        default-module-ids:
+          - ANALYSIS_DISCOVERY
+          - BACKEND_DEVELOPMENT
+          - FRONTEND_DELIVERY
+          - QA_VALIDATION
+          - DEPLOY_RELEASE
+        default-surcharge-rule-ids:
+          - hosting-licenses-fixed
+          - management-contingency-fixed
+        default-support-rule-id: support-basic
+      - project-type: operations_tool
+        label: Sistema operativo
+        description: Panel interno o flujo comercial con usuarios, procesos y soporte operativo.
+        default-module-ids:
+          - ANALYSIS_DISCOVERY
+          - BACKEND_DEVELOPMENT
+          - FRONTEND_DELIVERY
+          - QA_VALIDATION
+          - DEPLOY_RELEASE
+        default-surcharge-rule-ids:
+          - management-contingency-fixed
+        default-support-rule-id: support-basic
+        default-maintenance-rule-id: maintenance-standard
+      - project-type: product_platform
+        label: Plataforma producto
+        description: Producto digital mas ambicioso con roadmap, cuentas y arquitectura mas exigente.
+        default-module-ids:
+          - ANALYSIS_DISCOVERY
+          - BACKEND_DEVELOPMENT
+          - FRONTEND_DELIVERY
+          - QA_VALIDATION
+          - DEPLOY_RELEASE
+        default-surcharge-rule-ids:
+          - management-contingency-fixed
+        default-support-rule-id: support-basic
+        default-maintenance-rule-id: maintenance-standard
+      - project-type: standard_project
+        label: Proyecto estandar
+        description: Entrega one-shot con costo de implementacion y soporte opcional.
+        default-module-ids:
+          - ANALYSIS_DISCOVERY
+          - BACKEND_DEVELOPMENT
+          - FRONTEND_DELIVERY
+          - QA_VALIDATION
+          - DEPLOY_RELEASE
+        default-surcharge-rule-ids:
+          - hosting-licenses-fixed
+          - management-contingency-fixed
+        default-support-rule-id: support-basic
+      - project-type: saas_product
+        label: Producto SaaS
+        description: Producto con recupero mensual, infraestructura y tier por usuarios.
+        default-module-ids:
+          - ANALYSIS_DISCOVERY
+          - BACKEND_DEVELOPMENT
+          - FRONTEND_DELIVERY
+          - QA_VALIDATION
+          - DEPLOY_RELEASE
         default-surcharge-rule-ids:
           - management-contingency-fixed
         default-support-rule-id: support-basic
     project-multipliers:
+      essential_web: 0.82
+      business_site: 1.00
+      operations_tool: 1.18
+      product_platform: 1.32
       standard_project: 1.00
+      saas_product: 1.00
     stack-multipliers:
       default_web_stack: 1.00
       outside_primary_stack: 1.00
+      cms_fast: 0.82
+      angular_spring: 1.18
+      angular_dotnet: 1.14
+      full_custom: 1.32
     complexity-multipliers:
-      LOW: 1.00
-      MEDIUM: 1.25
-      HIGH: 1.60
+      LOW: 0.90
+      MEDIUM: 1.00
+      HIGH: 1.20
   security:
     jwt:
       secret: ${PORTFOLIO_JWT_SECRET}
