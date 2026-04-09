@@ -52,16 +52,25 @@ export interface QuoteItem {
   name: string;
   hours: number;
   cost: number;
+  optimisticHours: number;
+  probableHours: number;
+  pessimisticHours: number;
+  dependencyIds: string[];
+  dependencyNote: string | null;
 }
 
 export interface QuoteResult {
   projectType: string;
   projectLabel: string;
   complexity: QuoteComplexity;
+  baseHours: number;
+  riskBufferHours: number;
   totalHours: number;
+  totalWeeks: number;
   totalCost: number;
   hourlyRate: number;
   items: QuoteItem[];
+  assumptions: string[];
 }
 
 export interface QuoteAdminSummary {

@@ -47,6 +47,7 @@ Estado al 2026-04-09.
 - La entrada del `Control Center` ahora usa accesos rapidos arriba y CTA directa en cada tarjeta operativa, alineada con la referencia de `ferchuz/capturas de front/panel privado.jpg`.
 - La copia funcional ya fue absorbida en backend para `Budget Builder` persistido y `quote` tecnico rico; la rama actual mantiene el repo limpio sin volver a integrar `ferchuz/`.
 - El estimador tecnico ya usa backend como source of truth para `preview` y `save`, con PERT, buffer de riesgo y dependencias visibles en UI.
+- El frontend del estimador ya volvio a consumir el contrato rico completo de `quote` (`baseHours`, `riskBufferHours`, `totalWeeks`, `assumptions`, PERT por item y dependencias) sin logica local paralela.
 - `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
 - La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
 - El portfolio publico sigue operativo.
