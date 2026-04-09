@@ -68,7 +68,8 @@ public class QuoteServiceImpl implements QuoteService {
             }
 
             QuoteEngineProperties.ModuleRule moduleRule = resolveModule(moduleKey);
-            BigDecimal moduleHours = moduleRule.getBaseHours()
+            BigDecimal moduleBaseHours = resolveModuleBaseHours(moduleRule);
+            BigDecimal moduleHours = moduleBaseHours
                 .multiply(projectTypeRule.getMultiplier())
                 .multiply(complexityMultiplier);
 
@@ -79,26 +80,61 @@ public class QuoteServiceImpl implements QuoteService {
             moduleHours = scaleMoney(moduleHours);
             BigDecimal moduleCost = scaleMoney(moduleHours.multiply(hourlyRate));
 
-            items.add(new QuoteItem(moduleRule.getLabel(), moduleHours, moduleCost));
+            items.add(new QuoteItem(
+                moduleRule.getLabel(),
+                moduleHours,
+                moduleCost,
+                scaleMoney(moduleRule.getOptimisticHours()),
+                scaleMoney(moduleRule.getProbableHours()),
+                scaleMoney(moduleRule.getPessimisticHours()),
+                List.copyOf(moduleRule.getDependencyIds()),
+                moduleRule.getDependencyNote()
+            ));
         }
 
-        BigDecimal totalHours = items.stream()
+        BigDecimal baseHours = items.stream()
             .map(QuoteItem::hours)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalCost = items.stream()
-            .map(QuoteItem::cost)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal riskBufferHours = items.isEmpty()
+            ? BigDecimal.ZERO
+            : scaleMoney(quoteEngineProperties.getRiskBufferHours());
+        BigDecimal totalHours = scaleMoney(baseHours.add(riskBufferHours));
+        BigDecimal totalWeeks = scaleMoney(totalHours.divide(BigDecimal.valueOf(32), 2, RoundingMode.HALF_UP));
+        BigDecimal totalCost = scaleMoney(totalHours.multiply(hourlyRate));
 
         QuoteResult quoteResult = new QuoteResult(
             normalizeKey(request.projectType()),
             projectTypeRule.getLabel(),
             request.complexity(),
+            scaleMoney(baseHours),
+            riskBufferHours,
             scaleMoney(totalHours),
+            totalWeeks,
             scaleMoney(totalCost),
             hourlyRate,
-            items);
+            items,
+            List.of(
+                "PERT is applied from optimistic, probable, and pessimistic estimates when available.",
+                "A fixed risk buffer is added once per estimate to reflect delivery uncertainty."
+            ));
 
         return quoteResult;
+    }
+
+    private BigDecimal resolveModuleBaseHours(QuoteEngineProperties.ModuleRule moduleRule) {
+        BigDecimal optimistic = moduleRule.getOptimisticHours();
+        BigDecimal probable = moduleRule.getProbableHours();
+        BigDecimal pessimistic = moduleRule.getPessimisticHours();
+
+        if (optimistic != null && probable != null && pessimistic != null
+            && optimistic.signum() > 0 && probable.signum() > 0 && pessimistic.signum() > 0) {
+            return optimistic
+                .add(probable.multiply(BigDecimal.valueOf(4)))
+                .add(pessimistic)
+                .divide(BigDecimal.valueOf(6), 4, RoundingMode.HALF_UP);
+        }
+
+        return moduleRule.getBaseHours();
     }
 
     @Override

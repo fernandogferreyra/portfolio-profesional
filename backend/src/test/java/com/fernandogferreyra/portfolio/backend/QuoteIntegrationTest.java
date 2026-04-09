@@ -53,13 +53,17 @@ class QuoteIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.projectType").value("SAAS_PLATFORM"))
             .andExpect(jsonPath("$.data.projectLabel").value("SaaS platform"))
             .andExpect(jsonPath("$.data.complexity").value("HIGH"))
+            .andExpect(jsonPath("$.data.baseHours").value(46.93))
+            .andExpect(jsonPath("$.data.riskBufferHours").value(1.00))
             .andExpect(jsonPath("$.data.hourlyRate").value(35.00))
-            .andExpect(jsonPath("$.data.totalHours").value(197.21))
-            .andExpect(jsonPath("$.data.totalCost").value(6902.35))
+            .andExpect(jsonPath("$.data.totalHours").value(47.93))
+            .andExpect(jsonPath("$.data.totalWeeks").value(1.50))
+            .andExpect(jsonPath("$.data.totalCost").value(1677.55))
             .andExpect(jsonPath("$.data.items.length()").value(4))
             .andExpect(jsonPath("$.data.items[0].name").value("Discovery and planning"))
-            .andExpect(jsonPath("$.data.items[0].hours").value(21.12))
-            .andExpect(jsonPath("$.data.items[0].cost").value(739.20));
+            .andExpect(jsonPath("$.data.items[0].hours").value(7.00))
+            .andExpect(jsonPath("$.data.items[0].cost").value(245.00))
+            .andExpect(jsonPath("$.data.items[0].dependencyIds.length()").value(0));
 
         org.junit.jupiter.api.Assertions.assertEquals(1, quoteRepository.count());
         var persistedQuote = quoteRepository.findAll().get(0);
@@ -137,6 +141,7 @@ class QuoteIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.id").value(quoteId))
             .andExpect(jsonPath("$.data.projectType").value("CORPORATE_WEBSITE"))
             .andExpect(jsonPath("$.data.requestJson.projectType").value("corporate_website"))
-            .andExpect(jsonPath("$.data.resultJson.projectType").value("CORPORATE_WEBSITE"));
+            .andExpect(jsonPath("$.data.resultJson.projectType").value("CORPORATE_WEBSITE"))
+            .andExpect(jsonPath("$.data.resultJson.riskBufferHours").value(1.00));
     }
 }

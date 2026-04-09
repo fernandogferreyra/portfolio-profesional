@@ -25,6 +25,10 @@ public class QuoteEngineProperties {
     private BigDecimal hourlyRate;
 
     @NotNull
+    @DecimalMin(value = "0.00")
+    private BigDecimal riskBufferHours = BigDecimal.ZERO;
+
+    @NotNull
     @DecimalMin(value = "1.00")
     private BigDecimal saasModuleMultiplier = BigDecimal.ONE;
 
@@ -61,6 +65,23 @@ public class QuoteEngineProperties {
         @NotNull
         @DecimalMin(value = "0.10")
         private BigDecimal baseHours;
+
+        @NotNull
+        @DecimalMin(value = "0.00")
+        private BigDecimal optimisticHours = BigDecimal.ZERO;
+
+        @NotNull
+        @DecimalMin(value = "0.00")
+        private BigDecimal probableHours = BigDecimal.ZERO;
+
+        @NotNull
+        @DecimalMin(value = "0.00")
+        private BigDecimal pessimisticHours = BigDecimal.ZERO;
+
+        @NotNull
+        private java.util.List<String> dependencyIds = java.util.List.of();
+
+        private String dependencyNote;
 
         private boolean saasEligible;
     }

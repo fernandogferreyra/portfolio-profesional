@@ -58,6 +58,9 @@ public record BudgetPreviewRequest(
 
     String userScaleTierId,
 
+    @Min(value = 0, message = "Extra monthly hours must be greater than or equal to zero")
+    Integer extraMonthlyHours,
+
     List<String> notes
 ) {
 }

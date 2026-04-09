@@ -7,6 +7,8 @@ public record BudgetModuleResponse(
     String category,
     String name,
     String description,
+    java.util.List<String> dependencyIds,
+    String blockingNote,
     BigDecimal estimatedHours
 ) {
 }

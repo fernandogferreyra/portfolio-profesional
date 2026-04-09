@@ -26,6 +26,7 @@ public record BudgetProject(
     ManualDiscount manualDiscount,
     Integer activeClients,
     String userScaleTierId,
+    Integer extraMonthlyHours,
     List<String> notes
 ) {
     public record ManualDiscount(

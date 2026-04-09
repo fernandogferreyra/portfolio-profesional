@@ -3,6 +3,7 @@ package com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.engine;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BillingCadence;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BudgetPricingMode;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.PricingAdjustmentMode;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.BudgetProject;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.ConfigurationSnapshot;
@@ -30,33 +31,14 @@ class BudgetBuilderPipelineTest {
     }
 
     @Test
-    void calculatesHoursAndTotalsForMultipleModules() {
-        BudgetProject project = new BudgetProject(
-            baseProject.id(),
-            baseProject.name(),
-            baseProject.projectType(),
-            baseProject.pricingMode(),
-            baseProject.desiredStackId(),
-            baseProject.complexity(),
-            baseProject.urgency(),
-            List.of("DISCOVERY", "CORE_BACKEND", "ADMIN_PANEL"),
-            baseProject.moduleSelectionMode(),
-            List.of("management-contingency-fixed"),
-            baseProject.supportEnabled(),
-            baseProject.supportPlanId(),
-            baseProject.maintenancePlanId(),
-            baseProject.manualDiscount(),
-            baseProject.activeClients(),
-            baseProject.userScaleTierId(),
-            baseProject.notes()
-        );
+    void calculatesReferenceWorkbookTotalsForProjectMode() {
+        var result = pipeline.run(baseProject, configuration);
 
-        var result = pipeline.run(project, configuration);
-
-        assertThat(result.modules()).hasSize(3);
-        assertThat(result.technicalEstimate().totalHours()).isEqualByComparingTo("39.00");
-        assertThat(result.commercialBudget().baseAmount()).isEqualByComparingTo("702.00");
-        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("1002.00");
+        assertThat(result.modules()).hasSize(5);
+        assertThat(result.technicalEstimate().riskBufferHours()).isEqualByComparingTo("1.00");
+        assertThat(result.technicalEstimate().totalHours()).isEqualByComparingTo("60.00");
+        assertThat(result.commercialBudget().baseAmount()).isEqualByComparingTo("1038.00");
+        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("1588.00");
         assertThat(result.commercialBudget().finalMonthlyTotal()).isEqualByComparingTo("24.00");
     }
 
@@ -79,6 +61,7 @@ class BudgetBuilderPipelineTest {
             baseProject.manualDiscount(),
             baseProject.activeClients(),
             baseProject.userScaleTierId(),
+            baseProject.extraMonthlyHours(),
             baseProject.notes()
         );
 
@@ -113,6 +96,7 @@ class BudgetBuilderPipelineTest {
             ),
             baseProject.activeClients(),
             baseProject.userScaleTierId(),
+            baseProject.extraMonthlyHours(),
             baseProject.notes()
         );
 
@@ -120,7 +104,7 @@ class BudgetBuilderPipelineTest {
 
         assertThat(result.commercialBudget().discountItems()).hasSize(1);
         assertThat(result.commercialBudget().discountItems().get(0).amount()).isEqualByComparingTo("100.00");
-        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("650.00");
+        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("1488.00");
     }
 
     @Test
@@ -142,6 +126,7 @@ class BudgetBuilderPipelineTest {
             baseProject.manualDiscount(),
             baseProject.activeClients(),
             baseProject.userScaleTierId(),
+            baseProject.extraMonthlyHours(),
             baseProject.notes()
         );
 
@@ -149,68 +134,36 @@ class BudgetBuilderPipelineTest {
 
         assertThat(result.commercialBudget().surchargeItems()).hasSize(1);
         assertThat(result.commercialBudget().surchargeItems().get(0).code()).isEqualTo("outside_stack_surcharge");
-        assertThat(result.commercialBudget().surchargeItems().get(0).amount()).isEqualByComparingTo("45.00");
-        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("495.00");
+        assertThat(result.commercialBudget().surchargeItems().get(0).amount()).isEqualByComparingTo("103.80");
+        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("1142.00");
     }
 
     @Test
-    void handlesEmptyInputsAndZeroValuesWithoutNegativeTotals() {
-        ConfigurationSnapshot zeroRateConfiguration = new ConfigurationSnapshot(
-            configuration.id(),
-            configuration.version(),
-            configuration.source(),
-            configuration.currency(),
-            configuration.createdAt(),
-            configuration.workingHoursPerWeek(),
-            new ConfigurationSnapshot.HourlyRateConfig(
-                BigDecimal.ZERO,
-                configuration.hourlyRate().supportHourlyRate(),
-                configuration.hourlyRate().extraHourRate()
-            ),
-            configuration.commercialMultiplier(),
-            BigDecimal.ZERO,
-            configuration.roundingRules(),
-            configuration.moduleCatalog(),
-            configuration.technologyCatalog(),
-            configuration.surchargeRules(),
-            configuration.supportRules(),
-            List.of(),
-            configuration.projectMultipliers(),
-            configuration.stackMultipliers(),
-            configuration.complexityMultipliers()
-        );
+    void calculatesSaasMonthlyPricingFromRecoveryInfrastructureAndTier() {
         BudgetProject project = new BudgetProject(
             baseProject.id(),
             baseProject.name(),
-            "unknown_project",
-            baseProject.pricingMode(),
+            "saas_product",
+            BudgetPricingMode.SAAS,
             baseProject.desiredStackId(),
             baseProject.complexity(),
             baseProject.urgency(),
-            List.of(),
+            baseProject.selectedModuleIds(),
             baseProject.moduleSelectionMode(),
-            List.of(),
-            false,
+            List.of("management-contingency-fixed"),
+            true,
+            "support-basic",
             null,
             null,
-            new BudgetProject.ManualDiscount(
-                "Empty discount",
-                "Zero-value edge case",
-                PricingAdjustmentMode.PERCENTAGE,
-                BigDecimal.ZERO,
-                BillingCadence.ONE_TIME
-            ),
-            baseProject.activeClients(),
-            baseProject.userScaleTierId(),
-            baseProject.notes()
+            10,
+            "basic",
+            0,
+            List.of()
         );
 
-        var result = pipeline.run(project, zeroRateConfiguration);
+        var result = pipeline.run(project, configuration);
 
-        assertThat(result.modules()).isEmpty();
-        assertThat(result.technicalEstimate().totalHours()).isEqualByComparingTo("0.00");
-        assertThat(result.commercialBudget().baseAmount()).isEqualByComparingTo("0.00");
-        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("0.00");
-        assertThat(result.commercialBudget().finalMonthlyTotal()).isEqualByComparingTo("0.00");
+        assertThat(result.commercialBudget().finalOneTimeTotal()).isEqualByComparingTo("1338.00");
+        assertThat(result.commercialBudget().finalMonthlyTotal()).isEqualByComparingTo("63.00");
     }
 }

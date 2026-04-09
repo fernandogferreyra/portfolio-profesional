@@ -45,6 +45,7 @@ public class BudgetBuilderRequestMapper {
             toManualDiscount(request.manualDiscount()),
             request.activeClients(),
             request.userScaleTierId(),
+            request.extraMonthlyHours(),
             request.notes() == null
                 ? List.of()
                 : request.notes().stream()

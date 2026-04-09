@@ -11,9 +11,13 @@ public record EstimateModule(
     int quantity,
     String tier,
     BigDecimal baseHours,
+    BigDecimal optimisticHours,
+    BigDecimal probableHours,
+    BigDecimal pessimisticHours,
     BigDecimal complexityWeight,
     BigDecimal moduleMultiplier,
     List<String> dependencyIds,
+    String blockingNote,
     boolean optional,
     BigDecimal estimatedHours
 ) {

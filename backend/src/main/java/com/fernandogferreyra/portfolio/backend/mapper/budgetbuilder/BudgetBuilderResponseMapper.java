@@ -19,6 +19,7 @@ public class BudgetBuilderResponseMapper {
         return new BudgetPreviewResponse(
             configurationSnapshotId,
             previewHash,
+            result.commercialBudget().currency(),
             result.technicalEstimate().totalHours(),
             result.technicalEstimate().totalWeeks(),
             result.commercialBudget().baseAmount(),
@@ -32,6 +33,8 @@ public class BudgetBuilderResponseMapper {
                     module.category(),
                     module.name(),
                     module.description(),
+                    module.dependencyIds(),
+                    module.blockingNote(),
                     module.estimatedHours()))
                 .toList(),
             result.commercialBudget().surchargeItems().stream()

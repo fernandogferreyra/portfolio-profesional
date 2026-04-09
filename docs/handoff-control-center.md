@@ -45,6 +45,7 @@ Estado al 2026-04-09.
 - `Budget Builder` ya expone presets comerciales rapidos oficiales (`essential_web`, `business_site`, `operations_tool`, `product_platform`) con `label` y `description` servidos por backend.
 - `Budget Builder` ya expone stacks comerciales oficiales (`cms_fast`, `angular_spring`, `angular_dotnet`, `full_custom`) y la UI privada ya funciona por pasos para evitar scroll largo.
 - La entrada del `Control Center` ahora usa accesos rapidos arriba y CTA directa en cada tarjeta operativa, alineada con la referencia de `ferchuz/capturas de front/panel privado.jpg`.
+- La copia funcional ya fue absorbida en backend para `Budget Builder` persistido y `quote` tecnico rico; la rama actual mantiene el repo limpio sin volver a integrar `ferchuz/`.
 - El estimador tecnico ya usa backend como source of truth para `preview` y `save`, con PERT, buffer de riesgo y dependencias visibles en UI.
 - `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
 - La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
@@ -101,9 +102,9 @@ Estado al 2026-04-09.
   - `GET /api/admin/quotes`
   - `GET /api/admin/quotes/{id}`
   - `POST /api/admin/quotes/preview`
-  - `POST /api/admin/budget-builder/preview`
-  - `POST /api/admin/budget-builder`
-  - `GET /api/admin/budget-builder`
+- `POST /api/admin/budget-builder/preview`
+- `POST /api/admin/budget-builder`
+- `GET /api/admin/budget-builder`
 - `GET /api/admin/budget-builder/{id}`
 - `GET /api/admin/budget-builder/configuration/active`
 
@@ -119,10 +120,10 @@ Estado al 2026-04-09.
   - usa artifact `frontend/dist/portfolio-ferchuz/browser`
   - activa backend con `SPRING_PROFILES_ACTIVE=dev`
 - Validacion local vigente:
-  - `backend\mvnw.cmd test` OK con Docker Desktop encendido y `JAVA_HOME=C:\Program Files\Java\jdk-17`
-  - `backend\mvnw.cmd package` OK
-  - `npm run build` en `frontend/` OK
-  - `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`)
+- `backend\mvnw.cmd test` OK con Docker Desktop encendido y `JAVA_HOME=C:\Program Files\Java\jdk-17`
+- `backend\mvnw.cmd package` OK
+- `npm run build` en `frontend/` OK
+- `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`)
 - Nota operativa local:
   - backend test ahora queda preparado para Testcontainers; si Docker esta disponible ya no depende de `PORTFOLIO_TEST_DB_*`
   - la base de integracion usa un unico PostgreSQL Testcontainer compartido para toda la suite y evita reciclar pools hacia puertos viejos entre clases
