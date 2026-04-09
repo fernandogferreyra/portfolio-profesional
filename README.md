@@ -94,6 +94,11 @@ El workflow actual:
 - ejecuta tests backend
 - empaqueta backend
 
+Releases:
+
+- `release-please` queda configurado como workflow separado para `main`
+- genera PR de release, changelog y versionado por componente (`frontend` y `backend`)
+
 ## Deuda abierta relevante
 
 - El portfolio publico todavia usa proyectos estaticos en frontend.

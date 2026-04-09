@@ -95,7 +95,7 @@ cd backend
 ## 7. Release Please
 
 - `release-please` queda como automatizacion objetivo para versionado y release notes.
-- Debe agregarse cuando el flujo funcional y de PR quede estable.
+- Ya queda configurado en el repo como workflow separado sobre `main`.
 - Objetivo esperado:
   - PR de release automatica
   - versionado consistente
@@ -107,6 +107,12 @@ cd backend
 - versionado separado para:
   - `frontend`
   - `backend`
+- archivos principales:
+  - `.github/workflows/release-please.yml`
+  - `release-please-config.json`
+  - `.release-please-manifest.json`
+  - `frontend/CHANGELOG.md`
+  - `backend/CHANGELOG.md`
 
 ## 8. Flujo Operativo Recomendado
 
