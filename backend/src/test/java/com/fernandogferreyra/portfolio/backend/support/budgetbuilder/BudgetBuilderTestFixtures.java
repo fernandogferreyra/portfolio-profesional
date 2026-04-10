@@ -26,7 +26,7 @@ public final class BudgetBuilderTestFixtures {
             "config-seed-v1",
             "2026-04-08-reference",
             "seed",
-            "USD",
+            "ARS",
             "2026-04-08T00:00:00Z",
             32,
             decimal(1),

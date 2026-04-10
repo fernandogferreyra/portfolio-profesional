@@ -47,7 +47,7 @@ class BudgetBuilderServiceImplTest {
 
         assertThat(response.configurationSnapshotId()).isEqualTo("config-seed-v1");
         assertThat(response.previewHash()).hasSize(64);
-        assertThat(response.currency()).isEqualTo("USD");
+        assertThat(response.currency()).isEqualTo("ARS");
         assertThat(response.modules()).hasSize(5);
         assertThat(response.totalHours()).isEqualByComparingTo("60.00");
         assertThat(response.baseAmount()).isEqualByComparingTo("1038.00");

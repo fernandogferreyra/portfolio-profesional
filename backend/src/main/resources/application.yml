@@ -166,7 +166,7 @@ app:
     configuration-id: budget-builder-seed-v1
     version: 2026-04-08-reference
     source: seed
-    currency: USD
+    currency: ARS
     created-at: 2026-04-08T00:00:00Z
     working-hours-per-week: 32
     risk-buffer-hours: 1.00

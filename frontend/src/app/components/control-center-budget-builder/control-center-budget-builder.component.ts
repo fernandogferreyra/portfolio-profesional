@@ -35,7 +35,28 @@ type ChoiceCard = {
   selected: boolean;
 };
 
-type BudgetBuilderStepId = 'scenario' | 'pricing' | 'continuity' | 'scope';
+type BudgetWorksheetRow = {
+  id: string;
+  areaLabel: string;
+  moduleName: string;
+  description: string;
+  dependencies: string;
+  included: boolean;
+  estimatedHours: number | null;
+  baseAmount: number;
+  rateLabel: string;
+};
+
+type BudgetAreaSummaryRow = {
+  id: string;
+  areaLabel: string;
+  itemCount: number;
+  hours: number;
+  baseAmount: number;
+  rateLabel: string;
+};
+
+type BudgetBuilderStepId = 'scenario' | 'pricing' | 'continuity' | 'scope' | 'details';
 
 function safeNumber(value: number | null | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
@@ -55,6 +76,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   private previewRequestVersion = 0;
   private lastPreviewSignature: string | null = null;
+  private readonly stepOrder: BudgetBuilderStepId[] = ['scenario', 'pricing', 'continuity', 'scope', 'details'];
 
   readonly currentLanguage = this.languageService.language;
   readonly budgetForm = this.formBuilder.nonNullable.group({
@@ -147,6 +169,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           activeClientsLabel: 'Clientes activos',
           userScaleLabel: 'Tier de usuarios',
           extraHoursLabel: 'Horas extra mensuales',
+          currencyLabel: 'Moneda',
           selectedModulesLabel: 'bloques activos',
           projectMode: 'Proyecto',
           saasMode: 'SaaS',
@@ -183,10 +206,28 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           stepPricing: 'Arquitectura y costo',
           stepContinuity: 'Continuidad',
           stepScope: 'Alcance y cierre',
+          stepDetails: 'Detalle final',
           stepBack: 'Anterior',
           stepNext: 'Siguiente',
           pageLabel: 'Pagina',
           riskBuffer: 'Buffer riesgo',
+          worksheetTitle: 'Planilla por areas',
+          worksheetLead:
+            'Cada fila representa una pieza del alcance. Si no esta incluida, no entra en el presupuesto.',
+          worksheetArea: 'Area',
+          worksheetItem: 'Item',
+          worksheetTime: 'Tiempo',
+          worksheetCost: 'Costo base',
+          worksheetRate: 'Referencia',
+          worksheetIncluded: 'Incluir',
+          worksheetNotIncluded: 'Fuera del presupuesto',
+          areaSummaryTitle: 'Tiempo y costo por areas',
+          areaSummaryLead:
+            'Resumen operativo para leer donde se va el esfuerzo y cuanto pesa cada area antes de recargos.',
+          worksheetItems: 'items',
+          detailPageLead:
+            'Separo la lectura final en una pagina propia para revisar numeros, formula y cierre sin comprimir la planilla.',
+          visualHelp: 'Info',
         }
         : {
           eyebrow: 'Budget',
@@ -236,6 +277,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           activeClientsLabel: 'Active clients',
           userScaleLabel: 'User tier',
           extraHoursLabel: 'Extra monthly hours',
+          currencyLabel: 'Currency',
           selectedModulesLabel: 'active blocks',
           projectMode: 'Project',
           saasMode: 'SaaS',
@@ -272,10 +314,28 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           stepPricing: 'Architecture and cost',
           stepContinuity: 'Continuity',
           stepScope: 'Scope and close',
+          stepDetails: 'Final detail',
           stepBack: 'Back',
           stepNext: 'Next',
           pageLabel: 'Page',
           riskBuffer: 'Risk buffer',
+          worksheetTitle: 'Area worksheet',
+          worksheetLead:
+            'Each row represents one scope item. If it is not included, it does not enter the budget.',
+          worksheetArea: 'Area',
+          worksheetItem: 'Item',
+          worksheetTime: 'Time',
+          worksheetCost: 'Base cost',
+          worksheetRate: 'Reference',
+          worksheetIncluded: 'Include',
+          worksheetNotIncluded: 'Out of budget',
+          areaSummaryTitle: 'Time and cost by area',
+          areaSummaryLead:
+            'Operational reading to see where the effort goes and how much each area weighs before surcharges.',
+          worksheetItems: 'items',
+          detailPageLead:
+            'The final reading lives on its own page so numbers, formula, and closing do not compress the worksheet.',
+          visualHelp: 'Info',
         },
   );
 
@@ -295,8 +355,8 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   readonly selectableSurchargeOptions = computed(() =>
     this.getSelectableSurchargeRules(this.configuration()).map((rule) => ({
       id: rule.id,
-      title: rule.label,
-      description: rule.reason,
+      title: this.getExtraTitle(rule),
+      description: this.getExtraReason(rule),
       impact: this.getExtraImpact(rule),
       selected: this.isExtraSelected(rule.id),
     })),
@@ -314,7 +374,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   );
   readonly isSaasPricing = computed(() => this.budgetForm.controls.pricingMode.value === 'SAAS');
   readonly currentCurrency = computed(
-    () => this.calculationResult()?.commercialBudget.currency ?? this.configuration()?.currency ?? 'USD',
+    () => this.calculationResult()?.commercialBudget.currency ?? this.configuration()?.currency ?? 'ARS',
   );
   readonly hasPreview = computed(() => Boolean(this.previewPayload() && this.calculationResult()));
   readonly canSavePreview = computed(() => this.hasPreview() && !this.saving() && !this.calculating());
@@ -449,11 +509,19 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       impact: `${this.selectedModulesCount()} ${this.content().selectedModulesLabel}`,
       selected: this.currentStep() === 'scope',
     },
+    {
+      id: 'details',
+      title: this.content().stepDetails,
+      description:
+        this.currentLanguage() === 'es'
+          ? 'Revisa resumen, formula y cierre final.'
+          : 'Review summary, formula, and final close.',
+      impact: this.summaryMetrics()[0]?.value ?? '--',
+      selected: this.currentStep() === 'details',
+    },
   ]);
-  readonly currentStepIndex = computed(
-    () => ['scenario', 'pricing', 'continuity', 'scope'].indexOf(this.currentStep()) + 1,
-  );
-  readonly totalSteps = 4;
+  readonly currentStepIndex = computed(() => this.stepOrder.indexOf(this.currentStep()) + 1);
+  readonly totalSteps = this.stepOrder.length;
   readonly summaryMetrics = computed(() => {
     const result = this.calculationResult();
     const currency = this.currentCurrency();
@@ -615,9 +683,64 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       },
     ];
   });
+  readonly worksheetRows = computed<BudgetWorksheetRow[]>(() => {
+    const resultModules = new Map(this.calculationResult()?.modules.map((module) => [module.id, module]) ?? []);
+
+    return this.moduleOptions().map((module) => {
+      const included = this.isModuleSelected(module.id);
+      const previewModule = resultModules.get(module.id) ?? null;
+      const estimatedHours = included && previewModule ? safeNumber(previewModule.estimatedHours) : null;
+      const baseAmount = included && estimatedHours !== null
+        ? this.calculateCategoryBaseAmount(module.category, estimatedHours)
+        : 0;
+
+      return {
+        id: module.id,
+        areaLabel: this.getCategoryLabel(module.category),
+        moduleName: this.getModuleName(module.id),
+        description: this.getModuleDescription(module),
+        dependencies: this.getModuleDependencies(module),
+        included,
+        estimatedHours: included ? estimatedHours : null,
+        baseAmount,
+        rateLabel: this.getCategoryRateLabel(module.category),
+      };
+    });
+  });
+  readonly areaSummaryRows = computed<BudgetAreaSummaryRow[]>(() => {
+    const summary = new Map<string, BudgetAreaSummaryRow>();
+
+    for (const row of this.worksheetRows()) {
+      if (!row.included || row.estimatedHours === null) {
+        continue;
+      }
+
+      const current = summary.get(row.areaLabel) ?? {
+        id: row.areaLabel,
+        areaLabel: row.areaLabel,
+        itemCount: 0,
+        hours: 0,
+        baseAmount: 0,
+        rateLabel: row.rateLabel,
+      };
+
+      current.itemCount += 1;
+      current.hours += row.estimatedHours;
+      current.baseAmount += row.baseAmount;
+      summary.set(row.areaLabel, current);
+    }
+
+    return Array.from(summary.values()).sort((left, right) => right.baseAmount - left.baseAmount);
+  });
 
   selectProjectType(projectType: string): void {
     this.budgetForm.controls.projectType.setValue(projectType);
+  }
+
+  selectStep(step: string): void {
+    if (this.stepOrder.includes(step as BudgetBuilderStepId)) {
+      this.currentStep.set(step as BudgetBuilderStepId);
+    }
   }
 
   goToStep(step: BudgetBuilderStepId): void {
@@ -625,15 +748,13 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   }
 
   goToPreviousStep(): void {
-    const order: BudgetBuilderStepId[] = ['scenario', 'pricing', 'continuity', 'scope'];
-    const currentIndex = order.indexOf(this.currentStep());
-    this.currentStep.set(order[Math.max(currentIndex - 1, 0)]);
+    const currentIndex = this.stepOrder.indexOf(this.currentStep());
+    this.currentStep.set(this.stepOrder[Math.max(currentIndex - 1, 0)]);
   }
 
   goToNextStep(): void {
-    const order: BudgetBuilderStepId[] = ['scenario', 'pricing', 'continuity', 'scope'];
-    const currentIndex = order.indexOf(this.currentStep());
-    this.currentStep.set(order[Math.min(currentIndex + 1, order.length - 1)]);
+    const currentIndex = this.stepOrder.indexOf(this.currentStep());
+    this.currentStep.set(this.stepOrder[Math.min(currentIndex + 1, this.stepOrder.length - 1)]);
   }
 
   isFirstStep(): boolean {
@@ -641,7 +762,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   }
 
   isLastStep(): boolean {
-    return this.currentStep() === 'scope';
+    return this.currentStep() === 'details';
   }
 
   selectPricingMode(mode: BudgetPricingMode): void {
@@ -845,11 +966,11 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       return this.content().supportOff;
     }
 
-    return this.selectedSupportPlan()?.label ?? this.content().supportOn;
+    return this.getSupportPlanLabel(this.selectedSupportPlan()) ?? this.content().supportOn;
   }
 
   getMaintenanceSummary(): string {
-    return this.selectedMaintenancePlan()?.label ?? this.content().noMaintenance;
+    return this.getMaintenancePlanLabel(this.selectedMaintenancePlan()) ?? this.content().noMaintenance;
   }
 
   getSupportImpact(): string {
@@ -945,7 +1066,121 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   }
 
   getCategoryLabel(categoryId: string): string {
-    return this.categoryOptions().find((category) => category.id === categoryId)?.label ?? categoryId;
+    const category = this.categoryOptions().find((item) => item.id === categoryId);
+    if (!category) {
+      return categoryId;
+    }
+
+    if (this.currentLanguage() !== 'es') {
+      return category.label;
+    }
+
+    const catalog: Record<string, string> = {
+      analysis_design: 'Analisis y diseno',
+      backend: 'Backend',
+      frontend: 'Frontend',
+      testing: 'Testing',
+      deploy: 'Deploy y configuracion',
+    };
+
+    return catalog[category.id] ?? category.label;
+  }
+
+  getSupportPlanLabel(plan: BudgetBuilderConfigSupportPlan | null): string | null {
+    if (!plan) {
+      return null;
+    }
+
+    if (this.currentLanguage() !== 'es') {
+      return plan.label;
+    }
+
+    const catalog: Record<string, string> = {
+      'support-basic': 'Soporte base',
+    };
+
+    return catalog[plan.id] ?? plan.label;
+  }
+
+  getMaintenancePlanLabel(plan: BudgetBuilderConfigMaintenancePlan | null): string | null {
+    if (!plan) {
+      return null;
+    }
+
+    if (this.currentLanguage() !== 'es') {
+      return plan.label;
+    }
+
+    const catalog: Record<string, string> = {
+      'maintenance-standard': 'Mantenimiento estandar',
+    };
+
+    return catalog[plan.id] ?? plan.label;
+  }
+
+  getUserScaleLabel(tier: BudgetBuilderConfigUserScaleTier | null): string | null {
+    if (!tier) {
+      return null;
+    }
+
+    if (this.currentLanguage() !== 'es') {
+      return tier.label;
+    }
+
+    const catalog: Record<string, string> = {
+      basic: 'Basico',
+      intermediate: 'Intermedio',
+      pro: 'Pro',
+      enterprise: 'Enterprise',
+    };
+
+    return catalog[tier.id] ?? tier.label;
+  }
+
+  getExtraTitle(rule: BudgetBuilderConfigSurchargeRule): string {
+    if (this.currentLanguage() !== 'es') {
+      return rule.label;
+    }
+
+    const catalog: Record<string, string> = {
+      'seo-pack': 'SEO base',
+      'copy-tuning': 'Ajuste de copy comercial',
+      'deploy-assist': 'Deploy asistido',
+      training: 'Capacitacion',
+      'priority-delivery': 'Entrega prioritaria',
+    };
+
+    return catalog[rule.id] ?? rule.label;
+  }
+
+  getExtraReason(rule: BudgetBuilderConfigSurchargeRule): string {
+    if (this.currentLanguage() !== 'es') {
+      return rule.reason;
+    }
+
+    const catalog: Record<string, string> = {
+      'seo-pack': 'Base SEO, metadata e indexacion inicial.',
+      'copy-tuning': 'Ajuste del mensaje comercial para mejorar claridad y conversion.',
+      'deploy-assist': 'Soporte comercial para salida, hosting y publicacion asistida.',
+      training: 'Handoff guiado y capacitacion operativa para el cliente.',
+      'priority-delivery': 'Recargo comercial por ventana acelerada y prioridad de ejecucion.',
+    };
+
+    return catalog[rule.id] ?? rule.reason;
+  }
+
+  getCategoryRateLabel(categoryId: string): string {
+    const category = this.categoryOptions().find((item) => item.id === categoryId);
+    if (!category) {
+      return '--';
+    }
+
+    const rate = this.resolveCategoryRate(categoryId);
+    if (category.billingType === 'TIME_BASED') {
+      return `${this.formatCurrency(rate, this.currentCurrency())}/h`;
+    }
+
+    return this.formatCurrency(rate, this.currentCurrency());
   }
 
   getModuleFormula(module: BudgetBuilderConfigModule): string {
@@ -964,7 +1199,40 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   }
 
   getModuleName(moduleId: string): string {
-    return this.moduleOptions().find((module) => module.id === moduleId)?.name ?? moduleId;
+    const module = this.moduleOptions().find((item) => item.id === moduleId);
+    if (!module) {
+      return moduleId;
+    }
+
+    if (this.currentLanguage() !== 'es') {
+      return module.name;
+    }
+
+    const catalog: Record<string, string> = {
+      ANALYSIS_DISCOVERY: 'Analisis y diseno',
+      BACKEND_DEVELOPMENT: 'Desarrollo backend',
+      FRONTEND_DELIVERY: 'Entrega frontend',
+      QA_VALIDATION: 'Testing y validacion',
+      DEPLOY_RELEASE: 'Deploy y release',
+    };
+
+    return catalog[module.id] ?? module.name;
+  }
+
+  getModuleDescription(module: BudgetBuilderConfigModule): string {
+    if (this.currentLanguage() !== 'es') {
+      return module.description;
+    }
+
+    const catalog: Record<string, string> = {
+      ANALYSIS_DISCOVERY: 'Discovery, validacion de alcance y encuadre de solucion antes de implementar.',
+      BACKEND_DEVELOPMENT: 'Modelo de datos, APIs y reglas core del negocio.',
+      FRONTEND_DELIVERY: 'UI, integracion API, estados y validaciones.',
+      QA_VALIDATION: 'Validacion funcional, casos de prueba y verificacion de ajustes.',
+      DEPLOY_RELEASE: 'Setup de entorno, despliegue y endurecimiento de salida.',
+    };
+
+    return catalog[module.id] ?? module.description;
   }
 
   getStageLabel(stage: string): string {
@@ -991,6 +1259,35 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   trackByValue(_: number, item: string): string {
     return item;
+  }
+
+  private calculateCategoryBaseAmount(categoryId: string, estimatedHours: number): number {
+    const category = this.categoryOptions().find((item) => item.id === categoryId);
+    const rate = this.resolveCategoryRate(categoryId);
+
+    if (!category) {
+      return 0;
+    }
+
+    if (category.billingType === 'TIME_BASED') {
+      return estimatedHours * rate;
+    }
+
+    return rate;
+  }
+
+  private resolveCategoryRate(categoryId: string): number {
+    const category = this.categoryOptions().find((item) => item.id === categoryId);
+    if (!category) {
+      return 0;
+    }
+
+    const hourlyOverride = Math.max(safeNumber(this.budgetForm.controls.hourlyRate.value), 0);
+    if (category.billingType === 'TIME_BASED' && hourlyOverride > 0) {
+      return hourlyOverride;
+    }
+
+    return safeNumber(category.rate);
   }
 
   private loadConfiguration(): void {

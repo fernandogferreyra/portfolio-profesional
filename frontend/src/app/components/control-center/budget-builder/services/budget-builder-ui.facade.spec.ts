@@ -89,7 +89,7 @@ describe('BudgetBuilderUiFacade', () => {
       data: {
         configurationSnapshotId: 'budget-builder-seed-v1',
         previewHash: 'preview-hash',
-        currency: 'USD',
+        currency: 'ARS',
         totalHours: 48,
         totalWeeks: 1.5,
         baseAmount: 960,
@@ -113,7 +113,7 @@ describe('BudgetBuilderUiFacade', () => {
         totalWeeks: 1.5,
       },
       commercialBudget: {
-        currency: 'USD',
+        currency: 'ARS',
         baseAmount: 960,
         oneTimeSubtotal: 1260,
         monthlySubtotal: 24,
@@ -166,7 +166,7 @@ describe('BudgetBuilderUiFacade', () => {
       data: {
         configurationSnapshotId: 'budget-builder-seed-v1',
         previewHash: 'outside-stack-preview',
-        currency: 'USD',
+        currency: 'ARS',
         totalHours: 20,
         totalWeeks: 0.6,
         baseAmount: 360,
@@ -251,7 +251,7 @@ describe('BudgetBuilderUiFacade', () => {
         totalWeeks: 0.6,
       },
       commercialBudget: {
-        currency: 'USD',
+        currency: 'ARS',
         baseAmount: 360,
         oneTimeSubtotal: 696,
         monthlySubtotal: 0,
