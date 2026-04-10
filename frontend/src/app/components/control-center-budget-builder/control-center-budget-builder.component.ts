@@ -58,6 +58,8 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   readonly currentLanguage = this.languageService.language;
   readonly budgetForm = this.formBuilder.nonNullable.group({
+    clientName: this.formBuilder.nonNullable.control(''),
+    companyName: this.formBuilder.nonNullable.control(''),
     budgetName: this.formBuilder.nonNullable.control(''),
     projectType: this.formBuilder.nonNullable.control(''),
     pricingMode: this.formBuilder.nonNullable.control<BudgetPricingMode>('PROJECT'),
@@ -97,13 +99,13 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   readonly content = computed(() =>
     this.currentLanguage() === 'es'
-      ? {
-          eyebrow: 'Budget Builder',
-          title: 'Workspace de cotizacion comercial',
+        ? {
+          eyebrow: 'Presupuesto',
+          title: 'Cotizador privado',
           lead:
-            'Herramienta privada para mover alcance, ver impacto inmediato y guardar snapshots con el motor oficial del backend.',
+            'Completa cliente, requerimientos y arquitectura para cotizar sin salir del mismo flujo.',
           note:
-            'Cada cambio recalcula el preview. El frontend solo organiza y explica el resultado oficial.',
+            'La estimacion tecnica queda integrada como calculadora auxiliar. El backend sigue siendo la fuente oficial.',
           configurationLoading: 'Cargando configuracion activa...',
           liveSync: 'Sincronizando preview...',
           previewReady: 'Preview sincronizado',
@@ -127,7 +129,9 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           historyDetailTitle: 'Detalle guardado',
           historyDetailLoading: 'Cargando detalle guardado...',
           historyDetailEmpty: 'Selecciona un snapshot para revisar el resultado persistido.',
-          budgetNameLabel: 'Nombre interno',
+          clientNameLabel: 'Cliente',
+          companyNameLabel: 'Empresa',
+          budgetNameLabel: 'Nombre del presupuesto',
           projectTypeLabel: 'Tipo de proyecto',
           pricingModeLabel: 'Modelo comercial',
           stackLabel: 'Stack / tecnologia',
@@ -183,13 +187,13 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           stepNext: 'Siguiente',
           riskBuffer: 'Buffer riesgo',
         }
-      : {
-          eyebrow: 'Budget Builder',
-          title: 'Commercial quote workspace',
+        : {
+          eyebrow: 'Budget',
+          title: 'Private quoting workspace',
           lead:
-            'Private tool to move scope, see instant impact, and store snapshots on top of the official backend engine.',
+            'Complete client, requirements, and architecture to quote inside a single guided flow.',
           note:
-            'Every change recalculates the preview. The frontend only organizes and explains the official result.',
+            'Technical estimation stays integrated as an auxiliary calculator. The backend remains the official source.',
           configurationLoading: 'Loading active configuration...',
           liveSync: 'Syncing preview...',
           previewReady: 'Preview synced',
@@ -213,7 +217,9 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           historyDetailTitle: 'Stored detail',
           historyDetailLoading: 'Loading stored detail...',
           historyDetailEmpty: 'Select a snapshot to review the persisted result.',
-          budgetNameLabel: 'Internal name',
+          clientNameLabel: 'Client',
+          companyNameLabel: 'Company',
+          budgetNameLabel: 'Budget name',
           projectTypeLabel: 'Project type',
           pricingModeLabel: 'Commercial model',
           stackLabel: 'Stack / technology',
@@ -1040,6 +1046,8 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
     this.budgetForm.reset(
       {
+        clientName: '',
+        companyName: '',
         budgetName: initialValue.budgetName,
         projectType: initialValue.projectType,
         pricingMode: initialValue.pricingMode,

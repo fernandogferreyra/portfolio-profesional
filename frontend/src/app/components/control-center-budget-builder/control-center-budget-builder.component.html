@@ -55,37 +55,66 @@
               <p>{{ content().note }}</p>
             </div>
 
-            <label class="budget-workspace__field">
-              <span>{{ content().budgetNameLabel }}</span>
-              <input type="text" formControlName="budgetName" />
-            </label>
+            <div class="budget-workspace__field-grid budget-workspace__field-grid--three">
+              <label class="budget-workspace__field">
+                <span>{{ content().clientNameLabel }}</span>
+                <input type="text" formControlName="clientName" />
+              </label>
 
-            <div class="budget-workspace__choice-grid">
-              <button
-                type="button"
-                class="budget-workspace__choice motion-control"
-                *ngFor="let option of projectCards(); trackBy: trackById"
-                [class.is-active]="option.selected"
-                (click)="selectProjectType(option.id)"
-              >
-                <strong>{{ option.title }}</strong>
-                <span>{{ option.description }}</span>
-                <small>{{ option.impact }}</small>
-              </button>
+              <label class="budget-workspace__field">
+                <span>{{ content().companyNameLabel }}</span>
+                <input type="text" formControlName="companyName" />
+              </label>
+
+              <label class="budget-workspace__field">
+                <span>{{ content().budgetNameLabel }}</span>
+                <input type="text" formControlName="budgetName" />
+              </label>
             </div>
 
-            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--two">
-              <button
-                type="button"
-                class="budget-workspace__choice motion-control"
-                *ngFor="let option of pricingCards(); trackBy: trackById"
-                [class.is-active]="option.selected"
-                (click)="selectPricingMode(option.id === 'SAAS' ? 'SAAS' : 'PROJECT')"
-              >
-                <strong>{{ option.title }}</strong>
-                <span>{{ option.description }}</span>
-                <small>{{ option.impact }}</small>
-              </button>
+            <div class="budget-workspace__field-grid budget-workspace__field-grid--two">
+              <label class="budget-workspace__field">
+                <span>{{ content().projectTypeLabel }}</span>
+                <select formControlName="projectType">
+                  <option *ngFor="let option of projectTypeOptions(); trackBy: trackById" [value]="option.id">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <small>{{ getProjectImpact(budgetForm.controls.projectType.value) }}</small>
+              </label>
+
+              <label class="budget-workspace__field">
+                <span>{{ content().pricingModeLabel }}</span>
+                <select formControlName="pricingMode">
+                  <option value="PROJECT">{{ content().projectMode }}</option>
+                  <option value="SAAS">{{ content().saasMode }}</option>
+                </select>
+                <small>
+                  {{
+                    budgetForm.controls.pricingMode.value === 'SAAS'
+                      ? currentLanguage() === 'es'
+                        ? 'Incluye recupero, infraestructura y escala recurrente.'
+                        : 'Includes recovery, infrastructure, and recurring scale.'
+                      : currentLanguage() === 'es'
+                        ? 'Entrega one-shot con opcion de continuidad si la agregas.'
+                        : 'One-shot delivery with optional continuity if you add it.'
+                  }}
+                </small>
+              </label>
+            </div>
+
+            <div class="budget-workspace__scenario-notes">
+              <article class="budget-workspace__header-card portfolio-subcard">
+                <span>{{ content().projectTypeLabel }}</span>
+                <strong>{{ getProjectTypeLabel(budgetForm.controls.projectType.value) }}</strong>
+                <small>{{ getProjectImpact(budgetForm.controls.projectType.value) }}</small>
+              </article>
+
+              <article class="budget-workspace__header-card portfolio-subcard">
+                <span>{{ content().pricingModeLabel }}</span>
+                <strong>{{ budgetForm.controls.pricingMode.value === 'SAAS' ? content().saasMode : content().projectMode }}</strong>
+                <small>{{ previewStatus() }}</small>
+              </article>
             </div>
           </ng-container>
 
@@ -95,35 +124,27 @@
               <p>{{ content().detailsLead }}</p>
             </div>
 
-            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--two">
-              <button
-                type="button"
-                class="budget-workspace__choice motion-control"
-                *ngFor="let option of technologyOptions(); trackBy: trackById"
-                [class.is-active]="budgetForm.controls.desiredStackId.value === option.id"
-                (click)="budgetForm.controls.desiredStackId.setValue(option.id)"
-              >
-                <strong>{{ option.label }}</strong>
-                <span>{{ option.description }}</span>
-                <small>{{ getTechnologyImpact(option.id) }}</small>
-              </button>
-            </div>
+            <div class="budget-workspace__field-grid budget-workspace__field-grid--three">
+              <label class="budget-workspace__field">
+                <span>{{ content().stackLabel }}</span>
+                <select formControlName="desiredStackId">
+                  <option *ngFor="let option of technologyOptions(); trackBy: trackById" [value]="option.id">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <small>{{ getTechnologyImpact(budgetForm.controls.desiredStackId.value) }}</small>
+              </label>
 
-            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--three">
-              <button
-                type="button"
-                class="budget-workspace__choice motion-control"
-                *ngFor="let option of complexityCards(); trackBy: trackById"
-                [class.is-active]="option.selected"
-                (click)="selectComplexity(option.id === 'LOW' ? 'LOW' : option.id === 'HIGH' ? 'HIGH' : 'MEDIUM')"
-              >
-                <strong>{{ option.title }}</strong>
-                <span>{{ option.description }}</span>
-                <small>{{ option.impact }}</small>
-              </button>
-            </div>
+              <label class="budget-workspace__field">
+                <span>{{ content().complexityLabel }}</span>
+                <select formControlName="complexity">
+                  <option *ngFor="let option of complexityOptions(); trackBy: trackById" [value]="option">
+                    {{ getComplexityLabel(option) }}
+                  </option>
+                </select>
+                <small>{{ getComplexityImpact(budgetForm.controls.complexity.value) }}</small>
+              </label>
 
-            <div class="budget-workspace__field-grid">
               <label class="budget-workspace__field">
                 <span>{{ content().urgencyLabel }}</span>
                 <select formControlName="urgency">
@@ -133,7 +154,9 @@
                 </select>
                 <small>{{ getUrgencyImpact(budgetForm.controls.urgency.value) }}</small>
               </label>
+            </div>
 
+            <div class="budget-workspace__field-grid">
               <label class="budget-workspace__field">
                 <span>{{ content().hourlyRateLabel }}</span>
                 <input type="number" min="0" step="1" formControlName="hourlyRate" />
@@ -170,18 +193,15 @@
               </p>
             </div>
 
-            <div class="budget-workspace__choice-grid budget-workspace__choice-grid--two" [formGroup]="extraSelection">
-              <button
-                type="button"
-                class="budget-workspace__choice motion-control"
-                *ngFor="let option of selectableSurchargeOptions(); trackBy: trackById"
-                [class.is-active]="option.selected"
-                (click)="toggleExtra(option.id)"
-              >
-                <strong>{{ option.title }}</strong>
-                <span>{{ option.description }}</span>
-                <small>{{ option.impact }}</small>
-              </button>
+            <div class="budget-workspace__check-grid" [formGroup]="extraSelection">
+              <label class="budget-workspace__check-item" *ngFor="let option of selectableSurchargeOptions(); trackBy: trackById">
+                <input type="checkbox" [formControlName]="option.id" />
+                <div>
+                  <strong>{{ option.title }}</strong>
+                  <span>{{ option.description }}</span>
+                  <small>{{ option.impact }}</small>
+                </div>
+              </label>
             </div>
           </ng-container>
 
