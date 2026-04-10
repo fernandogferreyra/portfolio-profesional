@@ -29,6 +29,14 @@
   align-content: start;
 }
 
+.control-center__tabs,
+.control-center__workspace-shell,
+.control-center__workspace,
+.control-center__workspace-head {
+  display: grid;
+  gap: 0.95rem;
+}
+
 .control-center__hero-heading {
   display: grid;
   gap: 0.82rem;
@@ -187,6 +195,59 @@
   max-width: 74ch;
   color: var(--color-text-muted);
   line-height: 1.7;
+}
+
+.control-center__tabs {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.control-center__tab,
+.control-center__placeholder {
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+.control-center__tab {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.control-center__tab strong,
+.control-center__placeholder strong {
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.control-center__tab span,
+.control-center__placeholder p,
+.control-center__workspace-head p:last-child {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.control-center__tab.is-active {
+  border-color: var(--color-border-hover);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--color-primary-soft) 76%, transparent), transparent 72%),
+    color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+.control-center__workspace {
+  padding: 1rem;
+}
+
+.control-center__auxiliary,
+.control-center__placeholder {
+  padding: 1rem;
+}
+
+.control-center__workspace-head--compact {
+  gap: 0.45rem;
 }
 
 .control-center__workspace-grid,
@@ -363,6 +424,7 @@
     padding-top: 0.95rem;
   }
 
+  .control-center__tabs,
   .control-center__workspace-grid,
   .control-center__quick-links,
   .control-center__hero-metrics,

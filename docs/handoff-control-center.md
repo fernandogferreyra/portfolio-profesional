@@ -48,6 +48,7 @@ Estado al 2026-04-09.
 - La copia funcional ya fue absorbida en backend para `Budget Builder` persistido y `quote` tecnico rico; la rama actual mantiene el repo limpio sin volver a integrar `ferchuz/`.
 - El estimador tecnico ya usa backend como source of truth para `preview` y `save`, con PERT, buffer de riesgo y dependencias visibles en UI.
 - El frontend del estimador ya volvio a consumir el contrato rico completo de `quote` (`baseHours`, `riskBufferHours`, `totalWeeks`, `assumptions`, PERT por item y dependencias) sin logica local paralela.
+- La shell del modo privado ya cambio a tabs de trabajo reales: `Presupuesto`, `Actualizar`, `Paginas amigas` y `Mensajeria`. `Presupuesto` queda como entrada principal y la estimacion tecnica pasa a mostrarse como calculadora auxiliar dentro del mismo flujo.
 - `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
 - La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
 - El portfolio publico sigue operativo.

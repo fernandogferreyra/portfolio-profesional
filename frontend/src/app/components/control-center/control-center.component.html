@@ -8,17 +8,18 @@
         <p class="control-center__lead">{{ content().lead }}</p>
       </div>
 
-      <div class="control-center__hero-metrics">
-        <div class="control-center__metric portfolio-subcard">
-          <strong>{{ content().moduleCount }}</strong>
-          <span>{{ content().modulesLabel }}</span>
-        </div>
-
-        <div class="control-center__metric portfolio-subcard">
-          <strong>{{ authService.session()?.tokenType || 'Bearer' }}</strong>
-          <span>{{ content().accessLabel }}</span>
-        </div>
-      </div>
+      <nav class="control-center__tabs" aria-label="Private workspace navigation">
+        <button
+          type="button"
+          class="control-center__tab motion-control"
+          *ngFor="let workspace of content().workspaces"
+          [class.is-active]="activeWorkspace() === workspace.id"
+          (click)="setWorkspace(workspace.id)"
+        >
+          <strong>{{ workspace.title }}</strong>
+          <span>{{ workspace.description }}</span>
+        </button>
+      </nav>
     </div>
 
     <div class="control-center__session portfolio-subcard">
@@ -59,63 +60,61 @@
     </div>
   </div>
 
-  <nav class="control-center__quick-links control-center__quick-links--hero" aria-label="Workspace shortcuts">
-    <a
-      class="control-center__quick-link motion-control"
-      *ngFor="let link of content().quickLinks"
-      [href]="link.href"
-    >
-      {{ link.label }}
-    </a>
-  </nav>
-
-  <div class="control-center__tools-head">
-    <p class="section-eyebrow">{{ content().toolsEyebrow }}</p>
-    <h2 class="portfolio-section-title">{{ content().toolsTitle }}</h2>
-    <p>{{ content().toolsLead }}</p>
-  </div>
-
-  <div class="control-center__workspace-grid">
-    <article class="control-center__workspace-card portfolio-subcard" *ngFor="let item of content().workspaceCards">
-      <span class="control-center__tag">{{ item.tag }}</span>
-      <strong>{{ item.title }}</strong>
-      <p>{{ item.description }}</p>
-      <a class="control-center__workspace-link motion-control" [href]="item.href">{{ item.cta }}</a>
-    </article>
-  </div>
-
-  <app-control-center-budget-builder></app-control-center-budget-builder>
-  <app-control-center-estimator></app-control-center-estimator>
-  <div id="site-activity-workspace">
-    <app-control-center-site-activity></app-control-center-site-activity>
-  </div>
-
-  <div class="control-center__grid">
-    <article
-      class="control-center__card surface-card motion-panel"
-      *ngFor="let module of content().modules"
-    >
-      <div class="control-center__card-shell">
-        <div class="control-center__card-top">
-          <span class="control-center__tag">{{ module.tag }}</span>
-          <span class="control-center__status">{{ module.status }}</span>
-        </div>
-
-        <h2 class="portfolio-card-title">{{ module.title }}</h2>
-        <p>{{ module.description }}</p>
-
-        <div class="control-center__card-footer">
-          <span class="control-center__card-note">{{ module.status }}</span>
-
-          <button
-            type="button"
-            class="control-center__action motion-control"
-            disabled
-          >
-            {{ module.action }}
-          </button>
-        </div>
+  <div class="control-center__workspace-shell" [ngSwitch]="activeWorkspace()">
+    <section *ngSwitchCase="'budget'" class="control-center__workspace surface-card">
+      <div class="control-center__workspace-head">
+        <p class="section-eyebrow">{{ content().budgetTitle }}</p>
+        <h2 class="portfolio-section-title">{{ content().budgetTitle }}</h2>
+        <p>{{ content().budgetLead }}</p>
       </div>
-    </article>
+
+      <app-control-center-budget-builder></app-control-center-budget-builder>
+
+      <section class="control-center__auxiliary portfolio-subcard">
+        <div class="control-center__workspace-head control-center__workspace-head--compact">
+          <h3 class="portfolio-card-title">{{ content().estimatorNote }}</h3>
+        </div>
+        <app-control-center-estimator></app-control-center-estimator>
+      </section>
+    </section>
+
+    <section *ngSwitchCase="'update'" class="control-center__workspace surface-card">
+      <div class="control-center__workspace-head">
+        <p class="section-eyebrow">{{ content().updateTitle }}</p>
+        <h2 class="portfolio-section-title">{{ content().updateTitle }}</h2>
+        <p>{{ content().updateLead }}</p>
+      </div>
+
+      <article class="control-center__placeholder portfolio-subcard">
+        <strong>{{ content().updateTitle }}</strong>
+        <p>{{ content().placeholderReady }}</p>
+      </article>
+    </section>
+
+    <section *ngSwitchCase="'links'" class="control-center__workspace surface-card">
+      <div class="control-center__workspace-head">
+        <p class="section-eyebrow">{{ content().linksTitle }}</p>
+        <h2 class="portfolio-section-title">{{ content().linksTitle }}</h2>
+        <p>{{ content().linksLead }}</p>
+      </div>
+
+      <article class="control-center__placeholder portfolio-subcard">
+        <strong>{{ content().linksTitle }}</strong>
+        <p>{{ content().placeholderReady }}</p>
+      </article>
+    </section>
+
+    <section *ngSwitchDefault class="control-center__workspace surface-card">
+      <div class="control-center__workspace-head">
+        <p class="section-eyebrow">{{ content().messagesTitle }}</p>
+        <h2 class="portfolio-section-title">{{ content().messagesTitle }}</h2>
+        <p>{{ content().messagesLead }}</p>
+      </div>
+
+      <article class="control-center__placeholder portfolio-subcard">
+        <strong>{{ content().messagesTitle }}</strong>
+        <p>{{ content().placeholderReady }}</p>
+      </article>
+    </section>
   </div>
 </section>
