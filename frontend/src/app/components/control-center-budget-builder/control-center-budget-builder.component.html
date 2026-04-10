@@ -138,7 +138,7 @@
               <label class="budget-workspace__field">
                 <span>{{ content().complexityLabel }}</span>
                 <select formControlName="complexity">
-                  <option *ngFor="let option of complexityOptions(); trackBy: trackById" [value]="option">
+                  <option *ngFor="let option of complexityOptions(); trackBy: trackByValue" [value]="option">
                     {{ getComplexityLabel(option) }}
                   </option>
                 </select>

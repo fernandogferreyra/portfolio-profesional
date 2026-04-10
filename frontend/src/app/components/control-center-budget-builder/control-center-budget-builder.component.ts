@@ -983,6 +983,10 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     return item.id;
   }
 
+  trackByValue(_: number, item: string): string {
+    return item;
+  }
+
   private loadConfiguration(): void {
     this.loadingConfiguration.set(true);
     this.formError.set(null);
