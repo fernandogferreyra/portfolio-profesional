@@ -122,8 +122,10 @@ export class ControlCenterComponent {
         },
   );
 
-  setWorkspace(workspace: 'budget' | 'update' | 'links' | 'messages'): void {
-    this.activeWorkspace.set(workspace);
+  setWorkspace(workspace: string): void {
+    if (workspace === 'budget' || workspace === 'update' || workspace === 'links' || workspace === 'messages') {
+      this.activeWorkspace.set(workspace);
+    }
   }
 
   logout(): void {
