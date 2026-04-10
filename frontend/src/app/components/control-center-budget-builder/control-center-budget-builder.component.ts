@@ -690,9 +690,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       const included = this.isModuleSelected(module.id);
       const previewModule = resultModules.get(module.id) ?? null;
       const estimatedHours = included && previewModule ? safeNumber(previewModule.estimatedHours) : null;
-      const baseAmount = included && estimatedHours !== null
-        ? this.calculateCategoryBaseAmount(module.category, estimatedHours)
-        : 0;
+      const baseAmount = included && previewModule ? safeNumber(previewModule.baseAmount) : 0;
 
       return {
         id: module.id,
@@ -1259,21 +1257,6 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   trackByValue(_: number, item: string): string {
     return item;
-  }
-
-  private calculateCategoryBaseAmount(categoryId: string, estimatedHours: number): number {
-    const category = this.categoryOptions().find((item) => item.id === categoryId);
-    const rate = this.resolveCategoryRate(categoryId);
-
-    if (!category) {
-      return 0;
-    }
-
-    if (category.billingType === 'TIME_BASED') {
-      return estimatedHours * rate;
-    }
-
-    return rate;
   }
 
   private resolveCategoryRate(categoryId: string): number {

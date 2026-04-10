@@ -1,11 +1,15 @@
 package com.fernandogferreyra.portfolio.backend.mapper.budgetbuilder;
 
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.CategoryBillingType;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.BudgetCalculationResult;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.ConfigurationSnapshot;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.EstimateModule;
 import com.fernandogferreyra.portfolio.backend.dto.budgetbuilder.BudgetDiscountResponse;
 import com.fernandogferreyra.portfolio.backend.dto.budgetbuilder.BudgetExplanationResponse;
 import com.fernandogferreyra.portfolio.backend.dto.budgetbuilder.BudgetModuleResponse;
 import com.fernandogferreyra.portfolio.backend.dto.budgetbuilder.BudgetPreviewResponse;
 import com.fernandogferreyra.portfolio.backend.dto.budgetbuilder.BudgetSurchargeResponse;
+import java.math.BigDecimal;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,6 +17,7 @@ public class BudgetBuilderResponseMapper {
 
     public BudgetPreviewResponse toPreviewResponse(
         BudgetCalculationResult result,
+        ConfigurationSnapshot configuration,
         String configurationSnapshotId,
         String previewHash
     ) {
@@ -35,7 +40,8 @@ public class BudgetBuilderResponseMapper {
                     module.description(),
                     module.dependencyIds(),
                     module.blockingNote(),
-                    module.estimatedHours()))
+                    module.estimatedHours(),
+                    calculateModuleBaseAmount(module, configuration)))
                 .toList(),
             result.commercialBudget().surchargeItems().stream()
                 .map(item -> new BudgetSurchargeResponse(
@@ -62,5 +68,22 @@ public class BudgetBuilderResponseMapper {
                     item.tone()))
                 .toList()
         );
+    }
+
+    private BigDecimal calculateModuleBaseAmount(EstimateModule module, ConfigurationSnapshot configuration) {
+        ConfigurationSnapshot.CategoryRule categoryRule = configuration.categoryRules().stream()
+            .filter(rule -> rule.id().equals(module.category()))
+            .findFirst()
+            .orElse(null);
+
+        if (categoryRule == null) {
+            return BigDecimal.ZERO;
+        }
+
+        if (categoryRule.billingType() == CategoryBillingType.TIME_BASED) {
+            return module.estimatedHours().multiply(categoryRule.rate());
+        }
+
+        return categoryRule.rate();
     }
 }

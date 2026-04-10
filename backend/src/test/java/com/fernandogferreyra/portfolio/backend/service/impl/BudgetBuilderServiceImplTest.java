@@ -49,6 +49,8 @@ class BudgetBuilderServiceImplTest {
         assertThat(response.previewHash()).hasSize(64);
         assertThat(response.currency()).isEqualTo("ARS");
         assertThat(response.modules()).hasSize(5);
+        assertThat(response.modules().get(0).baseAmount()).isEqualByComparingTo("225.00");
+        assertThat(response.modules().get(1).baseAmount()).isEqualByComparingTo("360.00");
         assertThat(response.totalHours()).isEqualByComparingTo("60.00");
         assertThat(response.baseAmount()).isEqualByComparingTo("1038.00");
         assertThat(response.finalOneTimeTotal()).isEqualByComparingTo("1588.00");
@@ -81,6 +83,8 @@ class BudgetBuilderServiceImplTest {
         var response = service.preview(request);
 
         assertThat(response.totalHours()).isEqualByComparingTo("60.00");
+        assertThat(response.modules().extracting(module -> module.baseAmount().toPlainString()))
+            .containsExactly("300.00", "360.00", "240.00", "100.00", "180.00");
         assertThat(response.baseAmount()).isEqualByComparingTo("1180.00");
         assertThat(response.finalOneTimeTotal()).isEqualByComparingTo("1680.00");
         assertThat(response.discounts()).hasSize(1);

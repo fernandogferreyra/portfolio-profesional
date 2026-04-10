@@ -206,6 +206,7 @@ public class BudgetBuilderServiceImpl implements BudgetBuilderService {
         String previewHash = calculatePreviewHash(request, configuration, result);
         BudgetPreviewResponse response = budgetBuilderResponseMapper.toPreviewResponse(
             result,
+            configuration,
             configuration.id(),
             previewHash
         );

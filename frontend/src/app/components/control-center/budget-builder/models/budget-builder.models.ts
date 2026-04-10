@@ -247,6 +247,7 @@ export interface BudgetPreviewModuleView {
   dependencyIds: string[];
   blockingNote?: string | null;
   estimatedHours: number;
+  baseAmount: number;
 }
 
 export interface BudgetPreviewAdjustmentView {

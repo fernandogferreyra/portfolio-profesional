@@ -41,6 +41,7 @@ type BudgetPreviewApiResponse = {
     dependencyIds: string[];
     blockingNote: string | null;
     estimatedHours: number;
+    baseAmount: number;
   }>;
   surcharges: Array<{
     code: string;
@@ -319,6 +320,7 @@ export class BudgetBuilderUiFacade {
         dependencyIds: [...module.dependencyIds],
         blockingNote: module.blockingNote,
         estimatedHours: sanitizeNonNegativeNumber(module.estimatedHours),
+        baseAmount: sanitizeNonNegativeNumber(module.baseAmount),
       })),
       technicalEstimate: {
         totalHours: sanitizeNonNegativeNumber(response.totalHours),

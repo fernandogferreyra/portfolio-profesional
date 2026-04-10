@@ -183,6 +183,7 @@ describe('BudgetBuilderUiFacade', () => {
             dependencyIds: [],
             blockingNote: null,
             estimatedHours: 8,
+            baseAmount: 144,
           },
           {
             id: 'CORE_BACKEND',
@@ -192,6 +193,7 @@ describe('BudgetBuilderUiFacade', () => {
             dependencyIds: [],
             blockingNote: null,
             estimatedHours: 12,
+            baseAmount: 216,
           },
         ],
         surcharges: [
@@ -235,6 +237,7 @@ describe('BudgetBuilderUiFacade', () => {
           dependencyIds: [],
           blockingNote: null,
           estimatedHours: 8,
+          baseAmount: 144,
         },
         {
           id: 'CORE_BACKEND',
@@ -244,6 +247,7 @@ describe('BudgetBuilderUiFacade', () => {
           dependencyIds: [],
           blockingNote: null,
           estimatedHours: 12,
+          baseAmount: 216,
         },
       ],
       technicalEstimate: {

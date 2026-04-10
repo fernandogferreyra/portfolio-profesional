@@ -53,6 +53,7 @@ Estado al 2026-04-09.
 - El detalle de calculo y el rail de resultado ya se muestran solo en el paso final del presupuesto para evitar scroll largo, y el lenguaje visible se ajusto para que el modulo se lea como cotizacion real y no como dashboard conceptual.
 - `Presupuesto` ya dio otra pasada mas hacia planilla viva: el paso final ahora muestra una hoja por areas con filas por item, inclusion directa por checkbox, tiempo y costo base separados por fila, y un resumen agregado por area para leer esfuerzo/costo antes de recargos.
 - La moneda base activa del `Budget Builder` seed oficial ya es `ARS` y la UI privada la expone como referencia visible dentro del flujo.
+- El preview backend ahora devuelve tambien `baseAmount` oficial por modulo dentro de `modules`, y la planilla Angular ya consume ese valor servidor-side para costo por fila y resumen por area en vez de recalcularlo localmente.
 - En la pasada visual siguiente el editor dejo de reservar columna lateral y vuelve a usar el ancho completo del contenedor por pagina. `Detalle del calculo` se separo en una pagina propia (`Detalle final`) para no comprimir la planilla.
 - `Extras comerciales` y `Planilla por areas` ahora usan filas mas compactas con ayuda contextual via icono `i`, reduciendo scroll y texto repetido dentro de cada item.
 - La UI privada tambien localiza mas etiquetas al idioma activo en opciones visibles y nombres de bloques/areas durante el flujo.
@@ -82,7 +83,7 @@ Estado al 2026-04-09.
   - configuracion editable
   - exportacion PDF
   - nivel `basico/medio/alto` por item o por fila con soporte backend real
-  - separacion oficial de tiempo/costo por modulo desde contrato backend si queres que el breakdown deje de ser una lectura derivada en UI
+  - exponer tambien tier/nivel oficial por modulo o por fila si queres que la hoja viva soporte `basico/medio/alto` sin logica paralela en frontend
   - decidir si la ayuda contextual queda con tooltip nativo o si conviene un popover visual mas rico
 
 ### Estimador tecnico
@@ -179,6 +180,6 @@ Estado al 2026-04-09.
 
 ## 10. Proximo paso recomendado
 
-- Antes de abrir `Actualizar`, `Paginas amigas` o `Mensajeria`, cerrar una etapa mas de `Presupuesto`: nivel por item/fila y contrato backend suficiente para que la hoja viva deje de depender de derivaciones de UI para el costo por area.
+- Antes de abrir `Actualizar`, `Paginas amigas` o `Mensajeria`, cerrar una etapa mas de `Presupuesto`: nivel por item/fila y contrato backend suficiente para que la hoja viva soporte complejidad visible por bloque sin volver a derivar logica critica en UI.
 - Validar tambien esta pasada visual con zoom desktop/mobile para detectar desbordes o densidad excesiva antes de abrir otro modulo privado.
 - Para iteraciones siguientes trabajar en tres carriles claros: frontend, backend y testing, dejando handoff corto al cierre de cada ola.

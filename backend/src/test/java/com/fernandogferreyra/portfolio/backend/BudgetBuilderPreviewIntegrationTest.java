@@ -84,6 +84,8 @@ class BudgetBuilderPreviewIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.finalMonthlyTotal").value(114.00))
             .andExpect(jsonPath("$.data.modules.length()").value(5))
             .andExpect(jsonPath("$.data.modules[0].id").value("ANALYSIS_DISCOVERY"))
+            .andExpect(jsonPath("$.data.modules[0].baseAmount").value(225.00))
+            .andExpect(jsonPath("$.data.modules[1].baseAmount").value(360.00))
             .andExpect(jsonPath("$.data.surcharges.length()").value(2))
             .andExpect(jsonPath("$.data.discounts.length()").value(0));
     }
