@@ -55,6 +55,7 @@ Estado al 2026-04-09.
 - La moneda base activa del `Budget Builder` seed oficial ya es `ARS` y la UI privada la expone como referencia visible dentro del flujo.
 - El preview backend ahora devuelve tambien `baseAmount` oficial por modulo dentro de `modules`, y la planilla Angular ya consume ese valor servidor-side para costo por fila y resumen por area en vez de recalcularlo localmente.
 - En la pasada visual siguiente el editor dejo de reservar columna lateral y vuelve a usar el ancho completo del contenedor por pagina. `Detalle del calculo` se separo en una pagina propia (`Detalle final`) para no comprimir la planilla.
+- En la pasada visual mas reciente el builder se compacto bastante: controles, paddings y rail final quedaron mas densos, la paginacion bajo al pie real del layout, `Cliente y caso` dejo de duplicar `Escenario` y ahora se comporta mas como ficha con cards seleccionables, `Arquitectura y costo` volvio a mostrar complejidad como eleccion visual, y extras / soporte / planilla usan checks visibles pero compactos.
 - `Extras comerciales` y `Planilla por areas` ahora usan filas mas compactas con ayuda contextual via icono `i`, reduciendo scroll y texto repetido dentro de cada item.
 - La UI privada tambien localiza mas etiquetas al idioma activo en opciones visibles y nombres de bloques/areas durante el flujo.
 - `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
@@ -85,6 +86,7 @@ Estado al 2026-04-09.
   - nivel `basico/medio/alto` por item o por fila con soporte backend real
   - exponer tambien tier/nivel oficial por modulo o por fila si queres que la hoja viva soporte `basico/medio/alto` sin logica paralela en frontend
   - decidir si la ayuda contextual queda con tooltip nativo o si conviene un popover visual mas rico
+  - validar esta pasada visual contra zoom 100% / 75% y ajustar donde todavia se sienta sobredimensionado
 
 ### Estimador tecnico
 

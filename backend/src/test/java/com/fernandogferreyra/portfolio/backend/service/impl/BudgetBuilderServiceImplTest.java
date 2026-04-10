@@ -83,7 +83,7 @@ class BudgetBuilderServiceImplTest {
         var response = service.preview(request);
 
         assertThat(response.totalHours()).isEqualByComparingTo("60.00");
-        assertThat(response.modules().extracting(module -> module.baseAmount().toPlainString()))
+        assertThat(response.modules().stream().map(module -> module.baseAmount().toPlainString()).toList())
             .containsExactly("300.00", "360.00", "240.00", "100.00", "180.00");
         assertThat(response.baseAmount()).isEqualByComparingTo("1180.00");
         assertThat(response.finalOneTimeTotal()).isEqualByComparingTo("1680.00");

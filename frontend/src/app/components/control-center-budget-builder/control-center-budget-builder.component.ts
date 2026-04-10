@@ -139,10 +139,10 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           scopeTitle: 'Alcance y resultado',
           detailsTitle: 'Detalle del calculo',
           detailsLead:
-            'Aca se ve la formula tecnica, el desglose comercial, la explicacion aplicada y las dependencias del alcance.',
+            'Formula tecnica, desglose comercial y bloques calculados del escenario actual.',
           summaryTitle: 'Resultado',
           summaryLead:
-            'Usa este lateral para cerrar el presupuesto: total, horas, contexto y acciones.',
+            'Cierra el presupuesto desde aca: total, contexto y acciones.',
           activeRulesTitle: 'Reglas activas',
           historyTitle: 'Presupuestos guardados',
           historyLead: 'Ultimos presupuestos persistidos para volver a una decision comercial.',
@@ -226,7 +226,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
             'Resumen operativo para leer donde se va el esfuerzo y cuanto pesa cada area antes de recargos.',
           worksheetItems: 'items',
           detailPageLead:
-            'Separo la lectura final en una pagina propia para revisar numeros, formula y cierre sin comprimir la planilla.',
+            'La lectura final vive aparte para no comprimir la planilla.',
           visualHelp: 'Info',
         }
         : {
@@ -247,10 +247,10 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           scopeTitle: 'Scope and result',
           detailsTitle: 'Calculation detail',
           detailsLead:
-            'This panel shows the technical formula, the commercial breakdown, the applied explanation, and scope dependencies.',
+            'Technical formula, commercial breakdown, and calculated blocks for the current scenario.',
           summaryTitle: 'Live summary',
           summaryLead:
-            'Use this rail to negotiate fast: total, monthly billing, hours, context, and key actions.',
+            'Close the quote from here: total, context, and key actions.',
           activeRulesTitle: 'Active rules',
           historyTitle: 'Stored budgets',
           historyLead: 'Latest persisted budgets to return to a commercial decision.',
@@ -334,7 +334,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
             'Operational reading to see where the effort goes and how much each area weighs before surcharges.',
           worksheetItems: 'items',
           detailPageLead:
-            'The final reading lives on its own page so numbers, formula, and closing do not compress the worksheet.',
+            'The final reading lives apart so the worksheet stays compact.',
           visualHelp: 'Info',
         },
   );
