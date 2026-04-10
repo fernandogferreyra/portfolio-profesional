@@ -1,120 +1,88 @@
 <section class="control-center">
-  <div class="control-center__hero surface-card">
-    <div class="control-center__hero-copy">
-      <p class="section-eyebrow">{{ content().eyebrow }}</p>
+  <div class="control-center__shell">
+    <header class="control-center__topbar">
+      <aside class="control-center__intro-card">
+        <p class="control-center__eyebrow">{{ content().eyebrow }}</p>
+        <h1>{{ content().title }}</h1>
+        <p>{{ content().lead }}</p>
+      </aside>
 
-      <div class="control-center__hero-heading">
-        <h1 class="portfolio-page-title">{{ content().title }}</h1>
-        <p class="control-center__lead">{{ content().lead }}</p>
-      </div>
+      <nav class="control-center__nav-card" aria-label="Private workspace navigation">
+        <div class="control-center__nav-title">
+          <span>{{ currentLanguage() === 'es' ? 'Modulos privados' : 'Private modules' }}</span>
+        </div>
 
-      <nav class="control-center__tabs" aria-label="Private workspace navigation">
+        <div class="control-center__nav">
         <button
           type="button"
-          class="control-center__tab motion-control"
+          class="control-center__nav-item motion-control"
           *ngFor="let workspace of content().workspaces"
           [class.is-active]="activeWorkspace() === workspace.id"
           (click)="setWorkspace(workspace.id)"
         >
           <strong>{{ workspace.title }}</strong>
-          <span>{{ workspace.description }}</span>
         </button>
+        </div>
       </nav>
-    </div>
+    </header>
 
-    <div class="control-center__session portfolio-subcard">
-      <div class="control-center__session-top">
-        <span class="control-center__session-label">{{ content().statusLabel }}</span>
-        <span class="control-center__session-live">{{ content().sessionLiveLabel }}</span>
-      </div>
+    <main class="control-center__main" [ngSwitch]="activeWorkspace()">
+      <section *ngSwitchCase="'budget'" class="control-center__workspace control-center__workspace--budget">
+        <header class="control-center__workspace-head">
+          <div>
+            <p class="control-center__section-label">{{ content().budgetTitle }}</p>
+            <h2>{{ content().budgetTitle }}</h2>
+          </div>
+          <p>{{ content().budgetLead }}</p>
+        </header>
 
-      <div class="control-center__session-identity">
-        <strong>{{ authService.session()?.username || 'FERCHUZ' }}</strong>
-        <span>{{ authService.session()?.role || 'ROLE_FERCHUZ' }}</span>
-      </div>
-
-      <div class="control-center__session-grid">
-        <div class="control-center__session-item">
-          <span>{{ content().sessionUserLabel }}</span>
-          <strong>{{ authService.session()?.username || 'FERCHUZ' }}</strong>
-        </div>
-
-        <div class="control-center__session-item">
-          <span>{{ content().sessionRoleLabel }}</span>
-          <strong>{{ authService.session()?.role || 'ROLE_FERCHUZ' }}</strong>
-        </div>
-
-        <div class="control-center__session-item">
-          <span>{{ content().sessionStateLabel }}</span>
-          <strong>{{ content().sessionStateValue }}</strong>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        class="control-center__logout motion-control"
-        (click)="logout()"
-      >
-        {{ content().logoutLabel }}
-      </button>
-    </div>
-  </div>
-
-  <div class="control-center__workspace-shell" [ngSwitch]="activeWorkspace()">
-    <section *ngSwitchCase="'budget'" class="control-center__workspace surface-card">
-      <div class="control-center__workspace-head">
-        <p class="section-eyebrow">{{ content().budgetTitle }}</p>
-        <h2 class="portfolio-section-title">{{ content().budgetTitle }}</h2>
-        <p>{{ content().budgetLead }}</p>
-      </div>
-
-      <app-control-center-budget-builder></app-control-center-budget-builder>
-
-      <section class="control-center__auxiliary portfolio-subcard">
-        <div class="control-center__workspace-head control-center__workspace-head--compact">
-          <h3 class="portfolio-card-title">{{ content().estimatorNote }}</h3>
-        </div>
-        <app-control-center-estimator></app-control-center-estimator>
+        <app-control-center-budget-builder></app-control-center-budget-builder>
       </section>
-    </section>
 
-    <section *ngSwitchCase="'update'" class="control-center__workspace surface-card">
-      <div class="control-center__workspace-head">
-        <p class="section-eyebrow">{{ content().updateTitle }}</p>
-        <h2 class="portfolio-section-title">{{ content().updateTitle }}</h2>
-        <p>{{ content().updateLead }}</p>
-      </div>
+      <section *ngSwitchCase="'update'" class="control-center__workspace">
+        <header class="control-center__workspace-head">
+          <div>
+            <p class="control-center__section-label">{{ content().updateTitle }}</p>
+            <h2>{{ content().updateTitle }}</h2>
+          </div>
+          <p>{{ content().updateLead }}</p>
+        </header>
 
-      <article class="control-center__placeholder portfolio-subcard">
-        <strong>{{ content().updateTitle }}</strong>
-        <p>{{ content().placeholderReady }}</p>
-      </article>
-    </section>
+        <article class="control-center__placeholder">
+          <strong>{{ content().updateTitle }}</strong>
+          <p>{{ content().placeholderReady }}</p>
+        </article>
+      </section>
 
-    <section *ngSwitchCase="'links'" class="control-center__workspace surface-card">
-      <div class="control-center__workspace-head">
-        <p class="section-eyebrow">{{ content().linksTitle }}</p>
-        <h2 class="portfolio-section-title">{{ content().linksTitle }}</h2>
-        <p>{{ content().linksLead }}</p>
-      </div>
+      <section *ngSwitchCase="'links'" class="control-center__workspace">
+        <header class="control-center__workspace-head">
+          <div>
+            <p class="control-center__section-label">{{ content().linksTitle }}</p>
+            <h2>{{ content().linksTitle }}</h2>
+          </div>
+          <p>{{ content().linksLead }}</p>
+        </header>
 
-      <article class="control-center__placeholder portfolio-subcard">
-        <strong>{{ content().linksTitle }}</strong>
-        <p>{{ content().placeholderReady }}</p>
-      </article>
-    </section>
+        <article class="control-center__placeholder">
+          <strong>{{ content().linksTitle }}</strong>
+          <p>{{ content().placeholderReady }}</p>
+        </article>
+      </section>
 
-    <section *ngSwitchDefault class="control-center__workspace surface-card">
-      <div class="control-center__workspace-head">
-        <p class="section-eyebrow">{{ content().messagesTitle }}</p>
-        <h2 class="portfolio-section-title">{{ content().messagesTitle }}</h2>
-        <p>{{ content().messagesLead }}</p>
-      </div>
+      <section *ngSwitchDefault class="control-center__workspace">
+        <header class="control-center__workspace-head">
+          <div>
+            <p class="control-center__section-label">{{ content().messagesTitle }}</p>
+            <h2>{{ content().messagesTitle }}</h2>
+          </div>
+          <p>{{ content().messagesLead }}</p>
+        </header>
 
-      <article class="control-center__placeholder portfolio-subcard">
-        <strong>{{ content().messagesTitle }}</strong>
-        <p>{{ content().placeholderReady }}</p>
-      </article>
-    </section>
+        <article class="control-center__placeholder">
+          <strong>{{ content().messagesTitle }}</strong>
+          <p>{{ content().placeholderReady }}</p>
+        </article>
+      </section>
+    </main>
   </div>
 </section>

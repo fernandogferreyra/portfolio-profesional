@@ -61,13 +61,22 @@ export class HeaderComponent {
       : 'Open private admin access',
   );
   readonly controlCenterLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Centro de Mando' : 'Control Center',
+    this.currentLanguage() === 'es' ? 'Privado' : 'Private',
   );
   readonly adminStatusLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Admin activo' : 'Admin active',
+    this.currentLanguage() === 'es' ? 'Privado activo' : 'Private active',
   );
   readonly logoutLabel = computed(() =>
     this.currentLanguage() === 'es' ? 'Salir' : 'Logout',
+  );
+  readonly onlineStatusLabel = computed(() =>
+    this.authService.isAuthenticated()
+      ? this.currentLanguage() === 'es'
+        ? 'Online'
+        : 'Online'
+      : this.currentLanguage() === 'es'
+        ? 'Offline'
+        : 'Offline',
   );
 
   toggleLanguage(): void {

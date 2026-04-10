@@ -15,12 +15,13 @@ export class ControlCenterComponent {
   private readonly languageService = inject(LanguageService);
 
   readonly authService = inject(AuthService);
+  readonly currentLanguage = this.languageService.language;
   readonly activeWorkspace = signal<'budget' | 'update' | 'links' | 'messages'>('budget');
   readonly content = computed(() =>
     this.languageService.language() === 'es'
       ? {
           eyebrow: 'Modo privado',
-          title: 'Panel de trabajo FERCHUZ',
+          title: 'Backoffice privado FERCHUZ',
           lead: 'Espacio privado para cotizar, actualizar el portfolio y gestionar recursos utiles sin tocar codigo.',
           statusLabel: 'Sesion activa',
           sessionLiveLabel: 'Online',
@@ -72,7 +73,7 @@ export class ControlCenterComponent {
         }
       : {
           eyebrow: 'Private mode',
-          title: 'FERCHUZ work panel',
+          title: 'FERCHUZ private backoffice',
           lead: 'Private space to quote, update the portfolio, and manage useful resources without touching code.',
           statusLabel: 'Active session',
           sessionLiveLabel: 'Online',
