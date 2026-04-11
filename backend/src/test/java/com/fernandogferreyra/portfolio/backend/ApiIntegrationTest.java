@@ -1,7 +1,9 @@
 package com.fernandogferreyra.portfolio.backend;
 
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,6 +77,11 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
         org.junit.jupiter.api.Assertions.assertEquals(ContactMessageStatus.NEW, persistedMessages.get(0).getStatus());
         org.junit.jupiter.api.Assertions.assertEquals("fer@example.com", persistedMessages.get(0).getEmail());
         org.junit.jupiter.api.Assertions.assertEquals("Portfolio contact", persistedMessages.get(0).getSubject());
+        org.junit.jupiter.api.Assertions.assertEquals("portfolio-web", persistedMessages.get(0).getSource());
+        org.junit.jupiter.api.Assertions.assertEquals("contact-form", persistedMessages.get(0).getContext());
+        org.junit.jupiter.api.Assertions.assertEquals("es", persistedMessages.get(0).getLanguage());
+        org.junit.jupiter.api.Assertions.assertEquals("Mozilla/5.0", persistedMessages.get(0).getUserAgent());
+        org.junit.jupiter.api.Assertions.assertNotNull(persistedMessages.get(0).getSubmittedAt());
     }
 
     @Test
@@ -146,6 +153,76 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
                     """))
             .andExpect(status().isOk());
 
+        String accessToken = loginAsAdmin();
+
+        mockMvc.perform(get("/api/admin/events")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.message").value("Events retrieved"))
+            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data[0].type").value("section_view"))
+            .andExpect(jsonPath("$.data[0].action").value("view:projects"))
+            .andExpect(jsonPath("$.data[0].label").value("Proyectos"))
+            .andExpect(jsonPath("$.data[0].route").value("/projects"));
+    }
+
+    @Test
+    void adminCanReadAndReplyToContactMessages() throws Exception {
+        mockMvc.perform(post("/api/contact")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "name": "Ana Cliente",
+                      "email": "ana@example.com",
+                      "subject": "Consulta freelance",
+                      "message": "Necesito una propuesta para una web interna.",
+                      "source": "portfolio-web",
+                      "context": "contact-form",
+                      "language": "es",
+                      "userAgent": "Chrome",
+                      "submittedAt": "2026-04-11T10:15:00Z"
+                    }
+                    """))
+            .andExpect(status().isOk());
+
+        var messageId = contactMessageRepository.findAll().get(0).getId();
+        String accessToken = loginAsAdmin();
+
+        mockMvc.perform(get("/api/admin/contact-messages")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data", hasSize(1)))
+            .andExpect(jsonPath("$.data[0].name").value("Ana Cliente"))
+            .andExpect(jsonPath("$.data[0].status").value("NEW"));
+
+        mockMvc.perform(patch("/api/admin/contact-messages/{id}/status", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "status": "READ"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("READ"));
+
+        mockMvc.perform(post("/api/admin/contact-messages/{id}/reply", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "subject": "Re: Consulta freelance",
+                      "message": "Gracias por escribir. Te respondo hoy con mas detalle."
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("REPLIED"))
+            .andExpect(jsonPath("$.data.replyMessage").value("Gracias por escribir. Te respondo hoy con mas detalle."))
+            .andExpect(jsonPath("$.data.repliedBy").value("ferchuz"));
+    }
+
+    private String loginAsAdmin() throws Exception {
         String loginResponse = mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -159,21 +236,10 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .getResponse()
             .getContentAsString();
 
-        String accessToken = new com.fasterxml.jackson.databind.ObjectMapper()
+        return new com.fasterxml.jackson.databind.ObjectMapper()
             .readTree(loginResponse)
             .path("data")
             .path("accessToken")
             .asText();
-
-        mockMvc.perform(get("/api/admin/events")
-                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.message").value("Events retrieved"))
-            .andExpect(jsonPath("$.data.length()").value(1))
-            .andExpect(jsonPath("$.data[0].type").value("section_view"))
-            .andExpect(jsonPath("$.data[0].action").value("view:projects"))
-            .andExpect(jsonPath("$.data[0].label").value("Proyectos"))
-            .andExpect(jsonPath("$.data[0].route").value("/projects"));
     }
 }

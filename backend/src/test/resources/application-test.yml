@@ -2,6 +2,8 @@ spring:
   config:
     activate:
       on-profile: test
+  mail:
+    host: localhost
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
@@ -15,6 +17,14 @@ logging:
     com.fernandogferreyra.portfolio.backend: INFO
 
 app:
+  contact:
+    mail:
+      enabled: false
+      inbox-address: ferchuz-test@portfolio.local
+      from-address: no-reply@portfolio.local
+      auto-reply-subject-es: Gracias por contactarte
+      auto-reply-subject-en: Thanks for reaching out
+      auto-reply-signature: Fernando Ferreyra
   security:
     jwt:
       secret: ${PORTFOLIO_TEST_JWT_SECRET:${PORTFOLIO_JWT_SECRET:test-jwt-secret-key-with-minimum-length-1234567890}}

@@ -293,7 +293,7 @@ export class ContactComponent {
 
   private handleSuccess(response: ContactApiResponse): void {
     this.formState.set('success');
-    this.serverMessage.set(response.message || this.ui().formSuccessLabel);
+    this.serverMessage.set(this.ui().formSuccessLabel);
     this.contactForm.reset({
       name: '',
       email: '',

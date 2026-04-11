@@ -58,6 +58,8 @@ Estado al 2026-04-09.
 - En la pasada visual mas reciente el builder se compacto bastante: controles, paddings y rail final quedaron mas densos, la paginacion bajo al pie real del layout, `Cliente y caso` dejo de duplicar `Escenario` y ahora se comporta mas como ficha con cards seleccionables, `Arquitectura y costo` volvio a mostrar complejidad como eleccion visual, y extras / soporte / planilla usan checks visibles pero compactos.
 - `Extras comerciales` y `Planilla por areas` ahora usan filas mas compactas con ayuda contextual via icono `i`, reduciendo scroll y texto repetido dentro de cada item.
 - La UI privada tambien localiza mas etiquetas al idioma activo en opciones visibles y nombres de bloques/areas durante el flujo.
+- `Mensajeria` ya no es placeholder: el backend ahora expone inbox admin real para `contact_messages`, el formulario publico persiste mas contexto operativo, el panel privado ya puede listar, abrir, marcar estado y responder mensajes, y la capa de email quedo abstraida para activar envio real por configuracion sin romper CI/local.
+- El modal de login admin ya no arranca con `FERCHUZ` precargado como username visible.
 - `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
 - La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
 - El portfolio publico sigue operativo.
@@ -81,12 +83,16 @@ Estado al 2026-04-09.
   - stacks comerciales oficiales ya modelados en configuracion activa
   - UX por pasos con extras y mantenimiento seleccionables
 - Pendiente:
+  - configurar provider real de email para produccion (hoy el fallback por defecto es `NoOp` si no habilitas `app.contact.mail.enabled=true`)
+  - decidir si `Mensajeria` necesita notas internas, multiples replies o solo primer reply canonico
   - configuracion editable
   - exportacion PDF
   - nivel `basico/medio/alto` por item o por fila con soporte backend real
   - exponer tambien tier/nivel oficial por modulo o por fila si queres que la hoja viva soporte `basico/medio/alto` sin logica paralela en frontend
   - decidir si la ayuda contextual queda con tooltip nativo o si conviene un popover visual mas rico
   - validar esta pasada visual contra zoom 100% / 75% y ajustar donde todavia se sienta sobredimensionado
+  - abrir `Paginas amigas`, luego los 4 themes extra visibles (`Windows 11`, `Windows XP`, `Windows 98`, `Monocromatico`), y despues storage interno para uploads sin base64 basado en el patron de `MediaService`
+  - incorporar mas adelante el `Asistente` privado en el monolito, tomando como referencia la arquitectura de `GestionAsistente` y la burbuja/chat de `frontend-obrasmart2`
 
 ### Estimador tecnico
 
@@ -182,6 +188,5 @@ Estado al 2026-04-09.
 
 ## 10. Proximo paso recomendado
 
-- Antes de abrir `Actualizar`, `Paginas amigas` o `Mensajeria`, cerrar una etapa mas de `Presupuesto`: nivel por item/fila y contrato backend suficiente para que la hoja viva soporte complejidad visible por bloque sin volver a derivar logica critica en UI.
-- Validar tambien esta pasada visual con zoom desktop/mobile para detectar desbordes o densidad excesiva antes de abrir otro modulo privado.
-- Para iteraciones siguientes trabajar en tres carriles claros: frontend, backend y testing, dejando handoff corto al cierre de cada ola.
+- `Mensajeria` ya quedo abierta y operativa. La siguiente ola recomendada es `Paginas amigas`, luego themes extra visibles y luego storage/uploads para habilitar `Actualizar` sin base64.
+- Mantener el mismo criterio para las siguientes olas: frontend, backend y testing cerrados juntos, handoff corto al cierre y CI verde antes de merge.
