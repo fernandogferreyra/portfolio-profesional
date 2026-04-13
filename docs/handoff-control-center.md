@@ -59,6 +59,7 @@ Estado al 2026-04-09.
 - `Extras comerciales` y `Planilla por areas` ahora usan filas mas compactas con ayuda contextual via icono `i`, reduciendo scroll y texto repetido dentro de cada item.
 - La UI privada tambien localiza mas etiquetas al idioma activo en opciones visibles y nombres de bloques/areas durante el flujo.
 - `Mensajeria` ya no es placeholder: el backend ahora expone inbox admin real para `contact_messages`, el formulario publico persiste mas contexto operativo, el panel privado ya puede listar, abrir, marcar estado y responder mensajes, y la capa de email quedo abstraida para activar envio real por configuracion sin romper CI/local.
+- El provider recomendado para activar envio real es `Resend`. El backend ya soporta `provider=noop|smtp|resend`, con `noop` como default seguro para CI/local y `resend` listo para habilitar apenas cargues la API key y un remitente verificado.
 - El modal de login admin ya no arranca con `FERCHUZ` precargado como username visible.
 - `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
 - La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
@@ -83,7 +84,7 @@ Estado al 2026-04-09.
   - stacks comerciales oficiales ya modelados en configuracion activa
   - UX por pasos con extras y mantenimiento seleccionables
 - Pendiente:
-  - configurar provider real de email para produccion (hoy el fallback por defecto es `NoOp` si no habilitas `app.contact.mail.enabled=true`)
+  - configurar cuenta real de `Resend` y verificar remitente/dominio para que `Mensajeria` entregue emails fuera del fallback local
   - decidir si `Mensajeria` necesita notas internas, multiples replies o solo primer reply canonico
   - configuracion editable
   - exportacion PDF

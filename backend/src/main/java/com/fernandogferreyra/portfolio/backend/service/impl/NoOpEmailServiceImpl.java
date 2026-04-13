@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Primary
-@ConditionalOnProperty(prefix = "app.contact.mail", name = "enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "app.contact.mail", name = "provider", havingValue = "noop", matchIfMissing = true)
 @Slf4j
 public class NoOpEmailServiceImpl implements EmailService {
 

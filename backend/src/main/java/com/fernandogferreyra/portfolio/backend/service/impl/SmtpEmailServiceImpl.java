@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "app.contact.mail", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "app.contact.mail", name = "provider", havingValue = "smtp")
 public class SmtpEmailServiceImpl implements EmailService {
 
     private final JavaMailSender javaMailSender;
@@ -18,6 +18,10 @@ public class SmtpEmailServiceImpl implements EmailService {
 
     @Override
     public void send(EmailMessage message) {
+        if (!contactMailProperties.enabled()) {
+            return;
+        }
+
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(message.to());
         mailMessage.setSubject(message.subject());

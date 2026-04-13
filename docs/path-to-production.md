@@ -157,3 +157,28 @@ En `Settings > Rules > Rulesets > New ruleset`:
 - Integrar `release-please` cuando cierre el rescate funcional desde la copia.
 - Configurar ruleset de `main` en GitHub.
 - Mantener este documento como referencia operativa del camino a produccion.
+
+## 11. Email Transaccional
+
+- Para `Mensajeria`, el provider recomendado es `Resend`.
+- Motivo:
+  - tiene plan gratuito razonable
+  - API simple
+  - evita depender de Gmail SMTP para produccion
+  - encaja mejor con deploys tipo Render/Vercel
+
+### Variables necesarias
+
+```properties
+PORTFOLIO_CONTACT_MAIL_ENABLED=true
+PORTFOLIO_CONTACT_MAIL_PROVIDER=resend
+PORTFOLIO_CONTACT_INBOX=fernandogabrielf@gmail.com
+PORTFOLIO_CONTACT_FROM=onboarding@resend.dev
+PORTFOLIO_RESEND_API_KEY=re_xxxxx
+```
+
+### Notas
+
+- `onboarding@resend.dev` sirve para pruebas iniciales de cuenta nueva.
+- Para autorespuestas serias y entrega mas confiable, conviene verificar tu propio dominio o remitente.
+- Mientras no cargues esas variables, el backend sigue en `noop` y el inbox privado funciona sin enviar correos reales.

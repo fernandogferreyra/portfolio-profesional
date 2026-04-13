@@ -20,11 +20,14 @@ app:
   contact:
     mail:
       enabled: false
+      provider: noop
       inbox-address: ferchuz-test@portfolio.local
       from-address: no-reply@portfolio.local
       auto-reply-subject-es: Gracias por contactarte
       auto-reply-subject-en: Thanks for reaching out
       auto-reply-signature: Fernando Ferreyra
+      resend-api-key:
+      resend-base-url: https://api.resend.com
   security:
     jwt:
       secret: ${PORTFOLIO_TEST_JWT_SECRET:${PORTFOLIO_JWT_SECRET:test-jwt-secret-key-with-minimum-length-1234567890}}
