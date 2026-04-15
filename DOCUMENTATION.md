@@ -55,6 +55,12 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 ## Historial de cambios
 
 - Fecha: 2026-04-15
+  - Cambio: Se corrigio la puesta en marcha local del repo en `develop`. En frontend, `npm start` fallaba porque `frontend/node_modules` estaba incompleto y faltaba el builder `@angular/build:dev-server`; se reconstruyeron las dependencias con `npm install` ejecutado desde Windows y el dev server volvio a levantar en `http://localhost:4200`. En backend, Spring Boot no podia autenticarse contra PostgreSQL porque no existia `.env`; se creo `.env` local desde `.env.example` con credenciales dev y el backend volvio a iniciar en perfil `dev`, conectando a PostgreSQL/Flyway en `localhost:5432`.
+  - Archivos: `.env`, `DOCUMENTATION.md`
+  - Decision: Mantener la configuracion sensible fuera de Git en `.env` y ejecutar la instalacion de `frontend` con el `npm` de Windows para no mezclar binarios nativos entre WSL/Linux y PowerShell/Windows.
+  - Proximos pasos: Si la password real de PostgreSQL local no es `123456`, actualizar `PORTFOLIO_DB_PASSWORD` en `.env`. Para correr backend por Maven wrapper desde Windows, usar `JAVA_HOME` apuntando a Java 17 si el entorno no lo expone automaticamente.
+
+- Fecha: 2026-04-15
   - Cambio: Se preparo una rama de higiene sobre `develop` para sacar del tracking artefactos generados de frontend (`frontend/node_modules`, `frontend/.angular/cache`, `frontend/dist`) y el `angular.json` legacy de la raiz, ademas de reforzar `.gitignore` para que esos residuos no vuelvan a entrar al indice en ramas futuras.
   - Archivos: `.gitignore`, `angular.json`, `frontend/.angular/cache/**`, `frontend/dist/**`, `frontend/node_modules/**`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
   - Decision: Mantener la limpieza como saneamiento de tracking y reglas de ignore, sin borrar dependencias del disco fuera del control de Git. La rama funcional diaria sigue siendo `develop`.
