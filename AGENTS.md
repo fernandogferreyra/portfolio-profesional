@@ -37,6 +37,16 @@
 - El frontend solo resuelve UI, estado de pantalla y consumo HTTP.
 - No mover logica critica al frontend.
 
+## Git y ramas
+
+- La rama de integracion diaria es `develop`.
+- No trabajar directo sobre `main` ni sobre `develop` para cambios funcionales.
+- Cada cambio nuevo debe salir desde `develop` en una rama corta con nombre explicito.
+- El flujo esperado es: crear rama desde `develop` -> implementar -> validar -> push -> PR hacia `develop`.
+- `main` solo debe recibir PRs desde `develop` cuando se decida una integracion estable.
+- Despues de mergear una rama de trabajo a `develop`, borrarla si ya no tiene sentido mantenerla.
+- Evitar ramas largas paralelas si el cambio puede resolverse como una serie de ramas cortas sobre `develop`.
+
 ## Continuidad
 
 - No revisar modulos marcados como cerrados.

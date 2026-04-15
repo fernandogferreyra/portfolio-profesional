@@ -1,193 +1,67 @@
 # Handoff Control Center
 
-Estado al 2026-04-09.
+Estado al 2026-04-15.
 
 ## 1. Estado actual del proyecto
 
 - Frontend Angular 20 desacoplado en `frontend/`.
 - Backend Spring Boot 3.3.5 desacoplado en `backend/`.
-- Arquitectura backend consolidada en capas globales:
-  - `controller/`
-  - `controller/admin/`
-  - `service/`
-  - `service/impl/`
-  - `repository/`
-  - `domain/<feature>/`
-  - `dto/<feature>/`
-  - `mapper/<feature>/`
-- La carpeta `backend/src/main/java/com/fernandogferreyra/portfolio/backend/module/` ya no existe y no debe volver a existir.
-- El backend es la fuente de verdad de la logica critica; el frontend queda limitado a UI y consumo HTTP.
-- CI en GitHub Actions queda verde para frontend + backend.
-- Base de datos: PostgreSQL en local dev y en CI/test. Flyway activo.
-- Si una base local vieja rechaza `SECTION_VIEW` u otros eventos nuevos en `event_logs`, reiniciar con la migracion `V6__align_event_logs_event_type_check.sql` aplicada por Flyway.
+- Arquitectura backend consolidada en capas globales y sin `module/*`.
+- Backend como source of truth para `Budget Builder`, estimador tecnico, `Mensajeria` y analytics.
+- CI vigente para frontend + backend.
+- `develop` ya existe y fue publicada como rama integradora diaria.
+- La base funcional mas completa hoy es la linea de `feature/mensajeria`, ya absorbida como base de `develop`.
 
-## 2. Arquitectura final adoptada
+## 2. Estado funcional relevante
 
-- Frontend:
-  - vive solo en `frontend/`
-  - mantiene consumo relativo de `/api`
-  - usa proxy de desarrollo hacia `http://localhost:8080`
-- Backend:
-  - vive solo en `backend/`
-  - no usa estructura vertical por feature
-  - no usa ni debe reintroducir `module/*`
-- Regla operativa:
-  - logica oficial en backend
-  - frontend solo vista, estado de pantalla y clientes HTTP
+- `Budget Builder` privado ya opera contra backend oficial para configuracion activa, `preview`, `save`, historial y detalle.
+- `Budget Builder` ya absorbio buena parte del cotizador historico: reglas comerciales, mantenimiento, stacks oficiales, presets rapidos, planilla por areas y costos por modulo oficiales desde backend.
+- El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
+- `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
+- `Site Activity` ya es backend-first.
+- El portfolio publico sigue operativo y `ProjectsComponent` ya puede consumir `GET /api/projects`.
 
-## 3. Implementado hoy
+## 3. Decisiones tecnicas importantes
 
-- Login admin FERCHUZ operativo con JWT.
-- Ruta privada `/control-center` operativa.
-- Centro de Mando visible solo con sesion admin.
-- `Budget Builder` ya consume el backend oficial para configuracion activa, `preview`, `save`, historial y detalle.
-- `Budget Builder` ya expone tambien `surchargeRules` y `maintenancePlans` dentro de la configuracion activa para absorber gradualmente el cotizador historico.
-- `Budget Builder` ya expone presets comerciales rapidos oficiales (`essential_web`, `business_site`, `operations_tool`, `product_platform`) con `label` y `description` servidos por backend.
-- `Budget Builder` ya expone stacks comerciales oficiales (`cms_fast`, `angular_spring`, `angular_dotnet`, `full_custom`) y la UI privada ya funciona por pasos para evitar scroll largo.
-- La entrada del `Control Center` ahora usa accesos rapidos arriba y CTA directa en cada tarjeta operativa, alineada con la referencia de `ferchuz/capturas de front/panel privado.jpg`.
-- La copia funcional ya fue absorbida en backend para `Budget Builder` persistido y `quote` tecnico rico; la rama actual mantiene el repo limpio sin volver a integrar `ferchuz/`.
-- El estimador tecnico ya usa backend como source of truth para `preview` y `save`, con PERT, buffer de riesgo y dependencias visibles en UI.
-- El frontend del estimador ya volvio a consumir el contrato rico completo de `quote` (`baseHours`, `riskBufferHours`, `totalWeeks`, `assumptions`, PERT por item y dependencias) sin logica local paralela.
-- La shell del modo privado ya cambio a tabs de trabajo reales: `Presupuesto`, `Actualizar`, `Paginas amigas` y `Mensajeria`. `Presupuesto` queda como entrada principal y la estimacion tecnica pasa a mostrarse como calculadora auxiliar dentro del mismo flujo.
-- El modulo principal ya dio el siguiente paso hacia una planilla de presupuesto real: cliente, empresa y nombre del presupuesto se capturan al inicio, y el escenario/pricing empieza a resolverse con controles de formulario en vez de cards grandes.
-- El detalle de calculo y el rail de resultado ya se muestran solo en el paso final del presupuesto para evitar scroll largo, y el lenguaje visible se ajusto para que el modulo se lea como cotizacion real y no como dashboard conceptual.
-- `Presupuesto` ya dio otra pasada mas hacia planilla viva: el paso final ahora muestra una hoja por areas con filas por item, inclusion directa por checkbox, tiempo y costo base separados por fila, y un resumen agregado por area para leer esfuerzo/costo antes de recargos.
-- La moneda base activa del `Budget Builder` seed oficial ya es `ARS` y la UI privada la expone como referencia visible dentro del flujo.
-- El preview backend ahora devuelve tambien `baseAmount` oficial por modulo dentro de `modules`, y la planilla Angular ya consume ese valor servidor-side para costo por fila y resumen por area en vez de recalcularlo localmente.
-- En la pasada visual siguiente el editor dejo de reservar columna lateral y vuelve a usar el ancho completo del contenedor por pagina. `Detalle del calculo` se separo en una pagina propia (`Detalle final`) para no comprimir la planilla.
-- En la pasada visual mas reciente el builder se compacto bastante: controles, paddings y rail final quedaron mas densos, la paginacion bajo al pie real del layout, `Cliente y caso` dejo de duplicar `Escenario` y ahora se comporta mas como ficha con cards seleccionables, `Arquitectura y costo` volvio a mostrar complejidad como eleccion visual, y extras / soporte / planilla usan checks visibles pero compactos.
-- `Extras comerciales` y `Planilla por areas` ahora usan filas mas compactas con ayuda contextual via icono `i`, reduciendo scroll y texto repetido dentro de cada item.
-- La UI privada tambien localiza mas etiquetas al idioma activo en opciones visibles y nombres de bloques/areas durante el flujo.
-- `Mensajeria` ya no es placeholder: el backend ahora expone inbox admin real para `contact_messages`, el formulario publico persiste mas contexto operativo, el panel privado ya puede listar, abrir, marcar estado y responder mensajes, y la capa de email quedo abstraida para activar envio real por configuracion sin romper CI/local.
-- El provider recomendado para activar envio real es `Resend`. El backend ya soporta `provider=noop|smtp|resend`, con `noop` como default seguro para CI/local y `resend` listo para habilitar apenas cargues la API key y un remitente verificado.
-- El modal de login admin ya no arranca con `FERCHUZ` precargado como username visible.
-- `Actividad del Sitio` ya quedo backend-first: escritura publica via `POST /api/events`, lectura admin via `GET /api/admin/events` y sin persistencia local como fuente paralela.
-- La seccion vieja del cotizador comercial local ya no se renderiza en la pantalla principal del `Control Center`.
-- El portfolio publico sigue operativo.
-- La vista publica de proyectos ya queda preparada para consumir `GET /api/projects` de forma incremental sin perder el detalle rico que todavia vive en frontend.
+- Frontend vive solo en `frontend/` y mantiene consumo relativo de `/api`.
+- Backend vive solo en `backend/` y no debe reintroducir `module/*`.
+- La logica critica no debe volver al frontend.
+- Estrategia Git adoptada:
+  - `develop` es la rama integradora diaria.
+  - Las nuevas ramas deben nacer desde `develop`.
+  - Los PRs normales van hacia `develop`.
+  - `main` recibe solo PRs desde `develop` cuando se quiera integrar una version estable.
 
-## 4. Estado funcional relevante
+## 4. Problemas detectados y deudas tecnicas
 
-### Budget Builder
+- Parte del historial reciente sigue repartido en ramas historicas, de backup o de higiene que deberian limpiarse cuando ya no aporten nada.
+- El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
+- Faltan `Paginas amigas`, themes extra visibles, PDF y storage/uploads para `Actualizar`.
+- La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
 
-- Backend oficial activo para configuracion, `preview`, `save`, `list` y `detail`.
-- Endpoint admin protegido disponible.
-- Engine, configuracion, pricing y persistencia viven en backend.
-- El frontend ya no calcula el flujo oficial en runtime.
-- La logica comercial ya refleja la referencia funcional de `ferchuz/`:
-  - pricing por categoria
-  - cargos fijos
-  - soporte mensual
-  - modo SaaS con recupero, infraestructura, margen, escala de usuarios y horas extra
-  - base inicial para extras comerciales y mantenimiento heredados del cotizador historico
-  - presets comerciales rapidos ya modelados en configuracion activa
-  - stacks comerciales oficiales ya modelados en configuracion activa
-  - UX por pasos con extras y mantenimiento seleccionables
-- Pendiente:
-  - configurar cuenta real de `Resend` y verificar remitente/dominio para que `Mensajeria` entregue emails fuera del fallback local
-  - decidir si `Mensajeria` necesita notas internas, multiples replies o solo primer reply canonico
-  - configuracion editable
-  - exportacion PDF
-  - nivel `basico/medio/alto` por item o por fila con soporte backend real
-  - exponer tambien tier/nivel oficial por modulo o por fila si queres que la hoja viva soporte `basico/medio/alto` sin logica paralela en frontend
-  - decidir si la ayuda contextual queda con tooltip nativo o si conviene un popover visual mas rico
-  - validar esta pasada visual contra zoom 100% / 75% y ajustar donde todavia se sienta sobredimensionado
-  - abrir `Paginas amigas`, luego los 4 themes extra visibles (`Windows 11`, `Windows XP`, `Windows 98`, `Monocromatico`), y despues storage interno para uploads sin base64 basado en el patron de `MediaService`
-  - incorporar mas adelante el `Asistente` privado en el monolito, tomando como referencia la arquitectura de `GestionAsistente` y la burbuja/chat de `frontend-obrasmart2`
+## 5. Proximos pasos recomendados
 
-### Estimador tecnico
-
-- Preview y save alineados contra backend.
-- El frontend ya no conserva motor tecnico visible como fuente de verdad.
-- `QuoteService` consume backend para ambos flujos.
-- La formula ya refleja la referencia funcional relevada:
-  - PERT por bloque
-  - buffer fijo de riesgo
-  - timeline en semanas
-  - dependencias/notas de bloqueo visibles
-- Pendiente:
-  - evolucion funcional dentro del dashboard privado sin romper el contrato vigente
-  - limpieza posterior de residuos frontend no visibles del flujo historico
-
-## 5. Endpoints/backend ya disponibles
-
-- Publicos:
-  - `GET /api/health`
-  - `POST /api/auth/login`
-  - `GET /api/projects`
-  - `POST /api/contact`
-  - `POST /api/events`
-  - `POST /api/quote`
-- Admin:
-  - `GET /api/admin/events`
-  - `GET /api/admin/quotes`
-  - `GET /api/admin/quotes/{id}`
-  - `POST /api/admin/quotes/preview`
-- `POST /api/admin/budget-builder/preview`
-- `POST /api/admin/budget-builder`
-- `GET /api/admin/budget-builder`
-- `GET /api/admin/budget-builder/{id}`
-- `GET /api/admin/budget-builder/configuration/active`
-
-## 5.1 Documentos de trabajo activos
-
-- `docs/budget-builder-parity.md` define la estrategia de consolidacion del cotizador historico dentro de `Budget Builder` y el criterio de retiro seguro.
+- Trabajar desde `develop` con ramas cortas por alcance.
+- Abrir la siguiente ola funcional en `Paginas amigas`.
+- Despues seguir con themes extra visibles y luego storage/uploads para `Actualizar`.
+- Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
+- Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 
 ## 6. CI y validacion
 
-- CI actual:
-  - ejecuta frontend desde `frontend/`
-  - ejecuta backend desde `backend/`
-  - usa artifact `frontend/dist/portfolio-ferchuz/browser`
-  - activa backend con `SPRING_PROFILES_ACTIVE=dev`
-- Validacion local vigente:
-- `backend\mvnw.cmd test` OK con Docker Desktop encendido y `JAVA_HOME=C:\Program Files\Java\jdk-17`
-- `backend\mvnw.cmd package` OK
-- `npm run build` en `frontend/` OK
-- `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`)
-- Nota operativa local:
-  - backend test ahora queda preparado para Testcontainers; si Docker esta disponible ya no depende de `PORTFOLIO_TEST_DB_*`
-  - la base de integracion usa un unico PostgreSQL Testcontainer compartido para toda la suite y evita reciclar pools hacia puertos viejos entre clases
-- Nota operativa WSL/Linux:
-  - el repo ahora fija Node `20.19.0` en `.nvmrc`
-  - no reutilizar `frontend/node_modules` entre Windows y WSL por dependencias nativas como `esbuild`
-  - la nueva base de tests backend usa Testcontainers, por lo que Docker debe estar disponible en el entorno que ejecute `test`
-  - El contexto Spring ya no falla por duplicados legacy.
-
-## 7. Deuda funcional pendiente
-
-- Presupuestos PDF.
-- Mensajeria real.
-- Docker / deploy.
-- Configuracion editable del motor comercial y tecnico.
-- Limpieza posterior de residuos frontend no visibles del cotizador local historico.
-- Resolucion futura de warnings de budgets en Angular.
-- Integrar presets comerciales rapidos y stacks comerciales del cotizador historico dentro del backend oficial de `Budget Builder`.
-
-## 8. Como levantar el proyecto
-
-- Backend dev:
-  - requisito: PostgreSQL local disponible
-  - `cd backend`
-  - `$env:SPRING_PROFILES_ACTIVE='dev'`
-  - `.\mvnw.cmd spring-boot:run`
 - Frontend:
-  - `cd frontend`
-  - `npm start`
-- Credenciales dev:
-  - usuario: `ferchuz`
-  - password: `ferchuz-dev-password`
+  - `npm run build`
+  - `npm test -- --watch=false --browsers=ChromeHeadless`
+- Backend:
+  - `mvnw.cmd test` en Windows o wrapper equivalente con entorno valido
+  - `mvnw.cmd package`
+- Revisar CI verde antes de mergear a `develop` o `main`.
 
-## 9. Que no romper
+## 7. Que no romper
 
 - No reintroducir `module/*`.
 - No mover logica critica al frontend.
-- No romper el contrato actual de admin `ROLE_FERCHUZ`.
+- No romper el contrato admin `ROLE_FERCHUZ`.
 - No hardcodear URLs absolutas al backend en frontend; mantener `/api`.
-- No mezclar nuevamente `Budget Builder`, cotizador comercial y estimador tecnico.
-- No tocar el portfolio publico si el cambio no lo requiere.
-
-## 10. Proximo paso recomendado
-
-- `Mensajeria` ya quedo abierta y operativa. La siguiente ola recomendada es `Paginas amigas`, luego themes extra visibles y luego storage/uploads para habilitar `Actualizar` sin base64.
-- Mantener el mismo criterio para las siguientes olas: frontend, backend y testing cerrados juntos, handoff corto al cierre y CI verde antes de merge.
+- No mezclar de nuevo cotizador comercial y estimador tecnico.
+- No abrir ramas nuevas desde ramas historicas si `develop` ya existe.
