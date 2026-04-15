@@ -54,6 +54,12 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 
 ## Historial de cambios
 
+- Fecha: 2026-04-15
+  - Cambio: Se preparo una rama de higiene sobre `develop` para sacar del tracking artefactos generados de frontend (`frontend/node_modules`, `frontend/.angular/cache`, `frontend/dist`) y el `angular.json` legacy de la raiz, ademas de reforzar `.gitignore` para que esos residuos no vuelvan a entrar al indice en ramas futuras.
+  - Archivos: `.gitignore`, `angular.json`, `frontend/.angular/cache/**`, `frontend/dist/**`, `frontend/node_modules/**`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Mantener la limpieza como saneamiento de tracking y reglas de ignore, sin borrar dependencias del disco fuera del control de Git. La rama funcional diaria sigue siendo `develop`.
+  - Proximos pasos: Mergear esta limpieza a `develop`, evitar volver a trackear artefactos generados y despues reevaluar si todavia tiene sentido conservar ramas backup relacionadas.
+
 - Fecha: 2026-04-14
   - Cambio: Se formalizo la estrategia de branching del repo para salir del estado fragmentado de ramas historicas. `AGENTS.md` ahora fija `develop` como rama integradora diaria, se recreo `docs/path-to-production.md` con el flujo operativo `feature/* -> develop -> main`, y `docs/handoff-control-center.md` se reescribio para dejar asentado que la base recomendada de integracion es `feature/mensajeria` por contener la linea mas completa de `Budget Builder` + `Mensajeria`.
   - Archivos: `AGENTS.md`, `docs/path-to-production.md`, `docs/handoff-control-center.md`, `DOCUMENTATION.md`

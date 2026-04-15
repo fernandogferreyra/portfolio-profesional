@@ -9,8 +9,11 @@ Estado al 2026-04-15.
 - Arquitectura backend consolidada en capas globales y sin `module/*`.
 - Backend como source of truth para `Budget Builder`, estimador tecnico, `Mensajeria` y analytics.
 - CI vigente para frontend + backend.
+- Base de datos: PostgreSQL en local dev y en CI/test. Flyway activo.
+- Si una base local vieja rechaza `SECTION_VIEW` u otros eventos nuevos en `event_logs`, reiniciar con la migracion `V6__align_event_logs_event_type_check.sql` aplicada por Flyway.
 - `develop` ya existe y fue publicada como rama integradora diaria.
 - La base funcional mas completa hoy es la linea de `feature/mensajeria`, ya absorbida como base de `develop`.
+- La limpieza Git para destrackear artefactos generados de `frontend/` y el `angular.json` legacy de la raiz se integra sobre `develop` via PR dedicado.
 
 ## 2. Estado funcional relevante
 
