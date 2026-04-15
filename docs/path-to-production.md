@@ -58,6 +58,15 @@ cd backend
   - revisar checks
   - revisar comentarios pendientes
 
+## 3.1 Branching oficial
+
+- `main`: rama estable de release.
+- `develop`: rama integradora diaria.
+- `feature/*`, `fix/*`, `chore/*`: ramas cortas creadas desde `develop`.
+- Los PRs normales deben ir hacia `develop`.
+- `main` debe recibir solo PRs desde `develop`.
+- Despues de mergear una rama corta a `develop`, borrarla si ya no tiene sentido mantenerla.
+
 ### Reglas recomendadas para `main`
 
 - bloquear merges directos a `main`
@@ -132,14 +141,16 @@ En `Settings > Rules > Rulesets > New ruleset`:
 
 ## 8. Flujo Operativo Recomendado
 
-1. Abrir etapa acotada.
-2. Implementar.
-3. Ejecutar tests relevantes.
-4. Actualizar `DOCUMENTATION.md` y handoff.
-5. Crear commit pequeno y claro.
-6. Push.
-7. Abrir/revisar PR.
-8. Merge solo con checks verdes.
+1. Crear rama corta desde `develop`.
+2. Abrir etapa acotada.
+3. Implementar.
+4. Ejecutar tests relevantes.
+5. Actualizar `DOCUMENTATION.md` y handoff.
+6. Crear commit pequeno y claro.
+7. Push.
+8. Abrir/revisar PR hacia `develop`.
+9. Merge solo con checks verdes.
+10. Cuando `develop` este lista, abrir PR de `develop` hacia `main`.
 
 ## 9. Checklist Antes de Merge
 
