@@ -52,6 +52,12 @@ Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/
 
 ## Historial de cambios
 
+- Fecha: 2026-04-15
+  - Cambio: Se preparo una rama de higiene sobre `develop` para sacar del tracking artefactos generados de frontend (`frontend/node_modules`, `frontend/.angular/cache`, `frontend/dist`) y el `angular.json` legacy de la raiz, ademas de reforzar `.gitignore` para que esos residuos no vuelvan a entrar al indice en ramas futuras.
+  - Archivos: `.gitignore`, `angular.json`, `frontend/.angular/cache/**`, `frontend/dist/**`, `frontend/node_modules/**`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Mantener la limpieza como saneamiento de tracking y reglas de ignore, sin borrar dependencias del disco fuera del control de Git. La rama funcional diaria sigue siendo `develop`.
+  - Proximos pasos: Abrir PR de esta limpieza hacia `develop`, mergear y despues reevaluar si todavia tiene sentido conservar `feature/paginas-amigas`, `base/clean-mainline`, `chore/repo-cleanup` y ramas backup relacionadas.
+
 - Fecha: 2026-04-10
   - Cambio: Se completo la parte faltante de entrega real de correo para `Mensajeria`: el backend ahora soporta `app.contact.mail.provider=noop|smtp|resend`, se incorporo `ResendEmailServiceImpl` via HTTP contra `https://api.resend.com/emails`, y `.env.example` / `application-dev.yml` / `docs/path-to-production.md` documentan como activar `Resend` con variables de entorno sin afectar CI ni el fallback local. `Resend` queda como recomendacion operativa porque tiene plan gratuito razonable y evita depender de Gmail SMTP para produccion.
   - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/ContactMailProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/NoOpEmailServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/SmtpEmailServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/ResendEmailServiceImpl.java`, `backend/src/main/resources/application.yml`, `backend/src/main/resources/application-dev.yml`, `backend/src/test/resources/application-test.yml`, `.env.example`, `docs/path-to-production.md`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`

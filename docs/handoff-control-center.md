@@ -20,6 +20,7 @@ Estado al 2026-04-09.
 - CI en GitHub Actions queda verde para frontend + backend.
 - Base de datos: PostgreSQL en local dev y en CI/test. Flyway activo.
 - Si una base local vieja rechaza `SECTION_VIEW` u otros eventos nuevos en `event_logs`, reiniciar con la migracion `V6__align_event_logs_event_type_check.sql` aplicada por Flyway.
+- Sigue pendiente absorber en `develop` la limpieza Git para destrackear artefactos generados de `frontend/` y el `angular.json` legacy de la raiz.
 
 ## 2. Arquitectura final adoptada
 
