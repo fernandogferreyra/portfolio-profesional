@@ -50,14 +50,27 @@ Validacion actual cerrada:
 
 Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/deploy y limpieza posterior de residuos frontend no visibles.
 
+Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la rama integradora diaria, las ramas nuevas deben nacer desde `develop` y volver por PR a `develop`, y `main` solo debe recibir PRs desde `develop` cuando se quiera integrar una version estable.
+
 ## Historial de cambios
 
 - Fecha: 2026-04-15
   - Cambio: Se preparo una rama de higiene sobre `develop` para sacar del tracking artefactos generados de frontend (`frontend/node_modules`, `frontend/.angular/cache`, `frontend/dist`) y el `angular.json` legacy de la raiz, ademas de reforzar `.gitignore` para que esos residuos no vuelvan a entrar al indice en ramas futuras.
   - Archivos: `.gitignore`, `angular.json`, `frontend/.angular/cache/**`, `frontend/dist/**`, `frontend/node_modules/**`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
   - Decision: Mantener la limpieza como saneamiento de tracking y reglas de ignore, sin borrar dependencias del disco fuera del control de Git. La rama funcional diaria sigue siendo `develop`.
-  - Proximos pasos: Abrir PR de esta limpieza hacia `develop`, mergear y despues reevaluar si todavia tiene sentido conservar `feature/paginas-amigas`, `base/clean-mainline`, `chore/repo-cleanup` y ramas backup relacionadas.
+  - Proximos pasos: Mergear esta limpieza a `develop`, evitar volver a trackear artefactos generados y despues reevaluar si todavia tiene sentido conservar ramas backup relacionadas.
 
+- Fecha: 2026-04-14
+  - Cambio: Se formalizo la estrategia de branching del repo para salir del estado fragmentado de ramas historicas. `AGENTS.md` ahora fija `develop` como rama integradora diaria, se recreo `docs/path-to-production.md` con el flujo operativo `feature/* -> develop -> main`, y `docs/handoff-control-center.md` se reescribio para dejar asentado que la base recomendada de integracion es `feature/mensajeria` por contener la linea mas completa de `Budget Builder` + `Mensajeria`.
+  - Archivos: `AGENTS.md`, `docs/path-to-production.md`, `docs/handoff-control-center.md`, `DOCUMENTATION.md`
+  - Decision: Dejar de usar ramas historicas largas como base de trabajo y pasar a un modelo estable `main` + `develop` + ramas cortas. La absorcion de ramas viejas pasa a ser una tarea de ordenamiento puntual, no el flujo normal de desarrollo.
+  - Proximos pasos: Trabajar desde `develop`, abrir PRs futuros siempre contra `develop` y borrar ramas de backup/higiene cuando ya no aporten nada.
+
+- Fecha: 2026-04-14
+  - Cambio: Se ejecuto una limpieza de repo aislada en rama de higiene para sacar del indice Git el ruido que seguia contaminando ramas y CI aunque `.gitignore` ya lo declaraba ignorado. Se removieron del tracking `frontend/node_modules`, `frontend/dist`, `frontend/.angular/cache`, el frontend Angular legacy de la raiz (`src/**`, `public/**`, `angular.json`, `package*.json`, `proxy.conf.json`, `tsconfig*.json`) y `portfolio-profesional.code-workspace`. Antes de la limpieza se respaldo el avance local en una rama backup y en un `git stash` con `-u` para no perder cambios reales ni no trackeados.
+  - Archivos: `.gitignore`, `DOCUMENTATION.md`
+  - Decision: Mantener la limpieza como cambio de indice y no como borrado fisico de archivos locales. El objetivo es que `main` y las ramas futuras nazcan limpias, sin artefactos de entorno ni workspace files locales mezclados con cambios funcionales.
+  - Proximos pasos: Crear el commit de limpieza, integrarlo primero en la base compartida, y despues abrir ramas chicas por mejora sobre esa base ya saneada para evitar volver a mezclar higiene Git con trabajo funcional.
 - Fecha: 2026-04-10
   - Cambio: Se completo la parte faltante de entrega real de correo para `Mensajeria`: el backend ahora soporta `app.contact.mail.provider=noop|smtp|resend`, se incorporo `ResendEmailServiceImpl` via HTTP contra `https://api.resend.com/emails`, y `.env.example` / `application-dev.yml` / `docs/path-to-production.md` documentan como activar `Resend` con variables de entorno sin afectar CI ni el fallback local. `Resend` queda como recomendacion operativa porque tiene plan gratuito razonable y evita depender de Gmail SMTP para produccion.
   - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/config/ContactMailProperties.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/NoOpEmailServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/SmtpEmailServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/ResendEmailServiceImpl.java`, `backend/src/main/resources/application.yml`, `backend/src/main/resources/application-dev.yml`, `backend/src/test/resources/application-test.yml`, `.env.example`, `docs/path-to-production.md`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
