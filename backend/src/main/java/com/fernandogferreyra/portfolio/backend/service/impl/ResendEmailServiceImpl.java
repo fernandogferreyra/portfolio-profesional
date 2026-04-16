@@ -6,9 +6,13 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -36,16 +40,30 @@ public class ResendEmailServiceImpl implements EmailService {
             message.replyTo() == null || message.replyTo().isBlank() ? null : List.of(message.replyTo())
         );
 
-        restClientBuilder
-            .baseUrl(contactMailProperties.resendBaseUrl())
-            .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + contactMailProperties.resendApiKey())
-            .build()
-            .post()
-            .uri("/emails")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(payload)
-            .retrieve()
-            .toBodilessEntity();
+        try {
+            restClientBuilder
+                .baseUrl(contactMailProperties.resendBaseUrl())
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + contactMailProperties.resendApiKey())
+                .build()
+                .post()
+                .uri("/emails")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(payload)
+                .retrieve()
+                .toBodilessEntity();
+        } catch (RestClientResponseException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Email provider rejected the request",
+                exception
+            );
+        } catch (RestClientException exception) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_GATEWAY,
+                "Email provider request failed",
+                exception
+            );
+        }
     }
 
     private record ResendEmailRequest(

@@ -48,11 +48,17 @@ Validacion actual cerrada:
 - Se agrego la base de `release-please` como monorepo para `frontend` y `backend`, con workflow dedicado, manifest, config y changelogs separados por componente.
 - Se agrego `.github/pull_request_template.md` y se dejaron documentadas las rules sugeridas para `main` dentro de `docs/path-to-production.md`.
 
-Quedan pendientes funcionales fuera de este corte: PDF, mensajeria real, docker/deploy y limpieza posterior de residuos frontend no visibles.
+Quedan pendientes funcionales fuera de este corte: PDF, envio transaccional a terceros con dominio verificado en `Resend` (o provider alternativo), docker/deploy y limpieza posterior de residuos frontend no visibles.
 
 Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la rama integradora diaria, las ramas nuevas deben nacer desde `develop` y volver por PR a `develop`, y `main` solo debe recibir PRs desde `develop` cuando se quiera integrar una version estable.
 
 ## Historial de cambios
+
+- Fecha: 2026-04-16
+  - Cambio: Se cerro una correccion puntual de runtime sobre `Mensajeria` al activar `Resend` en local. El `POST /api/contact` ya no cae por un `500` cuando el provider rechaza el correo saliente: la persistencia del mensaje y la bandeja interna siguen exitosas, los rechazos del provider quedan degradados a warning operativo y `ResendEmailServiceImpl` ahora traduce mejor los errores HTTP del provider para dejar trazabilidad util en logs. Tambien se confirmo operativamente que la cuenta actual de `Resend` solo permite enviar a `fernandogabrielf@gmail.com` en modo testing; por eso la notificacion al inbox funciona, pero el `autoreply` y el `reply` hacia terceros siguen bloqueados hasta verificar un dominio propio y usar un `from` de ese dominio.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/ContactServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/service/impl/ResendEmailServiceImpl.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/exception/GlobalExceptionHandler.java`, `DOCUMENTATION.md`
+  - Decision: Mantener `Resend` como provider local de validacion, pero no dejar que un rechazo del mail provider rompa la captura principal del contacto. El sistema prioriza guardar el mensaje y mostrarlo en `Mensajeria`; la entrega a terceros queda como restriccion externa del provider hasta verificar dominio.
+  - Proximos pasos: Cuando exista dominio propio verificable, cargarlo en `Resend`, cambiar `PORTFOLIO_CONTACT_FROM` a un correo de ese dominio y revalidar `autoreply` + `reply` a destinatarios externos.
 
 - Fecha: 2026-04-15
   - Cambio: Se corrigio la puesta en marcha local del repo en `develop`. En frontend, `npm start` fallaba porque `frontend/node_modules` estaba incompleto y faltaba el builder `@angular/build:dev-server`; se reconstruyeron las dependencias con `npm install` ejecutado desde Windows y el dev server volvio a levantar en `http://localhost:4200`. En backend, Spring Boot no podia autenticarse contra PostgreSQL porque no existia `.env`; se creo `.env` local desde `.env.example` con credenciales dev y el backend volvio a iniciar en perfil `dev`, conectando a PostgreSQL/Flyway en `localhost:5432`.
