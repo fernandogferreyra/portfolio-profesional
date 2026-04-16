@@ -42,8 +42,7 @@ public class ContactServiceImpl implements ContactService {
         ContactMessage contactMessage = contactMessageMapper.toEntity(request);
         ContactMessage savedMessage = contactMessageRepository.save(contactMessage);
 
-        sendInboxNotification(savedMessage);
-        sendAutoReply(savedMessage);
+        deliverPostSubmitEmails(savedMessage);
 
         log.info("Contact message persisted with id={} from {}", savedMessage.getId(), savedMessage.getEmail());
         return contactMessageMapper.toResponse(savedMessage);
@@ -137,6 +136,20 @@ public class ContactServiceImpl implements ContactService {
             resolveAutoReplySubject(message.getLanguage()),
             buildAutoReplyBody(message)
         ));
+    }
+
+    private void deliverPostSubmitEmails(ContactMessage message) {
+        try {
+            sendInboxNotification(message);
+        } catch (Exception exception) {
+            log.warn("Unable to send inbox notification for contact message id={}", message.getId(), exception);
+        }
+
+        try {
+            sendAutoReply(message);
+        } catch (Exception exception) {
+            log.warn("Unable to send auto-reply for contact message id={} recipient={}", message.getId(), message.getEmail(), exception);
+        }
     }
 
     private String resolveAutoReplySubject(String language) {
