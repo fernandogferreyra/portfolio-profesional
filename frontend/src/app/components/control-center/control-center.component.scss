@@ -4,14 +4,14 @@
 }
 
 .control-center {
-  --tool-surface: color-mix(in srgb, #130c13 92%, transparent);
-  --tool-panel: color-mix(in srgb, #1b121b 96%, transparent);
-  --tool-border: rgba(255, 255, 255, 0.08);
-  --tool-border-strong: rgba(255, 255, 255, 0.14);
-  --tool-text: #f7ecf4;
-  --tool-muted: #b9a5b6;
-  --tool-accent: #ff4f87;
-  --tool-accent-soft: rgba(255, 79, 135, 0.12);
+  --tool-surface: color-mix(in srgb, var(--theme-panel-bg) 94%, transparent);
+  --tool-panel: color-mix(in srgb, var(--theme-panel-bg) 98%, transparent);
+  --tool-border: var(--theme-panel-border);
+  --tool-border-strong: var(--color-border-hover);
+  --tool-text: var(--color-text);
+  --tool-muted: var(--color-text-muted);
+  --tool-accent: var(--color-primary);
+  --tool-accent-soft: var(--color-primary-soft);
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
@@ -29,9 +29,10 @@
 .control-center__topbar,
 .control-center__workspace,
 .control-center__placeholder {
-  border: 1px solid var(--tool-border);
+  border: 1px var(--theme-border-style) var(--tool-border);
   background: var(--tool-panel);
   color: var(--tool-text);
+  box-shadow: var(--theme-shadow-md);
 }
 
 .control-center__topbar {
@@ -52,9 +53,9 @@
 
 .control-center__intro-card,
 .control-center__nav-card {
-  padding: 1rem;
-  border-radius: 24px;
-  border: 1px solid var(--tool-border);
+  padding: calc(1rem * var(--theme-spacing-density));
+  border-radius: var(--radius-xl);
+  border: 1px var(--theme-border-style) var(--tool-border);
   background: var(--tool-panel);
 }
 
@@ -112,8 +113,8 @@
   justify-content: center;
   min-height: 3rem;
   padding: 0.65rem 0.85rem;
-  border-radius: 14px;
-  border: 1px solid var(--tool-border);
+  border-radius: var(--radius-md);
+  border: 1px var(--theme-border-style) var(--tool-border);
   background: color-mix(in srgb, var(--tool-surface) 94%, transparent);
   text-align: center;
 }
@@ -136,8 +137,8 @@
 
 .control-center__workspace {
   min-height: calc(100vh - 7.4rem);
-  padding: 1rem;
-  border-radius: 24px;
+  padding: calc(1rem * var(--theme-spacing-density));
+  border-radius: var(--radius-xl);
   min-width: 0;
   overflow-x: clip;
 }
@@ -147,8 +148,66 @@
 }
 
 .control-center__placeholder {
-  padding: 1rem;
-  border-radius: 18px;
+  padding: calc(1rem * var(--theme-spacing-density));
+  border-radius: var(--radius-lg);
+}
+
+:host-context([data-theme='themeLightWorkbench']) {
+  .control-center {
+    --tool-surface: var(--theme-panel-bg);
+    --tool-panel: var(--theme-panel-bg);
+  }
+
+  .control-center__topbar,
+  .control-center__workspace,
+  .control-center__placeholder,
+  .control-center__intro-card,
+  .control-center__nav-card,
+  .control-center__nav-item {
+    box-shadow: none;
+  }
+}
+
+:host-context([data-theme='themeLinuxTerminal']),
+:host-context([data-theme='themeCmd']) {
+  .control-center__topbar,
+  .control-center__workspace,
+  .control-center__placeholder,
+  .control-center__intro-card,
+  .control-center__nav-card,
+  .control-center__nav-item {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+:host-context([data-theme='themeWin98']) {
+  .control-center {
+    --tool-surface: #c0c0c0;
+    --tool-panel: #c0c0c0;
+  }
+
+  .control-center__topbar,
+  .control-center__workspace,
+  .control-center__placeholder,
+  .control-center__intro-card,
+  .control-center__nav-card,
+  .control-center__nav-item {
+    border-radius: 0;
+    border-style: outset;
+    box-shadow: none;
+  }
+
+  .control-center__nav-item.is-active {
+    border-style: inset;
+  }
+}
+
+:host-context([data-theme='themeWinXP']) {
+  .control-center {
+    --tool-surface: #edf4ff;
+    --tool-panel: linear-gradient(180deg, #ffffff 0%, #edf4ff 100%);
+  }
 }
 
 @media (max-width: 1100px) {
