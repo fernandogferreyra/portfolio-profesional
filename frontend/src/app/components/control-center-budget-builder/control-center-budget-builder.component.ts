@@ -44,6 +44,16 @@ type WorkbenchModuleOption = {
   included: boolean;
 };
 
+type EstimatorRow = {
+  id: string;
+  name: string;
+  optimistic: number;
+  mostLikely: number;
+  pessimistic: number;
+  tpe: number;
+  included: boolean;
+};
+
 function safeNumber(value: number | null | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
@@ -68,6 +78,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     client: this.formBuilder.nonNullable.control(''),
     companyName: this.formBuilder.nonNullable.control(''),
     budgetName: this.formBuilder.nonNullable.control(''),
+    presentationCurrency: this.formBuilder.nonNullable.control<'ARS' | 'USD'>('ARS'),
     projectType: this.formBuilder.nonNullable.control(''),
     pricingMode: this.formBuilder.nonNullable.control<BudgetPricingMode>('PROJECT'),
     desiredStackId: this.formBuilder.nonNullable.control(''),
@@ -84,6 +95,9 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   });
   readonly moduleSelection = this.formBuilder.record({});
   readonly extraSelection = this.formBuilder.record({});
+  readonly estimateOptimistic = this.formBuilder.record({});
+  readonly estimateMostLikely = this.formBuilder.record({});
+  readonly estimatePessimistic = this.formBuilder.record({});
 
   readonly configuration = signal<BudgetBuilderConfigView | null>(null);
   readonly loadingConfiguration = signal(true);
@@ -139,6 +153,8 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           clientNameLabel: 'Cliente',
           companyNameLabel: 'Empresa',
           budgetNameLabel: 'Nombre del presupuesto',
+          presentationCurrencyLabel: 'Moneda de presentación',
+          presentationCurrencyNote: 'Solo cambia la lectura visual. El cálculo oficial sigue viniendo del backend.',
           projectTypeLabel: 'Tipo de proyecto',
           pricingModeLabel: 'Modelo comercial',
           stackLabel: 'Stack / tecnologia',
@@ -210,6 +226,13 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           areaSummaryLead:
             'Resumen operativo para leer donde se va el esfuerzo y cuanto pesa cada area antes de recargos.',
           worksheetItems: 'items',
+          estimatorTitle: 'Estimador operativo',
+          estimatorLead:
+            'Bloque auxiliar para discutir O, M, P y TPE por módulo sin reemplazar el cálculo oficial.',
+          estimatorOptimistic: 'O',
+          estimatorMostLikely: 'M',
+          estimatorPessimistic: 'P',
+          estimatorTpe: 'TPE',
           detailPageLead:
             'La lectura final vive aparte para no comprimir la planilla.',
           visualHelp: 'Info',
@@ -247,6 +270,8 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           clientNameLabel: 'Client',
           companyNameLabel: 'Company',
           budgetNameLabel: 'Budget name',
+          presentationCurrencyLabel: 'Presentation currency',
+          presentationCurrencyNote: 'Only changes the visual reading. Official pricing still comes from the backend.',
           projectTypeLabel: 'Project type',
           pricingModeLabel: 'Commercial model',
           stackLabel: 'Stack / technology',
@@ -318,6 +343,13 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           areaSummaryLead:
             'Operational reading to see where the effort goes and how much each area weighs before surcharges.',
           worksheetItems: 'items',
+          estimatorTitle: 'Operational estimator',
+          estimatorLead:
+            'Support block to discuss O, M, P and TPE per module without replacing the official calculation.',
+          estimatorOptimistic: 'O',
+          estimatorMostLikely: 'M',
+          estimatorPessimistic: 'P',
+          estimatorTpe: 'TPE',
           detailPageLead:
             'The final reading lives apart so the worksheet stays compact.',
           visualHelp: 'Info',
@@ -353,16 +385,30 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   readonly complexityOptions = computed(
     () => this.configuration()?.complexityOptions ?? (['LOW', 'MEDIUM', 'HIGH'] as BudgetComplexity[]),
   );
+  readonly presentationCurrencyOptions = ['ARS', 'USD'] as const;
   readonly selectedModulesCount = computed(() => this.getSelectedModuleIds().length);
   readonly selectedExtrasCount = computed(
     () => this.getSelectableSurchargeRules(this.configuration()).filter((rule) => this.isExtraSelected(rule.id)).length,
   );
   readonly isSaasPricing = computed(() => this.budgetForm.controls.pricingMode.value === 'SAAS');
+  readonly selectedPresentationCurrency = computed(() => this.budgetForm.controls.presentationCurrency.value || 'ARS');
   readonly currentCurrency = computed(
     () => this.calculationResult()?.commercialBudget.currency ?? this.configuration()?.currency ?? 'ARS',
   );
   readonly hasPreview = computed(() => Boolean(this.previewPayload() && this.calculationResult()));
-  readonly canSavePreview = computed(() => this.hasPreview() && !this.saving() && !this.calculating());
+  readonly minimumFormReady = computed(() => {
+    const formValue = this.budgetForm.getRawValue();
+    return Boolean(
+      formValue.budgetName.trim() &&
+        (formValue.client.trim() || formValue.companyName.trim()) &&
+        formValue.projectType &&
+        formValue.desiredStackId &&
+        this.selectedModulesCount() > 0,
+    );
+  });
+  readonly canSavePreview = computed(
+    () => this.hasPreview() && this.minimumFormReady() && !this.saving() && !this.calculating(),
+  );
   readonly recentHistory = computed(() => this.history().slice(0, 6));
   readonly selectedHistoryResult = computed(() => this.selectedHistoryDetail()?.resultJson ?? null);
   readonly previewStatus = computed(() => {
@@ -384,6 +430,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
     return this.hasPreview() ? this.content().previewReady : this.content().empty;
   });
+  readonly railStatusMessage = computed(() => this.formError() ?? this.previewHint() ?? null);
 
   ngOnInit(): void {
     this.observeProjectTypeChanges();
@@ -485,6 +532,23 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       modules,
     }));
   });
+  readonly estimatorRows = computed<EstimatorRow[]>(() =>
+    this.moduleOptions().map((module) => {
+      const optimistic = safeNumber(this.estimateOptimistic.get(module.id)?.value ?? module.optimisticHours);
+      const mostLikely = safeNumber(this.estimateMostLikely.get(module.id)?.value ?? module.probableHours);
+      const pessimistic = safeNumber(this.estimatePessimistic.get(module.id)?.value ?? module.pessimisticHours);
+
+      return {
+        id: module.id,
+        name: this.getModuleName(module.id),
+        optimistic,
+        mostLikely,
+        pessimistic,
+        tpe: Number(((optimistic + 4 * mostLikely + pessimistic) / 6).toFixed(2)),
+        included: this.isModuleSelected(module.id),
+      };
+    }),
+  );
   readonly summaryMetrics = computed(() => {
     const result = this.calculationResult();
     const currency = this.currentCurrency();
@@ -653,6 +717,17 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   selectArea(areaId: string): void {
     this.selectedAreaId.set(areaId);
+  }
+
+  updateEstimatorValue(moduleId: string, field: 'optimistic' | 'mostLikely' | 'pessimistic', value: number): void {
+    const target =
+      field === 'optimistic'
+        ? this.estimateOptimistic
+        : field === 'mostLikely'
+          ? this.estimateMostLikely
+          : this.estimatePessimistic;
+
+    target.get(moduleId)?.setValue(Math.max(value, 0));
   }
 
   selectPricingMode(mode: BudgetPricingMode): void {
@@ -1190,7 +1265,11 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           this.refreshPreview(true);
         },
         error: (error) => {
-          this.formError.set(this.resolveErrorMessage(error, this.content().genericPreviewError));
+          const fallbackConfiguration = this.budgetBuilderUiFacade.buildFallbackConfiguration();
+          this.configuration.set(fallbackConfiguration);
+          this.initializeBuilder(fallbackConfiguration);
+          this.previewHint.set(this.resolveErrorMessage(error, this.content().genericPreviewError));
+          this.refreshPreview(true);
         },
       });
   }
@@ -1233,12 +1312,14 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     const initialValue = this.budgetBuilderUiFacade.createInitialFormValue(configuration);
     this.syncModuleControls(configuration.modules.map((module) => module.id));
     this.syncExtraControls(this.getSelectableSurchargeRules(configuration).map((rule) => rule.id));
+    this.syncEstimatorControls(configuration.modules);
 
     this.budgetForm.reset(
       {
         client: '',
         companyName: '',
         budgetName: initialValue.budgetName,
+        presentationCurrency: configuration.currency === 'USD' ? 'USD' : 'ARS',
         projectType: initialValue.projectType,
         pricingMode: initialValue.pricingMode,
         desiredStackId: initialValue.desiredStackId,
@@ -1301,7 +1382,8 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     }
 
     const defaults = this.budgetBuilderUiFacade.resolveProjectDefaults(configuration, projectType);
-    const selectedModuleIds = new Set(defaults?.defaultModuleIds ?? []);
+    const fallbackModuleIds = configuration.modules.slice(0, 3).map((module) => module.id);
+    const selectedModuleIds = new Set((defaults?.defaultModuleIds?.length ? defaults.defaultModuleIds : fallbackModuleIds) ?? []);
     const isSaasProject = projectType.toLowerCase().includes('saas');
 
     for (const module of configuration.modules) {
@@ -1353,6 +1435,48 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     for (const currentId of Object.keys(this.extraSelection.controls)) {
       if (!activeIds.has(currentId)) {
         this.extraSelection.removeControl(currentId);
+      }
+    }
+  }
+
+  private syncEstimatorControls(modules: BudgetBuilderConfigModule[]): void {
+    const activeIds = new Set(modules.map((module) => module.id));
+
+    for (const module of modules) {
+      if (!this.estimateOptimistic.contains(module.id)) {
+        this.estimateOptimistic.addControl(module.id, this.formBuilder.nonNullable.control(module.optimisticHours));
+      } else {
+        this.estimateOptimistic.get(module.id)?.setValue(module.optimisticHours, { emitEvent: false });
+      }
+
+      if (!this.estimateMostLikely.contains(module.id)) {
+        this.estimateMostLikely.addControl(module.id, this.formBuilder.nonNullable.control(module.probableHours));
+      } else {
+        this.estimateMostLikely.get(module.id)?.setValue(module.probableHours, { emitEvent: false });
+      }
+
+      if (!this.estimatePessimistic.contains(module.id)) {
+        this.estimatePessimistic.addControl(module.id, this.formBuilder.nonNullable.control(module.pessimisticHours));
+      } else {
+        this.estimatePessimistic.get(module.id)?.setValue(module.pessimisticHours, { emitEvent: false });
+      }
+    }
+
+    for (const currentId of Object.keys(this.estimateOptimistic.controls)) {
+      if (!activeIds.has(currentId)) {
+        this.estimateOptimistic.removeControl(currentId);
+      }
+    }
+
+    for (const currentId of Object.keys(this.estimateMostLikely.controls)) {
+      if (!activeIds.has(currentId)) {
+        this.estimateMostLikely.removeControl(currentId);
+      }
+    }
+
+    for (const currentId of Object.keys(this.estimatePessimistic.controls)) {
+      if (!activeIds.has(currentId)) {
+        this.estimatePessimistic.removeControl(currentId);
       }
     }
   }
@@ -1433,6 +1557,14 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     }
 
     const formValue = this.budgetForm.getRawValue() as BudgetBuilderUiFormValue;
+    if (!formValue.budgetName.trim() || !(formValue.client?.trim() || this.budgetForm.controls.companyName.value.trim())) {
+      return { payload: null, validationMessage: this.content().empty };
+    }
+
+    if (!formValue.projectType || !formValue.desiredStackId) {
+      return { payload: null, validationMessage: this.content().genericPreviewError };
+    }
+
     if (
       formValue.pricingMode === 'SAAS' &&
       (formValue.activeClients <= 0 || !formValue.userScaleTierId)

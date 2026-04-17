@@ -98,10 +98,16 @@
           </label>
 
           <label class="budget-workspace__field-row">
-            <span>{{ content().currencyLabel }}</span>
-            <input type="text" [value]="currentCurrency()" readonly />
+            <span>{{ content().presentationCurrencyLabel }}</span>
+            <select formControlName="presentationCurrency">
+              <option *ngFor="let currency of presentationCurrencyOptions; trackBy: trackByValue" [value]="currency">
+                {{ currency }}
+              </option>
+            </select>
           </label>
         </div>
+
+        <p class="budget-workspace__field-note">{{ content().presentationCurrencyNote }}</p>
       </section>
 
       <section class="budget-workspace__section">
@@ -219,13 +225,43 @@
           </section>
         </div>
       </section>
+
+      <section class="budget-workspace__section">
+        <div class="budget-workspace__section-title">
+          <h3>{{ content().estimatorTitle }}</h3>
+        </div>
+
+        <p class="budget-workspace__field-note">{{ content().estimatorLead }}</p>
+
+        <div class="budget-workspace__estimator-table" *ngIf="estimatorRows().length; else noEstimatorRows">
+          <div class="budget-workspace__estimator-head">
+            <span>{{ currentLanguage() === 'es' ? 'Módulo' : 'Module' }}</span>
+            <span>{{ content().estimatorOptimistic }}</span>
+            <span>{{ content().estimatorMostLikely }}</span>
+            <span>{{ content().estimatorPessimistic }}</span>
+            <span>{{ content().estimatorTpe }}</span>
+            <span>{{ content().worksheetIncluded }}</span>
+          </div>
+
+          <div class="budget-workspace__estimator-row" *ngFor="let row of estimatorRows(); trackBy: trackById">
+            <strong>{{ row.name }}</strong>
+            <input type="number" min="0" step="1" [value]="row.optimistic" (input)="updateEstimatorValue(row.id, 'optimistic', $any($event.target).valueAsNumber || 0)" />
+            <input type="number" min="0" step="1" [value]="row.mostLikely" (input)="updateEstimatorValue(row.id, 'mostLikely', $any($event.target).valueAsNumber || 0)" />
+            <input type="number" min="0" step="1" [value]="row.pessimistic" (input)="updateEstimatorValue(row.id, 'pessimistic', $any($event.target).valueAsNumber || 0)" />
+            <strong>{{ row.tpe.toFixed(2) }}</strong>
+            <span>{{ row.included ? content().worksheetIncluded : content().worksheetNotIncluded }}</span>
+          </div>
+        </div>
+      </section>
     </section>
 
     <aside class="budget-workspace__sheet budget-workspace__sheet--result">
-      <header class="budget-workspace__sheet-head budget-workspace__sheet-head--sticky">
+      <header class="budget-workspace__sheet-head">
         <strong>{{ currentLanguage() === 'es' ? 'Resultado en vivo' : 'Live result' }}</strong>
-        <p>{{ previewStatus() }}</p>
+        <p>{{ hasPreview() ? content().previewReady : content().summaryLead }}</p>
       </header>
+
+      <p class="budget-workspace__status-banner" *ngIf="railStatusMessage() as statusMessage">{{ statusMessage }}</p>
 
       <section class="budget-workspace__section">
         <div class="budget-workspace__section-title">
@@ -394,5 +430,9 @@
 </ng-template>
 
 <ng-template #noAreaBreakdown>
+  <p class="budget-workspace__state">{{ content().empty }}</p>
+</ng-template>
+
+<ng-template #noEstimatorRows>
   <p class="budget-workspace__state">{{ content().empty }}</p>
 </ng-template>
