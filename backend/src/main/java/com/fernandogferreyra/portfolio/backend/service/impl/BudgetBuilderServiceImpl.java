@@ -285,6 +285,7 @@ public class BudgetBuilderServiceImpl implements BudgetBuilderService {
     private BudgetSnapshotEntity toEntity(BudgetPreviewRequest request, CalculatedPreview preview) {
         BudgetSnapshotEntity entity = new BudgetSnapshotEntity();
         entity.setBudgetName(request.budgetName().trim());
+        entity.setClient(request.client().trim());
         entity.setProjectType(request.projectType());
         entity.setPricingMode(request.pricingMode());
         entity.setDesiredStackId(request.desiredStackId());
@@ -303,6 +304,7 @@ public class BudgetBuilderServiceImpl implements BudgetBuilderService {
         return new BudgetAdminSummaryResponse(
             entity.getId(),
             entity.getBudgetName(),
+            entity.getClient(),
             entity.getProjectType(),
             entity.getPricingMode(),
             entity.getDesiredStackId(),
@@ -318,6 +320,7 @@ public class BudgetBuilderServiceImpl implements BudgetBuilderService {
         return new BudgetAdminDetailResponse(
             entity.getId(),
             entity.getBudgetName(),
+            entity.getClient(),
             entity.getProjectType(),
             entity.getPricingMode(),
             entity.getDesiredStackId(),

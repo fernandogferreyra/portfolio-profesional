@@ -20,6 +20,10 @@ public record BudgetPreviewRequest(
     @Size(max = 160, message = "Budget name must be at most 160 characters")
     String budgetName,
 
+    @NotBlank(message = "Client is required")
+    @Size(max = 160, message = "Client must be at most 160 characters")
+    String client,
+
     @NotBlank(message = "Project type is required")
     String projectType,
 

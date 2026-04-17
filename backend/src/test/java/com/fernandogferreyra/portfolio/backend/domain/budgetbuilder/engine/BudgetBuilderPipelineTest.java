@@ -47,6 +47,7 @@ class BudgetBuilderPipelineTest {
         BudgetProject project = new BudgetProject(
             baseProject.id(),
             baseProject.name(),
+            baseProject.client(),
             baseProject.projectType(),
             baseProject.pricingMode(),
             baseProject.desiredStackId(),
@@ -76,6 +77,7 @@ class BudgetBuilderPipelineTest {
         BudgetProject project = new BudgetProject(
             baseProject.id(),
             baseProject.name(),
+            baseProject.client(),
             baseProject.projectType(),
             baseProject.pricingMode(),
             baseProject.desiredStackId(),
@@ -112,6 +114,7 @@ class BudgetBuilderPipelineTest {
         BudgetProject project = new BudgetProject(
             baseProject.id(),
             baseProject.name(),
+            baseProject.client(),
             baseProject.projectType(),
             baseProject.pricingMode(),
             "outside_primary_stack",
@@ -143,6 +146,7 @@ class BudgetBuilderPipelineTest {
         BudgetProject project = new BudgetProject(
             baseProject.id(),
             baseProject.name(),
+            baseProject.client(),
             "saas_product",
             BudgetPricingMode.SAAS,
             baseProject.desiredStackId(),

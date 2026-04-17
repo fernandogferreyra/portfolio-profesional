@@ -18,6 +18,7 @@ public record CommercialBudget(
     BigDecimal finalOneTimeTotal,
     BigDecimal finalMonthlyTotal,
     String appliedSupportRuleId,
+    MonthlyBreakdown monthlyBreakdown,
     List<PricingExplanationItem> pricingExplanation,
     String generatedAt
 ) {

@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fernandogferreyra.portfolio.backend.repository.budgetbuilder.BudgetSnapshotRepository;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,11 +78,16 @@ class BudgetBuilderPreviewIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.previewHash").isNotEmpty())
             .andExpect(jsonPath("$.data.currency").value("ARS"))
             .andExpect(jsonPath("$.data.totalHours").value(60.00))
+            .andExpect(jsonPath("$.data.technicalSummary.totalHours").value(60.00))
+            .andExpect(jsonPath("$.data.technicalSummary.totalBaseAmount").value(1038.00))
             .andExpect(jsonPath("$.data.baseAmount").value(1038.00))
             .andExpect(jsonPath("$.data.oneTimeSubtotal").value(1038.00))
             .andExpect(jsonPath("$.data.monthlySubtotal").value(114.00))
             .andExpect(jsonPath("$.data.finalOneTimeTotal").value(1588.00))
             .andExpect(jsonPath("$.data.finalMonthlyTotal").value(114.00))
+            .andExpect(jsonPath("$.data.areaBreakdown.length()").value(5))
+            .andExpect(jsonPath("$.data.areaBreakdown[0].modules.length()").value(1))
+            .andExpect(jsonPath("$.data.monthlyBreakdown").value(Matchers.nullValue()))
             .andExpect(jsonPath("$.data.modules.length()").value(5))
             .andExpect(jsonPath("$.data.modules[0].id").value("ANALYSIS_DISCOVERY"))
             .andExpect(jsonPath("$.data.modules[0].baseAmount").value(225.00))
@@ -132,6 +138,7 @@ class BudgetBuilderPreviewIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.message").value("Budgets retrieved"))
             .andExpect(jsonPath("$.data.length()").value(1))
             .andExpect(jsonPath("$.data[0].id").value(budgetId))
+            .andExpect(jsonPath("$.data[0].client").value("ACME Corp"))
             .andExpect(jsonPath("$.data[0].finalOneTimeTotal").value(1588.00));
 
         mockMvc.perform(get("/api/admin/budget-builder/{id}", budgetId)
@@ -141,6 +148,8 @@ class BudgetBuilderPreviewIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.message").value("Budget retrieved"))
             .andExpect(jsonPath("$.data.id").value(budgetId))
             .andExpect(jsonPath("$.data.configurationSnapshotId").value("budget-builder-seed-v1"))
+            .andExpect(jsonPath("$.data.client").value("ACME Corp"))
+            .andExpect(jsonPath("$.data.requestJson.client").value("ACME Corp"))
             .andExpect(jsonPath("$.data.requestJson.projectType").value("standard_project"))
             .andExpect(jsonPath("$.data.resultJson.finalOneTimeTotal").value(1588.00));
     }
@@ -167,6 +176,7 @@ class BudgetBuilderPreviewIntegrationTest extends AbstractIntegrationTest {
         return """
             {
               "budgetName": "Operations MVP",
+              "client": "ACME Corp",
               "projectType": "standard_project",
               "pricingMode": "PROJECT",
               "desiredStackId": "default_web_stack",

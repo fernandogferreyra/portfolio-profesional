@@ -20,6 +20,9 @@ public class BudgetSnapshotEntity extends BaseEntity {
     @Column(name = "budget_name", nullable = false, length = 160)
     private String budgetName;
 
+    @Column(name = "client", nullable = false, length = 160)
+    private String client;
+
     @Column(name = "project_type", nullable = false, length = 80)
     private String projectType;
 
