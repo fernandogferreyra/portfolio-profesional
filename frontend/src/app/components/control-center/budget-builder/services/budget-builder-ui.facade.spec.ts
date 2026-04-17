@@ -26,6 +26,7 @@ describe('BudgetBuilderUiFacade', () => {
     facade
       .previewBudget({
         budgetName: 'Commerce MVP',
+        client: 'ACME Corp',
         projectType: 'standard_project',
         pricingMode: 'PROJECT',
         desiredStackId: 'default_web_stack',
@@ -58,6 +59,7 @@ describe('BudgetBuilderUiFacade', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({
       budgetName: 'Commerce MVP',
+      client: 'ACME Corp',
       projectType: 'standard_project',
       pricingMode: 'PROJECT',
       desiredStackId: 'default_web_stack',
@@ -97,6 +99,13 @@ describe('BudgetBuilderUiFacade', () => {
         monthlySubtotal: 24,
         finalOneTimeTotal: 1210,
         finalMonthlyTotal: 24,
+        technicalSummary: {
+          totalHours: 48,
+          totalWeeks: 1.5,
+          totalBaseAmount: 960,
+        },
+        areaBreakdown: [],
+        monthlyBreakdown: null,
         modules: [],
         surcharges: [],
         discounts: [],
@@ -107,6 +116,13 @@ describe('BudgetBuilderUiFacade', () => {
     expect(response).toEqual({
       configurationSnapshotId: 'budget-builder-seed-v1',
       previewHash: 'preview-hash',
+      technicalSummary: {
+        totalHours: 48,
+        totalWeeks: 1.5,
+        totalBaseAmount: 960,
+      },
+      areaBreakdown: [],
+      monthlyBreakdown: null,
       modules: [],
       technicalEstimate: {
         totalHours: 48,
@@ -132,6 +148,7 @@ describe('BudgetBuilderUiFacade', () => {
     facade
       .previewBudget({
         budgetName: 'External stack quote',
+        client: 'Globex',
         projectType: 'standard_project',
         pricingMode: 'PROJECT',
         desiredStackId: 'outside_primary_stack',
@@ -174,6 +191,46 @@ describe('BudgetBuilderUiFacade', () => {
         monthlySubtotal: 0,
         finalOneTimeTotal: 696,
         finalMonthlyTotal: 0,
+        technicalSummary: {
+          totalHours: 20,
+          totalWeeks: 0.6,
+          totalBaseAmount: 360,
+        },
+        areaBreakdown: [
+          {
+            areaId: 'analysis_design',
+            label: 'Analysis and design',
+            totalHours: 8,
+            baseAmount: 144,
+            moduleCount: 1,
+            shareOfTechnicalTotal: 0.4,
+            modules: [
+              {
+                id: 'DISCOVERY',
+                name: 'Discovery',
+                estimatedHours: 8,
+                baseAmount: 144,
+              },
+            ],
+          },
+          {
+            areaId: 'backend',
+            label: 'Backend',
+            totalHours: 12,
+            baseAmount: 216,
+            moduleCount: 1,
+            shareOfTechnicalTotal: 0.6,
+            modules: [
+              {
+                id: 'CORE_BACKEND',
+                name: 'Core backend',
+                estimatedHours: 12,
+                baseAmount: 216,
+              },
+            ],
+          },
+        ],
+        monthlyBreakdown: null,
         modules: [
           {
             id: 'DISCOVERY',
@@ -228,6 +285,46 @@ describe('BudgetBuilderUiFacade', () => {
     expect(response).toEqual({
       configurationSnapshotId: 'budget-builder-seed-v1',
       previewHash: 'outside-stack-preview',
+      technicalSummary: {
+        totalHours: 20,
+        totalWeeks: 0.6,
+        totalBaseAmount: 360,
+      },
+      areaBreakdown: [
+        {
+          areaId: 'analysis_design',
+          label: 'Analysis and design',
+          totalHours: 8,
+          baseAmount: 144,
+          moduleCount: 1,
+          shareOfTechnicalTotal: 0.4,
+          modules: [
+            {
+              id: 'DISCOVERY',
+              name: 'Discovery',
+              estimatedHours: 8,
+              baseAmount: 144,
+            },
+          ],
+        },
+        {
+          areaId: 'backend',
+          label: 'Backend',
+          totalHours: 12,
+          baseAmount: 216,
+          moduleCount: 1,
+          shareOfTechnicalTotal: 0.6,
+          modules: [
+            {
+              id: 'CORE_BACKEND',
+              name: 'Core backend',
+              estimatedHours: 12,
+              baseAmount: 216,
+            },
+          ],
+        },
+      ],
+      monthlyBreakdown: null,
       modules: [
         {
           id: 'DISCOVERY',

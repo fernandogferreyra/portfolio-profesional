@@ -35,28 +35,14 @@ type ChoiceCard = {
   selected: boolean;
 };
 
-type BudgetWorksheetRow = {
+type WorkbenchModuleOption = {
   id: string;
   areaLabel: string;
   moduleName: string;
   description: string;
   dependencies: string;
   included: boolean;
-  estimatedHours: number | null;
-  baseAmount: number;
-  rateLabel: string;
 };
-
-type BudgetAreaSummaryRow = {
-  id: string;
-  areaLabel: string;
-  itemCount: number;
-  hours: number;
-  baseAmount: number;
-  rateLabel: string;
-};
-
-type BudgetBuilderStepId = 'scenario' | 'pricing' | 'continuity' | 'scope' | 'details';
 
 function safeNumber(value: number | null | undefined): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
@@ -76,11 +62,10 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
   private previewRequestVersion = 0;
   private lastPreviewSignature: string | null = null;
-  private readonly stepOrder: BudgetBuilderStepId[] = ['scenario', 'pricing', 'continuity', 'scope', 'details'];
 
   readonly currentLanguage = this.languageService.language;
   readonly budgetForm = this.formBuilder.nonNullable.group({
-    clientName: this.formBuilder.nonNullable.control(''),
+    client: this.formBuilder.nonNullable.control(''),
     companyName: this.formBuilder.nonNullable.control(''),
     budgetName: this.formBuilder.nonNullable.control(''),
     projectType: this.formBuilder.nonNullable.control(''),
@@ -117,7 +102,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
   readonly history = signal<BudgetBuilderSummary[]>([]);
   readonly selectedHistoryId = signal<string | null>(null);
   readonly selectedHistoryDetail = signal<BudgetBuilderDetail | null>(null);
-  readonly currentStep = signal<BudgetBuilderStepId>('scenario');
+  readonly selectedAreaId = signal<string | null>(null);
 
   readonly content = computed(() =>
     this.currentLanguage() === 'es'
@@ -468,63 +453,42 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       selected: complexity === this.budgetForm.controls.complexity.value,
     })),
   );
-  readonly workflowSteps = computed<ChoiceCard[]>(() => [
-    {
-      id: 'scenario',
-      title: this.content().stepScenario,
-      description:
-        this.currentLanguage() === 'es'
-          ? 'Define preset comercial y modo de venta.'
-          : 'Define the commercial preset and selling mode.',
-      impact: this.getProjectTypeLabel(this.budgetForm.controls.projectType.value),
-      selected: this.currentStep() === 'scenario',
-    },
-    {
-      id: 'pricing',
-      title: this.content().stepPricing,
-      description:
-        this.currentLanguage() === 'es'
-          ? 'Elegi stack, extras y ajuste comercial.'
-          : 'Choose stack, extras, and commercial adjustments.',
-      impact: this.getTechnologyLabel(this.budgetForm.controls.desiredStackId.value),
-      selected: this.currentStep() === 'pricing',
-    },
-    {
-      id: 'continuity',
-      title: this.content().stepContinuity,
-      description:
-        this.currentLanguage() === 'es'
-          ? 'Configura soporte, mantenimiento y SaaS.'
-          : 'Configure support, maintenance, and SaaS continuity.',
-      impact: this.getSupportSummary(),
-      selected: this.currentStep() === 'continuity',
-    },
-    {
-      id: 'scope',
-      title: this.content().stepScope,
-      description:
-        this.currentLanguage() === 'es'
-          ? 'Ajusta bloques activos y dependencias.'
-          : 'Adjust active blocks and dependencies.',
-      impact: `${this.selectedModulesCount()} ${this.content().selectedModulesLabel}`,
-      selected: this.currentStep() === 'scope',
-    },
-    {
-      id: 'details',
-      title: this.content().stepDetails,
-      description:
-        this.currentLanguage() === 'es'
-          ? 'Revisa resumen, formula y cierre final.'
-          : 'Review summary, formula, and final close.',
-      impact: this.summaryMetrics()[0]?.value ?? '--',
-      selected: this.currentStep() === 'details',
-    },
-  ]);
-  readonly currentStepIndex = computed(() => this.stepOrder.indexOf(this.currentStep()) + 1);
-  readonly totalSteps = this.stepOrder.length;
+  readonly technicalSummary = computed(() => this.calculationResult()?.technicalSummary ?? null);
+  readonly workbenchAreas = computed(() => this.calculationResult()?.areaBreakdown ?? []);
+  readonly monthlyBreakdown = computed(() => this.calculationResult()?.monthlyBreakdown ?? null);
+  readonly technicalBaseAmount = computed(() => safeNumber(this.technicalSummary()?.totalBaseAmount));
+  readonly finalOneTimeTotal = computed(() => safeNumber(this.calculationResult()?.commercialBudget.finalOneTimeTotal));
+  readonly commercialAdjustmentsAmount = computed(() => this.finalOneTimeTotal() - this.technicalBaseAmount());
+  readonly selectedAreaDetail = computed(
+    () => this.workbenchAreas().find((area) => area.areaId === this.selectedAreaId()) ?? null,
+  );
+  readonly moduleSections = computed(() => {
+    const grouped = new Map<string, WorkbenchModuleOption[]>();
+
+    for (const module of this.moduleOptions()) {
+      const category = module.category;
+      const current = grouped.get(category) ?? [];
+      current.push({
+        id: module.id,
+        areaLabel: this.getCategoryLabel(category),
+        moduleName: this.getModuleName(module.id),
+        description: this.getModuleDescription(module),
+        dependencies: this.getModuleDependencies(module),
+        included: this.isModuleSelected(module.id),
+      });
+      grouped.set(category, current);
+    }
+
+    return Array.from(grouped.entries()).map(([id, modules]) => ({
+      id,
+      label: this.getCategoryLabel(id),
+      modules,
+    }));
+  });
   readonly summaryMetrics = computed(() => {
     const result = this.calculationResult();
     const currency = this.currentCurrency();
+    const technicalSummary = this.technicalSummary();
     return [
       {
         id: 'one-time',
@@ -544,13 +508,13 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       {
         id: 'hours',
         label: this.content().totalHours,
-        value: `${safeNumber(result?.technicalEstimate.totalHours).toFixed(2)} h`,
+        value: `${safeNumber(technicalSummary?.totalHours).toFixed(2)} h`,
         note: `${this.selectedModulesCount()} ${this.content().selectedModulesLabel}`,
       },
       {
         id: 'timeline',
         label: this.content().timeline,
-        value: result ? `${safeNumber(result.technicalEstimate.totalWeeks).toFixed(2)} sem` : '--',
+        value: technicalSummary ? `${safeNumber(technicalSummary.totalWeeks).toFixed(2)} sem` : '--',
         note: this.getUrgencyImpact(this.budgetForm.controls.urgency.value),
       },
     ];
@@ -683,84 +647,12 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       },
     ];
   });
-  readonly worksheetRows = computed<BudgetWorksheetRow[]>(() => {
-    const resultModules = new Map(this.calculationResult()?.modules.map((module) => [module.id, module]) ?? []);
-
-    return this.moduleOptions().map((module) => {
-      const included = this.isModuleSelected(module.id);
-      const previewModule = resultModules.get(module.id) ?? null;
-      const estimatedHours = included && previewModule ? safeNumber(previewModule.estimatedHours) : null;
-      const baseAmount = included && previewModule ? safeNumber(previewModule.baseAmount) : 0;
-
-      return {
-        id: module.id,
-        areaLabel: this.getCategoryLabel(module.category),
-        moduleName: this.getModuleName(module.id),
-        description: this.getModuleDescription(module),
-        dependencies: this.getModuleDependencies(module),
-        included,
-        estimatedHours: included ? estimatedHours : null,
-        baseAmount,
-        rateLabel: this.getCategoryRateLabel(module.category),
-      };
-    });
-  });
-  readonly areaSummaryRows = computed<BudgetAreaSummaryRow[]>(() => {
-    const summary = new Map<string, BudgetAreaSummaryRow>();
-
-    for (const row of this.worksheetRows()) {
-      if (!row.included || row.estimatedHours === null) {
-        continue;
-      }
-
-      const current = summary.get(row.areaLabel) ?? {
-        id: row.areaLabel,
-        areaLabel: row.areaLabel,
-        itemCount: 0,
-        hours: 0,
-        baseAmount: 0,
-        rateLabel: row.rateLabel,
-      };
-
-      current.itemCount += 1;
-      current.hours += row.estimatedHours;
-      current.baseAmount += row.baseAmount;
-      summary.set(row.areaLabel, current);
-    }
-
-    return Array.from(summary.values()).sort((left, right) => right.baseAmount - left.baseAmount);
-  });
-
   selectProjectType(projectType: string): void {
     this.budgetForm.controls.projectType.setValue(projectType);
   }
 
-  selectStep(step: string): void {
-    if (this.stepOrder.includes(step as BudgetBuilderStepId)) {
-      this.currentStep.set(step as BudgetBuilderStepId);
-    }
-  }
-
-  goToStep(step: BudgetBuilderStepId): void {
-    this.currentStep.set(step);
-  }
-
-  goToPreviousStep(): void {
-    const currentIndex = this.stepOrder.indexOf(this.currentStep());
-    this.currentStep.set(this.stepOrder[Math.max(currentIndex - 1, 0)]);
-  }
-
-  goToNextStep(): void {
-    const currentIndex = this.stepOrder.indexOf(this.currentStep());
-    this.currentStep.set(this.stepOrder[Math.min(currentIndex + 1, this.stepOrder.length - 1)]);
-  }
-
-  isFirstStep(): boolean {
-    return this.currentStep() === 'scenario';
-  }
-
-  isLastStep(): boolean {
-    return this.currentStep() === 'details';
+  selectArea(areaId: string): void {
+    this.selectedAreaId.set(areaId);
   }
 
   selectPricingMode(mode: BudgetPricingMode): void {
@@ -823,6 +715,10 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
           this.formError.set(this.resolveErrorMessage(error, this.content().genericSaveError));
         },
       });
+  }
+
+  printWorkspace(): void {
+    window.print();
   }
 
   resetWorkspace(): void {
@@ -1255,6 +1151,10 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     return item.id;
   }
 
+  trackByAreaId(_: number, area: { areaId: string }): string {
+    return area.areaId;
+  }
+
   trackByValue(_: number, item: string): string {
     return item;
   }
@@ -1336,7 +1236,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
     this.budgetForm.reset(
       {
-        clientName: '',
+        client: '',
         companyName: '',
         budgetName: initialValue.budgetName,
         projectType: initialValue.projectType,
@@ -1362,7 +1262,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
     this.formError.set(null);
     this.saveFeedback.set(null);
     this.lastPreviewSignature = null;
-    this.currentStep.set('scenario');
+    this.selectedAreaId.set(null);
   }
 
   private observeProjectTypeChanges(): void {
@@ -1506,6 +1406,9 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
           this.previewPayload.set(prepared.payload);
           this.calculationResult.set(result);
+          if (!this.selectedAreaId() || !result.areaBreakdown.some((area) => area.areaId === this.selectedAreaId())) {
+            this.selectedAreaId.set(result.areaBreakdown[0]?.areaId ?? null);
+          }
           this.lastPreviewSignature = signature;
         },
         error: (error) => {
@@ -1515,6 +1418,7 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
 
           this.previewPayload.set(null);
           this.calculationResult.set(null);
+          this.selectedAreaId.set(null);
           this.formError.set(this.resolveErrorMessage(error, this.content().genericPreviewError));
         },
       });
@@ -1548,6 +1452,11 @@ export class ControlCenterBudgetBuilderComponent implements OnInit {
       validationMessage: null,
       payload: {
         budgetName: formValue.budgetName.trim() || 'Budget Builder',
+        client:
+          this.budgetForm.controls.client.value.trim() ||
+          this.budgetForm.controls.companyName.value.trim() ||
+          formValue.budgetName.trim() ||
+          'Budget Builder',
         projectType: formValue.projectType,
         pricingMode: formValue.pricingMode,
         desiredStackId: formValue.desiredStackId,

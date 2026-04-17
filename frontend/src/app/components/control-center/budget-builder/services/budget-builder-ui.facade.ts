@@ -33,6 +33,36 @@ type BudgetPreviewApiResponse = {
   monthlySubtotal: number;
   finalOneTimeTotal: number;
   finalMonthlyTotal: number;
+  technicalSummary: {
+    totalHours: number;
+    totalWeeks: number;
+    totalBaseAmount: number;
+  };
+  areaBreakdown: Array<{
+    areaId: string;
+    label: string;
+    totalHours: number;
+    baseAmount: number;
+    moduleCount: number;
+    shareOfTechnicalTotal: number;
+    modules: Array<{
+      id: string;
+      name: string;
+      estimatedHours: number;
+      baseAmount: number;
+    }>;
+  }>;
+  monthlyBreakdown: {
+    developmentRecovery: number;
+    infrastructure: number;
+    support: number;
+    maintenance: number;
+    userScaleAdjustment: number;
+    extraHours: number;
+    margin: number;
+    monthlySubtotal: number;
+    finalMonthlyTotal: number;
+  } | null;
   modules: Array<{
     id: string;
     category: string;
@@ -70,6 +100,7 @@ type UiLanguage = 'es' | 'en';
 
 export interface BudgetBuilderUiFormValue {
   budgetName: string;
+  client?: string | null;
   projectType: string;
   pricingMode: 'PROJECT' | 'SAAS';
   desiredStackId: string;
@@ -312,6 +343,38 @@ export class BudgetBuilderUiFacade {
     return {
       configurationSnapshotId: response.configurationSnapshotId,
       previewHash: response.previewHash,
+      technicalSummary: {
+        totalHours: sanitizeNonNegativeNumber(response.technicalSummary?.totalHours),
+        totalWeeks: sanitizeNonNegativeNumber(response.technicalSummary?.totalWeeks),
+        totalBaseAmount: sanitizeNonNegativeNumber(response.technicalSummary?.totalBaseAmount),
+      },
+      areaBreakdown: (response.areaBreakdown ?? []).map((area) => ({
+        areaId: area.areaId,
+        label: area.label,
+        totalHours: sanitizeNonNegativeNumber(area.totalHours),
+        baseAmount: sanitizeNonNegativeNumber(area.baseAmount),
+        moduleCount: sanitizeNonNegativeNumber(area.moduleCount),
+        shareOfTechnicalTotal: Number.isFinite(area.shareOfTechnicalTotal) ? area.shareOfTechnicalTotal : 0,
+        modules: area.modules.map((module) => ({
+          id: module.id,
+          name: module.name,
+          estimatedHours: sanitizeNonNegativeNumber(module.estimatedHours),
+          baseAmount: sanitizeNonNegativeNumber(module.baseAmount),
+        })),
+      })),
+      monthlyBreakdown: response.monthlyBreakdown
+        ? {
+            developmentRecovery: sanitizeNonNegativeNumber(response.monthlyBreakdown.developmentRecovery),
+            infrastructure: sanitizeNonNegativeNumber(response.monthlyBreakdown.infrastructure),
+            support: sanitizeNonNegativeNumber(response.monthlyBreakdown.support),
+            maintenance: sanitizeNonNegativeNumber(response.monthlyBreakdown.maintenance),
+            userScaleAdjustment: sanitizeNonNegativeNumber(response.monthlyBreakdown.userScaleAdjustment),
+            extraHours: sanitizeNonNegativeNumber(response.monthlyBreakdown.extraHours),
+            margin: sanitizeNonNegativeNumber(response.monthlyBreakdown.margin),
+            monthlySubtotal: sanitizeNonNegativeNumber(response.monthlyBreakdown.monthlySubtotal),
+            finalMonthlyTotal: sanitizeNonNegativeNumber(response.monthlyBreakdown.finalMonthlyTotal),
+          }
+        : null,
       modules: response.modules.map((module) => ({
         id: module.id,
         category: module.category,
