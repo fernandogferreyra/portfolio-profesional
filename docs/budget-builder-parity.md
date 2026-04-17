@@ -1,12 +1,12 @@
-# Paridad: Cotizador Historico vs Budget Builder
+# Paridad: Workbench de Presupuesto vs Budget Builder
 
 ## Objetivo
 
-Definir el criterio de reemplazo seguro del cotizador comercial historico por `Budget Builder`, manteniendo backend como fuente de verdad y evitando una migracion 1:1 de logica frontend-only.
+Definir el criterio de alineacion segura entre el workbench de presupuesto objetivo y `Budget Builder`, manteniendo backend como fuente de verdad y evitando una migracion 1:1 de logica frontend-only.
 
 ## Estado actual
 
-### Cotizador historico
+### Referencia historica
 
 - Vive en `frontend/src/app/components/control-center-quote/`.
 - Motor local en `frontend/src/app/services/commercial-quote.service.ts`.
@@ -22,6 +22,15 @@ Definir el criterio de reemplazo seguro del cotizador comercial historico por `B
 - Preview y save reales via backend.
 - Historial persistido real.
 
+### Workbench objetivo
+
+- Una sola pantalla.
+- Izquierda: configuracion / planilla.
+- Derecha: resultado vivo.
+- Sin dashboard con cards decorativas.
+- Sin wizard largo.
+- Negociacion principal apoyada en resumen por areas.
+
 ## Superposicion funcional real
 
 - Ambas superficies calculan monto inicial.
@@ -29,7 +38,15 @@ Definir el criterio de reemplazo seguro del cotizador comercial historico por `B
 - Ambas persisten historial operativo.
 - Ambas se usan en modo privado/admin para cotizar.
 
-## Lo que el cotizador historico tiene y Budget Builder aun no cubria por completo
+## Contrato backend ya disponible para el workbench
+
+- `technicalSummary` para resumen tecnico vivo.
+- `areaBreakdown` con modulos anidados para negociar por area y expandir detalle.
+- `monthlyBreakdown` para `SAAS`.
+- `client` para encabezado operativo del presupuesto.
+- `modules` se mantiene como detalle tecnico plano.
+
+## Lo que la UX actual aun no refleja del todo
 
 ### Presets comerciales rapidos
 
@@ -56,13 +73,13 @@ Definir el criterio de reemplazo seguro del cotizador comercial historico por `B
 ### Continuidad comercial
 
 - mantenimiento mensual explicito
-- flujo ultrarrapido sin backend
+- lectura clara del modelo `PROJECT` vs `SAAS` en una sola pantalla
 
 ## Decision tecnica
 
 - No migrar el cotizador historico 1:1 como feature separada.
-- No retirarlo hasta que exista paridad operativa real.
-- Consolidar sus faltantes dentro de `Budget Builder`.
+- No volver a dashboard con cards ni wizard largo como direccion principal.
+- Consolidar la siguiente etapa frontend sobre `Budget Builder` y su contrato backend oficial.
 - Mantener backend como unica fuente de verdad.
 
 ## Estrategia de consolidacion
@@ -81,7 +98,8 @@ Definir el criterio de reemplazo seguro del cotizador comercial historico por `B
 
 ### Fase 3
 
-- Agregar una UX rapida comercial dentro de `Budget Builder` usando configuracion backend.
+- Implementar `feature/budget-workbench-ui` como workbench de una sola pantalla.
+- Usar `technicalSummary`, `areaBreakdown` y `monthlyBreakdown` como base del resumen vivo.
 - Comparar contra casos reales de `ferchuz/` y flujo historico.
 
 ### Fase 4
@@ -96,6 +114,7 @@ Definir el criterio de reemplazo seguro del cotizador comercial historico por `B
 - `Budget Builder` cubre presets necesarios para uso real.
 - `Budget Builder` cubre extras comerciales necesarios.
 - `Budget Builder` cubre mantenimiento.
+- `Budget Builder` ya expone el contrato backend necesario para workbench.
 - Resultados comparables con Excel y flujo historico.
 - No queda logica critica en frontend.
 - Todo el flujo queda documentado en el proyecto.
@@ -117,11 +136,12 @@ Definir el criterio de reemplazo seguro del cotizador comercial historico por `B
   - `angular_spring`
   - `angular_dotnet`
   - `full_custom`
-- El editor de `Budget Builder` ya funciona en flujo por pasos para evitar scroll largo y permitir armado mas comodo del presupuesto.
-- El frontend ya permite elegir extras comerciales opcionales y mantenimiento sin volver a un motor local.
+- El backend ya expone `technicalSummary`, `areaBreakdown` y `monthlyBreakdown` para sostener el workbench.
+- El backend ya persiste `client` para sostener el encabezado operativo.
+- La siguiente etapa correcta ya no es seguir profundizando el wizard por pasos, sino reemplazarlo por un workbench de una sola pantalla.
 
 ## Proximos pasos
 
-1. Validar contra casos reales de `ferchuz/`.
-2. Ajustar UX rapida en `ControlCenterBudgetBuilderComponent` segun uso real.
+1. Implementar `feature/budget-workbench-ui` sobre el contrato backend ya mergeado.
+2. Validar contra casos reales de `ferchuz/`.
 3. Retirar el cotizador historico cuando haya paridad real.
