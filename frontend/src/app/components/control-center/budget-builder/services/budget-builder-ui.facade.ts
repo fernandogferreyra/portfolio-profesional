@@ -3,6 +3,12 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import {
+  BudgetBuilderConfigCategory,
+  BudgetBuilderConfigMaintenancePlan,
+  BudgetBuilderConfigModule,
+  BudgetBuilderConfigSupportPlan,
+  BudgetBuilderConfigTechnology,
+  BudgetBuilderConfigUserScaleTier,
   BudgetBuilderConfigView,
   BudgetBuilderDetail,
   BudgetBuilderPreviewRequestPayload,
@@ -98,9 +104,192 @@ type BudgetPreviewApiResponse = {
 
 type UiLanguage = 'es' | 'en';
 
+const FALLBACK_PROJECT_TYPES: ProjectTypeDefaultRule[] = [
+  {
+    projectType: 'standard_project',
+    label: 'Proyecto estándar',
+    description: 'Proyecto one-shot con implementación inicial y continuidad opcional.',
+    defaultModuleIds: ['LOGIN', 'ADMIN_PANEL', 'REPORTS'],
+    defaultSurchargeRuleIds: [],
+    defaultSupportRuleId: 'support-basic',
+    defaultMaintenanceRuleId: 'maintenance-standard',
+  },
+  {
+    projectType: 'saas_product',
+    label: 'Producto SaaS',
+    description: 'Producto con recuperación mensual, soporte y escalas de usuarios.',
+    defaultModuleIds: ['LOGIN', 'ADMIN_PANEL', 'REPORTS', 'PAYMENTS', 'NOTIFICATIONS'],
+    defaultSurchargeRuleIds: [],
+    defaultSupportRuleId: 'support-basic',
+    defaultMaintenanceRuleId: 'maintenance-standard',
+  },
+];
+
+const FALLBACK_CATEGORIES: BudgetBuilderConfigCategory[] = [
+  { id: 'backend', label: 'Backend', billingType: 'TIME_BASED', rate: 20, cadence: 'ONE_TIME' },
+  { id: 'frontend', label: 'Frontend', billingType: 'TIME_BASED', rate: 18, cadence: 'ONE_TIME' },
+  { id: 'analysis_design', label: 'Diseño', billingType: 'TIME_BASED', rate: 16, cadence: 'ONE_TIME' },
+  { id: 'db', label: 'DB', billingType: 'TIME_BASED', rate: 18, cadence: 'ONE_TIME' },
+];
+
+const FALLBACK_MODULES: BudgetBuilderConfigModule[] = [
+  {
+    id: 'LOGIN',
+    category: 'backend',
+    name: 'Login',
+    description: 'Acceso de usuarios, recuperación de contraseña y permisos básicos.',
+    baseHours: 10,
+    optimisticHours: 6,
+    probableHours: 10,
+    pessimisticHours: 14,
+    dependencyIds: [],
+    blockingNote: null,
+    optional: false,
+  },
+  {
+    id: 'ADMIN_PANEL',
+    category: 'frontend',
+    name: 'Panel admin',
+    description: 'Gestión de entidades clave, navegación privada y operaciones internas.',
+    baseHours: 16,
+    optimisticHours: 10,
+    probableHours: 16,
+    pessimisticHours: 24,
+    dependencyIds: ['LOGIN'],
+    blockingNote: null,
+    optional: false,
+  },
+  {
+    id: 'REPORTS',
+    category: 'analysis_design',
+    name: 'Reportes',
+    description: 'Vistas de seguimiento, métricas y exportes de lectura ejecutiva.',
+    baseHours: 14,
+    optimisticHours: 8,
+    probableHours: 14,
+    pessimisticHours: 20,
+    dependencyIds: ['ADMIN_PANEL'],
+    blockingNote: null,
+    optional: false,
+  },
+  {
+    id: 'PAYMENTS',
+    category: 'backend',
+    name: 'Pagos',
+    description: 'Integración de pagos, validaciones y eventos de cobro.',
+    baseHours: 18,
+    optimisticHours: 12,
+    probableHours: 18,
+    pessimisticHours: 28,
+    dependencyIds: ['LOGIN'],
+    blockingNote: null,
+    optional: true,
+  },
+  {
+    id: 'NOTIFICATIONS',
+    category: 'db',
+    name: 'Notificaciones',
+    description: 'Alertas internas, email transaccional y eventos automáticos.',
+    baseHours: 12,
+    optimisticHours: 8,
+    probableHours: 12,
+    pessimisticHours: 18,
+    dependencyIds: ['ADMIN_PANEL'],
+    blockingNote: null,
+    optional: true,
+  },
+];
+
+const FALLBACK_TECHNOLOGIES: BudgetBuilderConfigTechnology[] = [
+  {
+    id: 'default_web_stack',
+    label: 'Angular + Spring',
+    description: 'Stack principal recomendado para proyectos web y herramientas internas.',
+    surchargeRuleId: null,
+    supportedProjectTypes: ['standard_project', 'saas_product'],
+  },
+  {
+    id: 'outside_primary_stack',
+    label: 'Stack especial',
+    description: 'Tecnología fuera del stack principal para escenarios excepcionales.',
+    surchargeRuleId: null,
+    supportedProjectTypes: ['standard_project', 'saas_product'],
+  },
+];
+
+const FALLBACK_SUPPORT_PLANS: BudgetBuilderConfigSupportPlan[] = [
+  {
+    id: 'support-basic',
+    label: 'Soporte base',
+    cadence: 'MONTHLY',
+    includedHours: 2,
+    hourlyRate: 18,
+    monthlyAmount: 24,
+  },
+  {
+    id: 'support-growth',
+    label: 'Soporte extendido',
+    cadence: 'MONTHLY',
+    includedHours: 6,
+    hourlyRate: 18,
+    monthlyAmount: 64,
+  },
+];
+
+const FALLBACK_MAINTENANCE_PLANS: BudgetBuilderConfigMaintenancePlan[] = [
+  {
+    id: 'maintenance-standard',
+    label: 'Mantenimiento estándar',
+    cadence: 'MONTHLY',
+    monthlyAmount: 36,
+  },
+  {
+    id: 'maintenance-intensive',
+    label: 'Mantenimiento intensivo',
+    cadence: 'MONTHLY',
+    monthlyAmount: 72,
+  },
+];
+
+const FALLBACK_USER_SCALE_TIERS: BudgetBuilderConfigUserScaleTier[] = [
+  { id: 'starter', label: 'Starter', minUsers: 1, maxUsers: 10, mode: 'FIXED', value: 10 },
+  { id: 'growth', label: 'Growth', minUsers: 11, maxUsers: 50, mode: 'FIXED', value: 24 },
+  { id: 'scale', label: 'Scale', minUsers: 51, maxUsers: null, mode: 'FIXED', value: 48 },
+];
+
+function fallbackWhenEmpty<T>(items: T[] | null | undefined, fallback: T[]): T[] {
+  return Array.isArray(items) && items.length > 0 ? items : fallback;
+}
+
+function normalizeConfiguration(configuration: BudgetBuilderConfigView): BudgetBuilderConfigView {
+  const projectTypeDefaults = fallbackWhenEmpty(configuration.projectTypeDefaults, FALLBACK_PROJECT_TYPES);
+  const modules = fallbackWhenEmpty(configuration.modules, FALLBACK_MODULES);
+  const categories = fallbackWhenEmpty(configuration.categories, FALLBACK_CATEGORIES);
+  const technologies = fallbackWhenEmpty(configuration.technologies, FALLBACK_TECHNOLOGIES);
+  const supportPlans = fallbackWhenEmpty(configuration.supportPlans, FALLBACK_SUPPORT_PLANS);
+  const maintenancePlans = fallbackWhenEmpty(configuration.maintenancePlans, FALLBACK_MAINTENANCE_PLANS);
+  const userScaleTiers = fallbackWhenEmpty(configuration.userScaleTiers, FALLBACK_USER_SCALE_TIERS);
+
+  return {
+    ...configuration,
+    currency: configuration.currency?.trim() || 'ARS',
+    complexityOptions: configuration.complexityOptions?.length
+      ? configuration.complexityOptions
+      : (['LOW', 'MEDIUM', 'HIGH'] as BudgetComplexity[]),
+    projectTypeDefaults,
+    modules,
+    categories,
+    technologies,
+    supportPlans,
+    maintenancePlans,
+    userScaleTiers,
+  };
+}
+
 export interface BudgetBuilderUiFormValue {
   budgetName: string;
   client?: string | null;
+  presentationCurrency?: 'ARS' | 'USD';
   projectType: string;
   pricingMode: 'PROJECT' | 'SAAS';
   desiredStackId: string;
@@ -260,10 +449,34 @@ function localizeTechnology(
 export class BudgetBuilderUiFacade {
   private readonly http = inject(HttpClient);
 
+  buildFallbackConfiguration(): BudgetBuilderConfigView {
+    return normalizeConfiguration({
+      configurationSnapshotId: 'budget-builder-fallback-v1',
+      version: 'fallback-v1',
+      source: 'fallback',
+      currency: 'ARS',
+      createdAt: new Date().toISOString(),
+      workingHoursPerWeek: 32,
+      defaultHourlyRate: 20,
+      supportHourlyRate: 18,
+      extraHourRate: 24,
+      riskBufferHours: 6,
+      projectTypeDefaults: [],
+      modules: [],
+      categories: [],
+      technologies: [],
+      surchargeRules: [],
+      supportPlans: [],
+      maintenancePlans: [],
+      userScaleTiers: [],
+      complexityOptions: [],
+    });
+  }
+
   getActiveConfiguration(): Observable<BudgetBuilderConfigView> {
     return this.http
       .get<ApiResponse<BudgetBuilderConfigView>>('/api/admin/budget-builder/configuration/active')
-      .pipe(map((response) => response.data));
+      .pipe(map((response) => normalizeConfiguration(response.data)));
   }
 
   previewBudget(payload: BudgetBuilderPreviewRequestPayload): Observable<BudgetBuilderPreviewResult> {
@@ -302,6 +515,7 @@ export class BudgetBuilderUiFacade {
 
     return {
       budgetName: 'Operations MVP',
+      client: 'ACME Corp',
       projectType: defaultProjectType,
       pricingMode: 'PROJECT',
       desiredStackId: defaultTechnologyId,

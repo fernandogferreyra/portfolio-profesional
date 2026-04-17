@@ -391,4 +391,69 @@ describe('BudgetBuilderUiFacade', () => {
       },
     });
   });
+
+  it('hydrates fallback configuration when backend returns empty arrays', () => {
+    let response: unknown;
+
+    facade.getActiveConfiguration().subscribe((result) => {
+      response = result;
+    });
+
+    const request = httpMock.expectOne('/api/admin/budget-builder/configuration/active');
+    expect(request.request.method).toBe('GET');
+
+    request.flush({
+      success: true,
+      message: 'Configuration loaded',
+      data: {
+        configurationSnapshotId: 'budget-builder-seed-v1',
+        version: 'v1',
+        source: 'seed',
+        currency: 'ARS',
+        createdAt: '2026-04-17T00:00:00Z',
+        workingHoursPerWeek: 32,
+        defaultHourlyRate: 20,
+        supportHourlyRate: 18,
+        extraHourRate: 24,
+        riskBufferHours: 6,
+        projectTypeDefaults: [],
+        modules: [],
+        categories: [],
+        technologies: [],
+        surchargeRules: [],
+        supportPlans: [],
+        maintenancePlans: [],
+        userScaleTiers: [],
+        complexityOptions: [],
+      },
+    });
+
+    expect(response).toEqual(
+      jasmine.objectContaining({
+        projectTypeDefaults: jasmine.arrayContaining([
+          jasmine.objectContaining({ projectType: 'standard_project' }),
+          jasmine.objectContaining({ projectType: 'saas_product' }),
+        ]),
+        modules: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'LOGIN' }),
+          jasmine.objectContaining({ id: 'ADMIN_PANEL' }),
+          jasmine.objectContaining({ id: 'REPORTS' }),
+          jasmine.objectContaining({ id: 'PAYMENTS' }),
+          jasmine.objectContaining({ id: 'NOTIFICATIONS' }),
+        ]),
+        technologies: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'default_web_stack' }),
+        ]),
+        supportPlans: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'support-basic' }),
+        ]),
+        maintenancePlans: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'maintenance-standard' }),
+        ]),
+        userScaleTiers: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'starter' }),
+        ]),
+      }),
+    );
+  });
 });
