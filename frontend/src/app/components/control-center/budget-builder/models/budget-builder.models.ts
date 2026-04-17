@@ -250,6 +250,41 @@ export interface BudgetPreviewModuleView {
   baseAmount: number;
 }
 
+export interface TechnicalSummaryView {
+  totalHours: number;
+  totalWeeks: number;
+  totalBaseAmount: number;
+}
+
+export interface AreaModuleView {
+  id: string;
+  name: string;
+  estimatedHours: number;
+  baseAmount: number;
+}
+
+export interface AreaBreakdownView {
+  areaId: string;
+  label: string;
+  totalHours: number;
+  baseAmount: number;
+  moduleCount: number;
+  shareOfTechnicalTotal: number;
+  modules: AreaModuleView[];
+}
+
+export interface MonthlyBreakdownView {
+  developmentRecovery: number;
+  infrastructure: number;
+  support: number;
+  maintenance: number;
+  userScaleAdjustment: number;
+  extraHours: number;
+  margin: number;
+  monthlySubtotal: number;
+  finalMonthlyTotal: number;
+}
+
 export interface BudgetPreviewAdjustmentView {
   id: string;
   code: string;
@@ -271,6 +306,9 @@ export interface BudgetPreviewExplanationView {
 export interface BudgetBuilderPreviewResult {
   configurationSnapshotId: string;
   previewHash: string;
+  technicalSummary: TechnicalSummaryView;
+  areaBreakdown: AreaBreakdownView[];
+  monthlyBreakdown: MonthlyBreakdownView | null;
   modules: BudgetPreviewModuleView[];
   technicalEstimate: {
     totalHours: number;
@@ -379,6 +417,7 @@ export interface BudgetBuilderConfigUserScaleTier {
 
 export interface BudgetBuilderPreviewRequestPayload {
   budgetName: string;
+  client?: string | null;
   projectType: string;
   pricingMode: BudgetPricingMode;
   desiredStackId: string;
@@ -413,6 +452,7 @@ export interface BudgetBuilderSaveRequestPayload {
 export interface BudgetBuilderSaveResponse {
   id: string;
   budgetName: string;
+  client: string;
   configurationSnapshotId: string;
   finalOneTimeTotal: number;
   finalMonthlyTotal: number;
@@ -422,6 +462,7 @@ export interface BudgetBuilderSaveResponse {
 export interface BudgetBuilderSummary {
   id: string;
   budgetName: string;
+  client: string;
   projectType: string;
   pricingMode: BudgetPricingMode;
   desiredStackId: string;
