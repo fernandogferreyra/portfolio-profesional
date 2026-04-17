@@ -332,6 +332,61 @@
       </section>
     </aside>
   </div>
+
+  <section class="budget-workspace__print-report" *ngIf="calculationResult() as result">
+    <header class="budget-workspace__print-header">
+      <div>
+        <p class="budget-workspace__print-eyebrow">{{ currentLanguage() === 'es' ? 'Presupuesto profesional' : 'Professional budget' }}</p>
+        <h1>{{ budgetForm.controls.budgetName.value || 'Budget Builder' }}</h1>
+      </div>
+
+      <div class="budget-workspace__print-meta">
+        <div><span>{{ content().clientNameLabel }}</span><strong>{{ budgetForm.controls.client.value || '--' }}</strong></div>
+        <div><span>{{ content().projectTypeLabel }}</span><strong>{{ getProjectTypeLabel(budgetForm.controls.projectType.value) }}</strong></div>
+        <div><span>{{ currentLanguage() === 'es' ? 'Tipo' : 'Type' }}</span><strong>{{ budgetForm.controls.pricingMode.value === 'SAAS' ? content().saasMode : content().projectMode }}</strong></div>
+        <div><span>{{ content().urgencyLabel }}</span><strong>{{ getUrgencyLabel(budgetForm.controls.urgency.value) }}</strong></div>
+      </div>
+    </header>
+
+    <section class="budget-workspace__print-section">
+      <h2>{{ currentLanguage() === 'es' ? 'Resumen técnico' : 'Technical summary' }}</h2>
+      <div class="budget-workspace__print-grid budget-workspace__print-grid--three">
+        <div><span>{{ currentLanguage() === 'es' ? 'Costo técnico' : 'Technical cost' }}</span><strong>{{ formatCurrency(technicalBaseAmount(), currentCurrency()) }}</strong></div>
+        <div><span>{{ currentLanguage() === 'es' ? 'Ajustes' : 'Adjustments' }}</span><strong>{{ formatCurrency(commercialAdjustmentsAmount(), currentCurrency()) }}</strong></div>
+        <div><span>{{ currentLanguage() === 'es' ? 'Precio final' : 'Final price' }}</span><strong>{{ formatCurrency(finalOneTimeTotal(), currentCurrency()) }}</strong></div>
+        <div><span>{{ content().totalHours }}</span><strong>{{ technicalSummary()?.totalHours?.toFixed(2) }} h</strong></div>
+        <div><span>{{ content().timeline }}</span><strong>{{ technicalSummary()?.totalWeeks?.toFixed(2) }} sem</strong></div>
+      </div>
+    </section>
+
+    <section class="budget-workspace__print-section" *ngIf="workbenchAreas().length">
+      <h2>{{ currentLanguage() === 'es' ? 'Breakdown por áreas' : 'Breakdown by area' }}</h2>
+      <div class="budget-workspace__print-area" *ngFor="let area of workbenchAreas(); trackBy: trackByAreaId">
+        <div class="budget-workspace__print-area-head">
+          <strong>{{ area.label }}</strong>
+          <span>{{ formatCurrency(area.baseAmount, currentCurrency()) }} · {{ area.totalHours.toFixed(2) }} h</span>
+        </div>
+        <div class="budget-workspace__print-module" *ngFor="let module of area.modules; trackBy: trackById">
+          <span>{{ module.name }}</span>
+          <strong>{{ formatCurrency(module.baseAmount, currentCurrency()) }}</strong>
+          <small>{{ module.estimatedHours.toFixed(2) }} h</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="budget-workspace__print-section" *ngIf="monthlyBreakdown() as monthly">
+      <h2>SaaS</h2>
+      <div class="budget-workspace__print-grid budget-workspace__print-grid--two">
+        <div><span>{{ currentLanguage() === 'es' ? 'Recupero desarrollo' : 'Development recovery' }}</span><strong>{{ formatCurrency(monthly.developmentRecovery, currentCurrency()) }}</strong></div>
+        <div><span>{{ currentLanguage() === 'es' ? 'Infraestructura' : 'Infrastructure' }}</span><strong>{{ formatCurrency(monthly.infrastructure, currentCurrency()) }}</strong></div>
+        <div><span>{{ content().supportLabel }}</span><strong>{{ formatCurrency(monthly.support, currentCurrency()) }}</strong></div>
+        <div><span>{{ content().maintenanceLabel }}</span><strong>{{ formatCurrency(monthly.maintenance, currentCurrency()) }}</strong></div>
+        <div><span>{{ currentLanguage() === 'es' ? 'Tier usuarios' : 'User tier' }}</span><strong>{{ formatCurrency(monthly.userScaleAdjustment, currentCurrency()) }}</strong></div>
+        <div><span>{{ currentLanguage() === 'es' ? 'Horas extra' : 'Extra hours' }}</span><strong>{{ formatCurrency(monthly.extraHours, currentCurrency()) }}</strong></div>
+        <div class="budget-workspace__print-total"><span>{{ content().monthlyTotal }}</span><strong>{{ formatCurrency(monthly.finalMonthlyTotal, currentCurrency()) }}</strong></div>
+      </div>
+    </section>
+  </section>
 </section>
 
 <ng-template #noTechnicalSummary>

@@ -46,9 +46,10 @@
 .messages-workspace__ghost,
 .messages-workspace__primary,
 .messages-workspace__item {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px var(--theme-border-style) var(--theme-button-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--theme-panel-bg) 94%, transparent);
+  box-shadow: var(--theme-shadow-md);
 }
 
 .messages-workspace__filter,
@@ -69,6 +70,7 @@
   gap: 0.28rem;
   text-align: left;
   padding: 0.8rem;
+  color: var(--color-text);
 }
 
 .messages-workspace__item-top {
@@ -109,9 +111,25 @@
   display: grid;
   gap: 0.35rem;
   padding: 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  border: 1px var(--theme-border-style) var(--theme-panel-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--theme-panel-bg) 96%, transparent);
+  box-shadow: var(--theme-shadow-md);
+}
+
+.messages-workspace__item strong,
+.messages-workspace__detail-head strong,
+.messages-workspace__meta-card strong,
+.messages-workspace__reply-preview strong {
+  color: var(--color-text);
+}
+
+.messages-workspace__item small,
+.messages-workspace__item-top span,
+.messages-workspace__detail-head span,
+.messages-workspace__meta-card small,
+.messages-workspace__reply-preview small {
+  color: var(--color-text-muted);
 }
 
 .messages-workspace__meta-card span,
@@ -129,6 +147,7 @@
   margin: 0;
   white-space: pre-wrap;
   line-height: 1.6;
+  color: var(--color-text);
 }
 
 .messages-workspace__field {
@@ -139,11 +158,16 @@
 .messages-workspace__field input,
 .messages-workspace__field textarea {
   width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--color-surface) 96%, transparent);
+  border: 1px var(--theme-border-style) var(--theme-button-border);
+  border-radius: var(--radius-md);
+  background: var(--theme-input-bg);
   color: var(--color-text);
   padding: 0.72rem 0.82rem;
+}
+
+.messages-workspace__field input::placeholder,
+.messages-workspace__field textarea::placeholder {
+  color: var(--color-text-muted);
 }
 
 .messages-workspace__field textarea {
@@ -152,8 +176,9 @@
 }
 
 .messages-workspace__primary {
-  background: var(--color-primary);
-  color: #081018;
+  background: var(--theme-button-bg);
+  border-color: var(--theme-button-border);
+  color: var(--color-primary-contrast);
   font-weight: 700;
 }
 

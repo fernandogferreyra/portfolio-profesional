@@ -10,7 +10,18 @@ import { MotionService } from './motion.service';
 export class ThemeService {
   private readonly motionService = inject(MotionService);
   private readonly storageKey = 'portfolio-theme';
-  private readonly availableThemes: ThemeId[] = ['themeNeon', 'themeEX', 'themeLight'];
+  private readonly availableThemes: ThemeId[] = [
+    'themeNeon',
+    'themeEX',
+    'themeLightWorkbench',
+    'themeLinuxTerminal',
+    'themeRetroAmber',
+    'themeCmd',
+    'themeUbuntu',
+    'themeWin11',
+    'themeWin98',
+    'themeWinXP',
+  ];
 
   readonly activeTheme = signal<ThemeId>(this.readStoredTheme());
 
@@ -37,6 +48,9 @@ export class ThemeService {
   private readStoredTheme(): ThemeId {
     try {
       const storedTheme = globalThis.localStorage?.getItem(this.storageKey);
+      if (storedTheme === 'themeLight') {
+        return 'themeLightWorkbench';
+      }
       return this.isThemeId(storedTheme) ? storedTheme : 'themeNeon';
     } catch {
       return 'themeNeon';
