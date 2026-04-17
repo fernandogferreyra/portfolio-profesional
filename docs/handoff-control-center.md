@@ -1,6 +1,6 @@
 # Handoff Control Center
 
-Estado al 2026-04-15.
+Estado al 2026-04-17.
 
 ## 1. Estado actual del proyecto
 
@@ -18,11 +18,24 @@ Estado al 2026-04-15.
 ## 2. Estado funcional relevante
 
 - `Budget Builder` privado ya opera contra backend oficial para configuracion activa, `preview`, `save`, historial y detalle.
+- El backend de `Budget Builder` ya quedo alineado al modelo workbench: `preview` devuelve `technicalSummary`, `areaBreakdown` con modulos anidados, `monthlyBreakdown` para `SAAS` y `client` dentro de request, persistencia y respuestas admin.
 - `Budget Builder` ya absorbio buena parte del cotizador historico: reglas comerciales, mantenimiento, stacks oficiales, presets rapidos, planilla por areas y costos por modulo oficiales desde backend.
 - El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
 - `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
 - `Site Activity` ya es backend-first.
 - El portfolio publico sigue operativo y `ProjectsComponent` ya puede consumir `GET /api/projects`.
+
+## 2.1 Direccion UI vigente para Presupuesto
+
+- La direccion correcta ya no es dashboard con cards ni wizard largo.
+- La siguiente etapa frontend debe implementar una sola pantalla tipo planilla/workbench.
+- Layout objetivo:
+  - izquierda: configuracion / planilla por secciones
+  - derecha: resultado vivo
+- El resumen vivo debe apoyarse en el contrato backend ya mergeado:
+  - `technicalSummary` para resumen tecnico
+  - `areaBreakdown` para negociacion principal por areas
+  - `monthlyBreakdown` para lectura `SAAS`
 
 ## 3. Decisiones tecnicas importantes
 
@@ -45,8 +58,9 @@ Estado al 2026-04-15.
 ## 5. Proximos pasos recomendados
 
 - Trabajar desde `develop` con ramas cortas por alcance.
-- Abrir la siguiente ola funcional en `Paginas amigas`.
-- Despues seguir con themes extra visibles y luego storage/uploads para `Actualizar`.
+- Abrir la siguiente etapa en `feature/budget-workbench-ui`.
+- Implementar la UI de `Budget Builder` como workbench de una sola pantalla, consumiendo `technicalSummary`, `areaBreakdown` y `monthlyBreakdown` desde backend.
+- Despues reevaluar `Paginas amigas`, themes extra visibles y storage/uploads para `Actualizar`.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 
