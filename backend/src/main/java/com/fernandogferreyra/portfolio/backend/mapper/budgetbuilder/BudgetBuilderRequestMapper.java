@@ -25,6 +25,7 @@ public class BudgetBuilderRequestMapper {
         return new BudgetProject(
             "budget-builder-preview",
             request.budgetName().trim(),
+            request.client().trim(),
             BudgetCalculationUtils.normalizeProjectKey(request.projectType()),
             request.pricingMode(),
             BudgetCalculationUtils.normalizeStackKey(request.desiredStackId()),

@@ -12,6 +12,7 @@ import java.util.List;
 public record BudgetProject(
     String id,
     String name,
+    String client,
     String projectType,
     BudgetPricingMode pricingMode,
     String desiredStackId,

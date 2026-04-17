@@ -261,6 +261,7 @@ public final class BudgetBuilderTestFixtures {
         return new BudgetProject(
             "project-mvp",
             "Operations MVP",
+            "ACME Corp",
             "standard_project",
             BudgetPricingMode.PROJECT,
             "default_web_stack",
@@ -283,6 +284,7 @@ public final class BudgetBuilderTestFixtures {
     public static BudgetPreviewRequest previewRequest() {
         return new BudgetPreviewRequest(
             "Operations MVP",
+            "ACME Corp",
             "standard_project",
             BudgetPricingMode.PROJECT,
             "default_web_stack",

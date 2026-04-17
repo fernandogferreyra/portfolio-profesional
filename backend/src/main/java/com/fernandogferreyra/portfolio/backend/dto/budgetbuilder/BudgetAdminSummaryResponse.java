@@ -8,6 +8,7 @@ import java.util.UUID;
 public record BudgetAdminSummaryResponse(
     UUID id,
     String budgetName,
+    String client,
     String projectType,
     BudgetPricingMode pricingMode,
     String desiredStackId,

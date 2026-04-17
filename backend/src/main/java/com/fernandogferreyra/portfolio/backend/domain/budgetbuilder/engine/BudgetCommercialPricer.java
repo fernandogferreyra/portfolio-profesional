@@ -7,6 +7,7 @@ import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.Budget
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.CommercialBudget;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.ConfigurationSnapshot;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.DiscountItem;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.MonthlyBreakdown;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.PricingExplanationItem;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.SurchargeItem;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.TechnicalEstimate;
@@ -71,6 +72,14 @@ public class BudgetCommercialPricer {
         BigDecimal finalMonthlyTotal = BudgetCalculationUtils.roundCommercialValue(
             monthlyBaseAmount.subtract(monthlyDiscountTotal).max(BigDecimal.ZERO),
             configuration.roundingRules().commercial());
+        MonthlyBreakdown monthlyBreakdown = buildMonthlyBreakdown(
+            project,
+            supportApplication,
+            maintenanceApplication,
+            saasApplication,
+            monthlyBaseAmount,
+            finalMonthlyTotal
+        );
 
         return new CommercialBudget(
             project.id() + "-commercial-budget",
@@ -87,6 +96,7 @@ public class BudgetCommercialPricer {
             finalOneTimeTotal,
             finalMonthlyTotal,
             supportApplication.supportRuleId(),
+            monthlyBreakdown,
             buildExplanation(
                 technicalEstimate,
                 commercialBase,
@@ -97,6 +107,32 @@ public class BudgetCommercialPricer {
                 saasApplication
             ),
             configuration.createdAt()
+        );
+    }
+
+    private MonthlyBreakdown buildMonthlyBreakdown(
+        BudgetProject project,
+        SupportApplication supportApplication,
+        MaintenanceApplication maintenanceApplication,
+        SaasApplication saasApplication,
+        BigDecimal monthlyBaseAmount,
+        BigDecimal finalMonthlyTotal
+    ) {
+        if (project.pricingMode() != com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BudgetPricingMode.SAAS
+            || saasApplication.monthlyAmount() == null) {
+            return null;
+        }
+
+        return new MonthlyBreakdown(
+            saasApplication.developmentRecovery(),
+            saasApplication.infrastructure(),
+            supportApplication.monthlyAmount(),
+            maintenanceApplication.monthlyAmount(),
+            saasApplication.userScaleAdjustment(),
+            saasApplication.extraHours(),
+            saasApplication.margin(),
+            monthlyBaseAmount,
+            finalMonthlyTotal
         );
     }
 
@@ -304,7 +340,7 @@ public class BudgetCommercialPricer {
         BigDecimal supportMonthlyAmount
     ) {
         if (!hasWork || project.pricingMode() != com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BudgetPricingMode.SAAS) {
-            return new SaasApplication(null, List.of());
+            return new SaasApplication(null, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, List.of());
         }
 
         int activeClients = project.activeClients() == null || project.activeClients() <= 0 ? 1 : project.activeClients();
@@ -386,7 +422,15 @@ public class BudgetCommercialPricer {
             ));
         }
 
-        return new SaasApplication(monthlyAmount, List.copyOf(extendedExplanation));
+        return new SaasApplication(
+            monthlyAmount,
+            recoveredDevelopmentCost,
+            infrastructureCost,
+            tierAdjustment,
+            extraHoursCost,
+            marginAmount,
+            List.copyOf(extendedExplanation)
+        );
     }
 
     private BigDecimal resolveUserScaleAdjustment(
@@ -528,6 +572,11 @@ public class BudgetCommercialPricer {
 
     private record SaasApplication(
         BigDecimal monthlyAmount,
+        BigDecimal developmentRecovery,
+        BigDecimal infrastructure,
+        BigDecimal userScaleAdjustment,
+        BigDecimal extraHours,
+        BigDecimal margin,
         List<PricingExplanationItem> explanation
     ) {
     }
