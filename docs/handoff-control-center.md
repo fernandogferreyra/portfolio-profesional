@@ -1,6 +1,6 @@
 # Handoff Control Center
 
-Estado al 2026-04-17.
+Estado al 2026-04-18.
 
 ## 1. Estado actual del proyecto
 
@@ -22,6 +22,7 @@ Estado al 2026-04-17.
 - `Budget Builder` ya absorbio buena parte del cotizador historico: reglas comerciales, mantenimiento, stacks oficiales, presets rapidos, planilla por areas y costos por modulo oficiales desde backend.
 - El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
 - `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
+- El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
 - `Site Activity` ya es backend-first.
 - El portfolio publico sigue operativo y `ProjectsComponent` ya puede consumir `GET /api/projects`.
 
@@ -52,15 +53,16 @@ Estado al 2026-04-17.
 
 - Parte del historial reciente sigue repartido en ramas historicas, de backup o de higiene que deberian limpiarse cuando ya no aporten nada.
 - El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
-- Faltan `Paginas amigas`, themes extra visibles, PDF y storage/uploads para `Actualizar`.
+- Faltan UX mas clara de `Mensajeria`, CMS editable del sitio publico, persistencia documental, notas/uploads, `Paginas amigas`, PWA, docker/deploy e integracion futura de bot/asistente.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
+- `release-please` ya esta configurado, pero todavia no debe considerarse el motor central del flujo diario hasta que el camino `develop -> main` quede mas rutinario.
 
 ## 5. Proximos pasos recomendados
 
 - Trabajar desde `develop` con ramas cortas por alcance.
-- Abrir la siguiente etapa en `feature/budget-workbench-ui`.
-- Implementar la UI de `Budget Builder` como workbench de una sola pantalla, consumiendo `technicalSummary`, `areaBreakdown` y `monthlyBreakdown` desde backend.
-- Despues reevaluar `Paginas amigas`, themes extra visibles y storage/uploads para `Actualizar`.
+- Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
+- Proxima etapa recomendada: `feature/messages-inbox-ux`.
+- Despues abrir la base editable del sitio publico y la persistencia documental.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 

@@ -20,6 +20,8 @@ En la ultima pasada de saneamiento se dejo finalmente consistente el indice Git 
 
 En la segunda ola se dejo preparada la base para tests backend autocontenidos con Testcontainers sobre PostgreSQL, se introdujo `ProjectsService` para consumir `GET /api/projects` en el portfolio publico sin perder la UI rica actual, y se agrego `.nvmrc` con `20.19.0` para fijar la version esperada de Node del repo sin depender de una instalacion global unica.
 
+Tambien queda consolidado el contexto maestro de continuidad del proyecto: `portfolio-profesional` ya debe trabajarse por etapas pequenas sobre `develop`, con ramas cortas, commits chicos, PR a `develop`, CI obligatoria y limpieza de rama al terminar. La direccion general del producto ya no es la de un portfolio simple sino la de una plataforma personal/profesional con sitio publico, backoffice privado, cotizador/estimador, mensajeria, CMS interno, persistencia documental y base futura para bot/asistente. El roadmap vivo se registra desde ahora en `docs/continuity-roadmap.md` para no perder prioridades, dependencias ni secuencia recomendada de implementacion.
+
 En la tercera ola `Site Activity` paso a backend-first de forma incremental: el frontend ahora registra eventos via `POST /api/events` y el dashboard privado carga actividad persistida desde `GET /api/admin/events`.
 
 En la quinta ola se abrio la consolidacion controlada del cotizador comercial historico. Se documento la paridad en `docs/budget-builder-parity.md`, el backend de `Budget Builder` paso a exponer `surchargeRules` y `maintenancePlans` en la configuracion activa, se semillaron los extras comerciales heredados del cotizador historico como reglas comerciales desactivadas por defecto y el calculo oficial ya soporta `maintenancePlanId` dentro del motor backend.
@@ -55,6 +57,12 @@ Quedan pendientes funcionales fuera de este corte: PDF, envio transaccional a te
 Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la rama integradora diaria, las ramas nuevas deben nacer desde `develop` y volver por PR a `develop`, y `main` solo debe recibir PRs desde `develop` cuando se quiera integrar una version estable.
 
 ## Historial de cambios
+
+- Fecha: 2026-04-18
+  - Cambio: Se consolido el contexto maestro de continuidad del repo y se formalizo el roadmap vivo en `docs/continuity-roadmap.md`. Tambien se actualizo el handoff corto para reflejar que `Budget Builder` ya quedo usable a nivel funcional frontend y que la siguiente etapa recomendada pasa a ser mejorar la UX de `Mensajeria` antes de abrir CMS/documentos.
+  - Archivos: `docs/continuity-roadmap.md`, `docs/handoff-control-center.md`, `DOCUMENTATION.md`
+  - Decision: Mantener el flujo oficial `branch corta -> commit chico -> push -> PR a develop -> CI -> merge -> cleanup`, usar `develop` como rama integradora diaria y dejar `release-please` como automatizacion preparada pero no central para el trabajo diario hasta estabilizar mejor el camino `develop -> main`.
+  - Proximos pasos: Abrir `feature/messages-inbox-ux`, despues `feature/public-content-admin-foundation` y luego `feature/document-storage-foundation` como base para CMS editable, notas y uploads.
 
 - Fecha: 2026-04-17
   - Cambio: Se mergeo `feat: add workbench-ready budget preview contract` y el backend oficial de `Budget Builder` quedo alineado al workbench de presupuesto. El preview ahora entrega `technicalSummary`, `areaBreakdown` con modulos anidados y `monthlyBreakdown` para `SAAS`, sin tocar el motor tecnico ni el pricing engine. Tambien se agrego `client` en request, modelo, persistencia y respuestas admin para sostener el encabezado operativo del presupuesto.
