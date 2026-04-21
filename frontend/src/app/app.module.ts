@@ -12,6 +12,7 @@ import { ControlCenterComponent } from './components/control-center/control-cent
 import { ControlCenterBudgetBuilderComponent } from './components/control-center-budget-builder/control-center-budget-builder.component';
 import { ControlCenterEstimatorComponent } from './components/control-center-estimator/control-center-estimator.component';
 import { ControlCenterMessagesComponent } from './components/control-center-messages/control-center-messages.component';
+import { ControlCenterUpdateComponent } from './components/control-center-update/control-center-update.component';
 import { ControlCenterQuoteComponent } from './components/control-center-quote/control-center-quote.component';
 import { ControlCenterQuoteMetricsComponent } from './components/control-center-quote-metrics/control-center-quote-metrics.component';
 import { ControlCenterSiteActivityComponent } from './components/control-center-site-activity/control-center-site-activity.component';
@@ -41,6 +42,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     ControlCenterComponent,
     ControlCenterBudgetBuilderComponent,
     ControlCenterMessagesComponent,
+    ControlCenterUpdateComponent,
     ControlCenterQuoteComponent,
     ControlCenterEstimatorComponent,
     ControlCenterQuoteMetricsComponent,

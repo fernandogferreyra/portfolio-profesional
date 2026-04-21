@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
 
+    List<ProjectEntity> findAllByOrderByDisplayOrderAsc();
+
     List<ProjectEntity> findByPublishedTrueOrderByDisplayOrderAsc();
 }
-

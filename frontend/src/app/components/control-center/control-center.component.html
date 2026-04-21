@@ -48,10 +48,7 @@
           <p>{{ content().updateLead }}</p>
         </header>
 
-        <article class="control-center__placeholder">
-          <strong>{{ content().updateTitle }}</strong>
-          <p>{{ content().placeholderReady }}</p>
-        </article>
+        <app-control-center-update></app-control-center-update>
       </section>
 
       <section *ngSwitchCase="'links'" class="control-center__workspace">
