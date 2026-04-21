@@ -35,6 +35,7 @@ yarn-error.log
 /.env
 /.env.*
 !/.env.example
+!/.env.deploy.example
 *.log
 contact-win-body.out
 contact-win-headers.out

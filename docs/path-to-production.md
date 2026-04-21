@@ -48,6 +48,7 @@ cd backend
 - El minimo viable actual es CI, no CD automatico a produccion.
 - CI debe responder rapido si un cambio esta bien o esta mal.
 - Cuando el proceso madure, CD podra promover automaticamente solo builds validadas.
+- Desde esta etapa ya existe `.github/workflows/cd.yml` como base de CD reproducible: construye imagenes Docker y publica un `deploy-bundle` descargable, pero todavia no empuja a ningun proveedor ni reemplaza el control manual.
 
 ## 3. Pull Request Obligatorio
 
@@ -94,11 +95,13 @@ En `Settings > Rules > Rulesets > New ruleset`:
 
 - Los workflows viven en `.github/workflows/`.
 - `ci.yml` define el minimo de validacion automatizada del repo.
+- `cd.yml` construye la base de despliegue sobre Docker y publica el bundle resultante como artifact.
 - Acciones tipicas:
   - tests frontend
   - build frontend
   - tests backend
   - package backend
+  - build de imagenes para deploy
 
 ## 5. Code Review Asistido
 
