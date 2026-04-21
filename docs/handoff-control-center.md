@@ -22,6 +22,7 @@ Estado al 2026-04-18.
 - `Budget Builder` ya absorbio buena parte del cotizador historico: reglas comerciales, mantenimiento, stacks oficiales, presets rapidos, planilla por areas y costos por modulo oficiales desde backend.
 - El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
 - `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
+- En `feature/messages-inbox-ux` la inbox admin ya empezo a ganar UX operativa: filtros con conteos, busqueda local, items mas legibles y detalle/reply mas claros sin cambiar el contrato backend.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
 - `Site Activity` ya es backend-first.
 - El portfolio publico sigue operativo y `ProjectsComponent` ya puede consumir `GET /api/projects`.
@@ -62,7 +63,7 @@ Estado al 2026-04-18.
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
 - Proxima etapa recomendada: `feature/messages-inbox-ux`.
-- Despues abrir la base editable del sitio publico y la persistencia documental.
+- Si `feature/messages-inbox-ux` ya quedo cerrada en tu rama activa, el siguiente paso recomendado pasa a ser preparar base de CD/deploy sin romper CI y luego abrir la base editable del sitio publico.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 

@@ -30,6 +30,7 @@ export class ControlCenterMessagesComponent {
   readonly listError = signal<string | null>(null);
   readonly actionFeedback = signal<string | null>(null);
   readonly selectedFilter = signal<MessageFilterId>('ALL');
+  readonly searchTerm = signal('');
   readonly messages = signal<ContactMessageSummary[]>([]);
   readonly selectedMessageId = signal<string | null>(null);
   readonly selectedMessage = signal<ContactMessageDetail | null>(null);
@@ -50,16 +51,21 @@ export class ControlCenterMessagesComponent {
           ],
           loading: 'Cargando mensajes...',
           empty: 'Todavia no hay mensajes para este filtro.',
+          searchPlaceholder: 'Buscar por nombre, asunto o email',
+          clearSearch: 'Limpiar',
           noSelection: 'Selecciona un mensaje para revisar el detalle y responder.',
           replyTitle: 'Responder',
           replySubject: 'Asunto de respuesta',
           replyMessage: 'Mensaje',
+          replyHint: 'La respuesta se envia al email del remitente y queda registrada en la bandeja.',
+          replyMessageRequired: 'Escribe una respuesta antes de enviar.',
           replyCta: 'Enviar respuesta',
           markRead: 'Marcar como leido',
           archive: 'Archivar',
           refresh: 'Actualizar',
           from: 'De',
           received: 'Recibido',
+          updated: 'Actualizado',
           context: 'Contexto',
           language: 'Idioma',
           source: 'Origen',
@@ -68,6 +74,7 @@ export class ControlCenterMessagesComponent {
           repliedBy: 'Por',
           detailTitle: 'Detalle del mensaje',
           listTitle: 'Inbox privado',
+          inboxLead: 'Consultas reales del formulario con estado, contexto y respuesta.',
           defaultReplySubject: 'Gracias por tu mensaje',
           replySent: 'Respuesta enviada correctamente.',
           statusUpdated: 'Estado actualizado.',
@@ -83,16 +90,21 @@ export class ControlCenterMessagesComponent {
           ],
           loading: 'Loading messages...',
           empty: 'There are no messages for this filter yet.',
+          searchPlaceholder: 'Search by name, subject, or email',
+          clearSearch: 'Clear',
           noSelection: 'Select a message to review its details and reply.',
           replyTitle: 'Reply',
           replySubject: 'Reply subject',
           replyMessage: 'Message',
+          replyHint: 'The reply is sent to the sender email and also stored in the inbox.',
+          replyMessageRequired: 'Write a reply before sending it.',
           replyCta: 'Send reply',
           markRead: 'Mark as read',
           archive: 'Archive',
           refresh: 'Refresh',
           from: 'From',
           received: 'Received',
+          updated: 'Updated',
           context: 'Context',
           language: 'Language',
           source: 'Source',
@@ -101,6 +113,7 @@ export class ControlCenterMessagesComponent {
           repliedBy: 'By',
           detailTitle: 'Message detail',
           listTitle: 'Private inbox',
+          inboxLead: 'Real contact-form inquiries with status, context, and reply trace.',
           defaultReplySubject: 'Thanks for your message',
           replySent: 'Reply sent successfully.',
           statusUpdated: 'Status updated.',
@@ -116,9 +129,41 @@ export class ControlCenterMessagesComponent {
     () => this.messages().find((message) => message.id === this.selectedMessageId()) ?? null,
   );
 
+  readonly visibleMessages = computed(() => {
+    const filter = this.selectedFilter();
+    const query = this.searchTerm().trim().toLowerCase();
+
+    return this.messages().filter((message) => {
+      if (filter !== 'ALL' && message.status !== filter) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const searchable = [message.name, message.email, message.subject, message.context ?? '']
+        .join(' ')
+        .toLowerCase();
+
+      return searchable.includes(query);
+    });
+  });
+
+  readonly filterOptions = computed(() => {
+    const filters = this.content().filters;
+    const messages = this.messages();
+
+    return filters.map((filter) => ({
+      ...filter,
+      count:
+        filter.id === 'ALL' ? messages.length : messages.filter((message) => message.status === filter.id).length,
+    }));
+  });
+
   async selectFilter(filter: MessageFilterId): Promise<void> {
     this.selectedFilter.set(filter);
-    await this.loadMessages(true);
+    await this.syncSelectionWithVisibleMessages(true);
   }
 
   async refresh(): Promise<void> {
@@ -140,9 +185,25 @@ export class ControlCenterMessagesComponent {
         subject: defaultSubject,
         message: '',
       });
+      this.replyForm.markAsPristine();
+      this.replyForm.markAsUntouched();
     } catch (error) {
       this.listError.set(this.resolveErrorMessage(error));
     }
+  }
+
+  async updateSearchTerm(term: string): Promise<void> {
+    this.searchTerm.set(term);
+    await this.syncSelectionWithVisibleMessages(false);
+  }
+
+  async clearSearch(): Promise<void> {
+    if (!this.searchTerm()) {
+      return;
+    }
+
+    this.searchTerm.set('');
+    await this.syncSelectionWithVisibleMessages(false);
   }
 
   async markRead(): Promise<void> {
@@ -177,6 +238,8 @@ export class ControlCenterMessagesComponent {
         this.patchSummary(response.data);
       }
       this.replyForm.patchValue({ message: '' });
+      this.replyForm.markAsPristine();
+      this.replyForm.markAsUntouched();
       this.actionFeedback.set(this.content().replySent);
       await this.loadMessages(false);
     } catch (error) {
@@ -202,26 +265,10 @@ export class ControlCenterMessagesComponent {
     this.listError.set(null);
 
     try {
-      const currentFilter = this.selectedFilter();
-      let status: ContactMessageStatus | undefined;
-      if (currentFilter !== 'ALL') {
-        status = currentFilter;
-      }
-      const response = await firstValueFrom(this.contactAdminService.listMessages(status));
+      const response = await firstValueFrom(this.contactAdminService.listMessages());
       const messages = response?.data ?? [];
       this.messages.set(messages);
-
-      if (!messages.length) {
-        this.selectedMessageId.set(null);
-        this.selectedMessage.set(null);
-        return;
-      }
-
-      const keepCurrent = !resetSelection && this.selectedMessageId() && messages.some((message) => message.id === this.selectedMessageId());
-      const nextId = keepCurrent ? this.selectedMessageId() : messages[0].id;
-      if (nextId) {
-        await this.selectMessage(nextId);
-      }
+      await this.syncSelectionWithVisibleMessages(resetSelection);
     } catch (error) {
       this.listError.set(this.resolveErrorMessage(error));
     } finally {
@@ -265,6 +312,26 @@ export class ControlCenterMessagesComponent {
           : message,
       ),
     );
+  }
+
+  private async syncSelectionWithVisibleMessages(resetSelection: boolean): Promise<void> {
+    const visibleMessages = this.visibleMessages();
+
+    if (!visibleMessages.length) {
+      this.selectedMessageId.set(null);
+      this.selectedMessage.set(null);
+      return;
+    }
+
+    const currentId = this.selectedMessageId();
+    const keepCurrent = !resetSelection && currentId && visibleMessages.some((message) => message.id === currentId);
+    const nextId = keepCurrent ? currentId : visibleMessages[0].id;
+
+    if (nextId === currentId && this.selectedMessage()) {
+      return;
+    }
+
+    await this.selectMessage(nextId);
   }
 
   private resolveErrorMessage(error: unknown): string {
