@@ -109,6 +109,50 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void adminCanReadAndUpdateProjects() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        String projectId = mockMvc.perform(get("/api/admin/projects")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].slug").value("obrasmart"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String selectedId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(projectId)
+            .path("data")
+            .get(0)
+            .path("id")
+            .asText();
+
+        mockMvc.perform(patch("/api/admin/projects/{id}", selectedId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "slug": "obrasmart",
+                      "name": "ObraSmart Suite",
+                      "year": "2026",
+                      "category": "distributed_platform",
+                      "summary": "Operational suite for project maintenance and internal field coordination.",
+                      "repositoryUrl": "https://github.com/example/obrasmart-suite",
+                      "stack": ["Java 17", "Spring Boot", "PostgreSQL", "Angular"],
+                      "featured": true,
+                      "published": true,
+                      "displayOrder": 1
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.name").value("ObraSmart Suite"))
+            .andExpect(jsonPath("$.data.year").value("2026"))
+            .andExpect(jsonPath("$.data.summary").value("Operational suite for project maintenance and internal field coordination."))
+            .andExpect(jsonPath("$.data.stack", hasSize(4)))
+            .andExpect(jsonPath("$.data.repositoryUrl").value("https://github.com/example/obrasmart-suite"));
+    }
+
+    @Test
     void eventsEndpointPersistsEventLog() throws Exception {
         mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)

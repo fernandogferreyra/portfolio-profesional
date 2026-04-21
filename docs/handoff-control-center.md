@@ -22,6 +22,9 @@ Estado al 2026-04-18.
 - `Budget Builder` ya absorbio buena parte del cotizador historico: reglas comerciales, mantenimiento, stacks oficiales, presets rapidos, planilla por areas y costos por modulo oficiales desde backend.
 - El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
 - `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
+- En `feature/messages-inbox-ux` la inbox admin ya empezo a ganar UX operativa: filtros con conteos, busqueda local, items mas legibles y detalle/reply mas claros sin cambiar el contrato backend.
+- `Actualizar` ya dejo de ser placeholder: existe una base editable minima para `projects` desde `Control Center`, con `GET/PATCH /api/admin/projects` y editor operativo de orden/copy/visibilidad.
+- Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
 - `Site Activity` ya es backend-first.
 - El portfolio publico sigue operativo y `ProjectsComponent` ya puede consumir `GET /api/projects`.
@@ -53,7 +56,7 @@ Estado al 2026-04-18.
 
 - Parte del historial reciente sigue repartido en ramas historicas, de backup o de higiene que deberian limpiarse cuando ya no aporten nada.
 - El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
-- Faltan UX mas clara de `Mensajeria`, CMS editable del sitio publico, persistencia documental, notas/uploads, `Paginas amigas`, PWA, docker/deploy e integracion futura de bot/asistente.
+- Faltan ampliar el CMS editable del sitio publico mas alla de `projects`, persistencia documental, notas/uploads, `Paginas amigas`, PWA e integracion futura de bot/asistente.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
 - `release-please` ya esta configurado, pero todavia no debe considerarse el motor central del flujo diario hasta que el camino `develop -> main` quede mas rutinario.
 
@@ -61,8 +64,8 @@ Estado al 2026-04-18.
 
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
-- Proxima etapa recomendada: `feature/messages-inbox-ux`.
-- Despues abrir la base editable del sitio publico y la persistencia documental.
+- Si `feature/public-content-admin-foundation` ya quedo cerrada en tu rama activa, el siguiente paso recomendado pasa a ser `feature/document-storage-foundation`.
+- En paralelo conviene validar con entorno Java operativo los nuevos endpoints admin de `projects` y recien despues seguir con storage/uploads.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 

@@ -4,6 +4,7 @@
       <div>
         <p class="section-eyebrow">{{ content().listTitle }}</p>
         <h3 class="portfolio-card-title">{{ content().listTitle }}</h3>
+        <p class="messages-workspace__lead">{{ content().inboxLead }}</p>
       </div>
 
       <button type="button" class="messages-workspace__ghost motion-control" (click)="refresh()">
@@ -11,36 +12,63 @@
       </button>
     </div>
 
+    <div class="messages-workspace__search">
+      <label class="messages-workspace__field messages-workspace__field--compact">
+        <span>{{ content().listTitle }}</span>
+        <input
+          type="search"
+          [value]="searchTerm()"
+          [placeholder]="content().searchPlaceholder"
+          (input)="updateSearchTerm(searchInput.value)"
+          #searchInput
+        />
+      </label>
+      <button
+        type="button"
+        class="messages-workspace__ghost motion-control"
+        *ngIf="searchTerm()"
+        (click)="clearSearch()"
+      >
+        {{ content().clearSearch }}
+      </button>
+    </div>
+
     <div class="messages-workspace__filters">
       <button
         type="button"
         class="messages-workspace__filter motion-control"
-        *ngFor="let filter of content().filters"
+        *ngFor="let filter of filterOptions()"
         [class.is-active]="selectedFilter() === filter.id"
         (click)="selectFilter(filter.id)"
       >
-        {{ filter.label }}
+        <span>{{ filter.label }}</span>
+        <strong>{{ filter.count }}</strong>
       </button>
     </div>
 
     <p class="messages-workspace__state" *ngIf="loading()">{{ content().loading }}</p>
     <p class="messages-workspace__state messages-workspace__state--error" *ngIf="!loading() && listError()">{{ listError() }}</p>
-    <p class="messages-workspace__state" *ngIf="!loading() && !listError() && !messages().length">{{ content().empty }}</p>
+    <p class="messages-workspace__state" *ngIf="!loading() && !listError() && !visibleMessages().length">{{ content().empty }}</p>
 
-    <div class="messages-workspace__list" *ngIf="!loading() && !listError() && messages().length">
+    <div class="messages-workspace__list" *ngIf="!loading() && !listError() && visibleMessages().length">
       <button
         type="button"
         class="messages-workspace__item motion-control"
-        *ngFor="let message of messages(); trackBy: trackById"
+        *ngFor="let message of visibleMessages(); trackBy: trackById"
         [class.is-active]="selectedMessageId() === message.id"
+        [attr.data-status]="message.status"
         (click)="selectMessage(message.id)"
       >
         <div class="messages-workspace__item-top">
           <strong>{{ message.name }}</strong>
           <span class="messages-workspace__badge" [attr.data-status]="message.status">{{ statusLabel(message.status) }}</span>
         </div>
-        <span>{{ message.subject }}</span>
+        <span class="messages-workspace__item-subject">{{ message.subject }}</span>
         <small>{{ message.email }}</small>
+        <div class="messages-workspace__item-meta">
+          <span>{{ message.createdAt | date:'short' }}</span>
+          <span *ngIf="message.context">{{ message.context }}</span>
+        </div>
       </button>
     </div>
   </section>
@@ -50,6 +78,11 @@
       <div>
         <p class="section-eyebrow">{{ content().detailTitle }}</p>
         <h3 class="portfolio-card-title">{{ message.subject }}</h3>
+        <div class="messages-workspace__detail-summary">
+          <span class="messages-workspace__badge" [attr.data-status]="message.status">{{ statusLabel(message.status) }}</span>
+          <small>{{ content().received }}: {{ message.createdAt | date:'short' }}</small>
+          <small>{{ content().updated }}: {{ message.updatedAt | date:'short' }}</small>
+        </div>
       </div>
 
       <div class="messages-workspace__detail-actions">
@@ -98,6 +131,7 @@
 
     <form class="messages-workspace__reply-form" [formGroup]="replyForm" (ngSubmit)="submitReply()">
       <h4>{{ content().replyTitle }}</h4>
+      <p class="messages-workspace__hint">{{ content().replyHint }}</p>
 
       <label class="messages-workspace__field">
         <span>{{ content().replySubject }}</span>
@@ -108,6 +142,13 @@
         <span>{{ content().replyMessage }}</span>
         <textarea rows="6" formControlName="message"></textarea>
       </label>
+
+      <p
+        class="messages-workspace__feedback messages-workspace__feedback--error"
+        *ngIf="replyForm.controls.message.invalid && replyForm.controls.message.touched"
+      >
+        {{ content().replyMessageRequired }}
+      </p>
 
       <p class="messages-workspace__feedback" *ngIf="actionFeedback()">{{ actionFeedback() }}</p>
 

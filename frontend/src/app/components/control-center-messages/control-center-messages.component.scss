@@ -17,6 +17,13 @@
   padding: 0.9rem;
 }
 
+.messages-workspace__lead,
+.messages-workspace__hint {
+  margin: 0.3rem 0 0;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
 .messages-workspace__sidebar {
   align-content: start;
 }
@@ -36,6 +43,15 @@
 .messages-workspace__reply-form {
   display: grid;
   gap: 0.7rem;
+}
+
+.messages-workspace__search,
+.messages-workspace__detail-summary,
+.messages-workspace__item-meta,
+.messages-workspace__detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .messages-workspace__filters {
@@ -59,6 +75,18 @@
   padding: 0.6rem 0.8rem;
 }
 
+.messages-workspace__filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.messages-workspace__filter strong {
+  color: var(--color-text);
+  font-size: 0.8rem;
+}
+
 .messages-workspace__filter.is-active,
 .messages-workspace__item.is-active {
   border-color: rgba(255, 255, 255, 0.16);
@@ -66,6 +94,7 @@
 }
 
 .messages-workspace__item {
+  position: relative;
   display: grid;
   gap: 0.28rem;
   text-align: left;
@@ -73,11 +102,38 @@
   color: var(--color-text);
 }
 
+.messages-workspace__item::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.24rem;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  background: rgba(148, 163, 184, 0.35);
+}
+
+.messages-workspace__item[data-status='NEW']::before {
+  background: rgba(59, 130, 246, 0.95);
+}
+
+.messages-workspace__item[data-status='REPLIED']::before {
+  background: rgba(34, 197, 94, 0.95);
+}
+
 .messages-workspace__item-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
+}
+
+.messages-workspace__item-subject {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.messages-workspace__item-meta {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
 }
 
 .messages-workspace__badge {
@@ -142,6 +198,10 @@
   letter-spacing: 0.08em;
 }
 
+.messages-workspace__field--compact span {
+  display: none;
+}
+
 .messages-workspace__body p,
 .messages-workspace__reply-preview p {
   margin: 0;
@@ -153,6 +213,10 @@
 .messages-workspace__field {
   display: grid;
   gap: 0.4rem;
+}
+
+.messages-workspace__field--compact {
+  flex: 1 1 14rem;
 }
 
 .messages-workspace__field input,
@@ -188,6 +252,10 @@
   color: var(--color-text-muted);
 }
 
+.messages-workspace__feedback--error {
+  color: #fca5a5;
+}
+
 .messages-workspace__state--error {
   color: #fca5a5;
 }
@@ -200,6 +268,12 @@
 @media (max-width: 980px) {
   .messages-workspace {
     grid-template-columns: 1fr;
+  }
+
+  .messages-workspace__header,
+  .messages-workspace__reply-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .messages-workspace__meta {
