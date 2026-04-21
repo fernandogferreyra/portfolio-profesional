@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
+import { DocumentAdminItem, DocumentAdminService } from '../../services/document-admin.service';
 import { LanguageService } from '../../services/language.service';
 import { ProjectAdminItem, ProjectAdminService } from '../../services/project-admin.service';
 
@@ -14,20 +15,26 @@ import { ProjectAdminItem, ProjectAdminService } from '../../services/project-ad
 })
 export class ControlCenterUpdateComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly documentAdminService = inject(DocumentAdminService);
   private readonly projectAdminService = inject(ProjectAdminService);
   private readonly formBuilder = inject(FormBuilder);
 
   readonly currentLanguage = this.languageService.language;
   readonly loading = signal(true);
   readonly saving = signal(false);
+  readonly uploadingDocument = signal(false);
   readonly error = signal<string | null>(null);
   readonly feedback = signal<string | null>(null);
+  readonly documentFeedback = signal<string | null>(null);
   readonly projects = signal<ProjectAdminItem[]>([]);
+  readonly documents = signal<DocumentAdminItem[]>([]);
   readonly selectedProjectId = signal<string | null>(null);
+  readonly selectedDocumentPurpose = signal('cv');
   readonly selectedProject = computed(
     () => this.projects().find((project) => project.id === this.selectedProjectId()) ?? null,
   );
   readonly categoryOptions = ['distributed_platform', 'frontend_system', 'certification', 'asset', 'quote'];
+  readonly documentPurposeOptions = ['cv', 'support_file', 'project_reference', 'general_document'];
   readonly projectForm = this.formBuilder.nonNullable.group({
     slug: ['', [Validators.required, Validators.maxLength(120)]],
     name: ['', [Validators.required, Validators.maxLength(180)]],
@@ -66,6 +73,13 @@ export class ControlCenterUpdateComponent {
           createdAt: 'Creado',
           updatedAt: 'Actualizado',
           formHint: 'Esta etapa actualiza la base publica de proyectos sin tocar el detalle rico del frontend.',
+          documentsTitle: 'Documentos internos',
+          documentsLead: 'Base minima para subir y listar archivos reutilizables del CMS interno.',
+          documentPurpose: 'Proposito',
+          uploadDocument: 'Subir documento',
+          documentsEmpty: 'Todavia no hay documentos cargados.',
+          uploadSuccess: 'Documento subido.',
+          uploadHint: 'Usa esta base para CVs, archivos de apoyo o futuras referencias del CMS. Tipos permitidos: PDF, JPG, PNG y WEBP.',
           requiredError: 'Completa los campos obligatorios antes de guardar.',
         }
       : {
@@ -91,12 +105,19 @@ export class ControlCenterUpdateComponent {
           createdAt: 'Created',
           updatedAt: 'Updated',
           formHint: 'This stage updates the public project base without touching the rich frontend detail yet.',
+          documentsTitle: 'Internal documents',
+          documentsLead: 'Minimal foundation to upload and list reusable CMS files.',
+          documentPurpose: 'Purpose',
+          uploadDocument: 'Upload document',
+          documentsEmpty: 'There are no uploaded documents yet.',
+          uploadSuccess: 'Document uploaded.',
+          uploadHint: 'Use this base for CVs, support files, or future CMS references. Allowed types: PDF, JPG, PNG, and WEBP.',
           requiredError: 'Complete the required fields before saving.',
         },
   );
 
   constructor() {
-    void this.loadProjects();
+    void Promise.all([this.loadProjects(), this.loadDocuments()]);
   }
 
   async selectProject(project: ProjectAdminItem): Promise<void> {
@@ -173,6 +194,48 @@ export class ControlCenterUpdateComponent {
     return item.id;
   }
 
+  trackDocumentById(_: number, item: DocumentAdminItem): string {
+    return item.id;
+  }
+
+  async onDocumentSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    if (!file || this.uploadingDocument()) {
+      return;
+    }
+
+    this.uploadingDocument.set(true);
+      this.documentFeedback.set(null);
+
+    try {
+      const response = await firstValueFrom(this.documentAdminService.uploadDocument(file, this.selectedDocumentPurpose()));
+      if (response?.data) {
+        this.documents.update((documents) => [response.data, ...documents]);
+      }
+      this.documentFeedback.set(this.content().uploadSuccess);
+    } catch (error) {
+      this.documentFeedback.set(this.resolveErrorMessage(error));
+    } finally {
+      this.uploadingDocument.set(false);
+      if (input) {
+        input.value = '';
+      }
+    }
+  }
+
+  formatBytes(sizeBytes: number): string {
+    if (sizeBytes < 1024) {
+      return `${sizeBytes} B`;
+    }
+
+    if (sizeBytes < 1024 * 1024) {
+      return `${(sizeBytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   private async loadProjects(): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
@@ -192,6 +255,15 @@ export class ControlCenterUpdateComponent {
       this.error.set(this.resolveErrorMessage(error));
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async loadDocuments(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.documentAdminService.listDocuments());
+      this.documents.set(response?.data ?? []);
+    } catch (error) {
+      this.documentFeedback.set(this.resolveErrorMessage(error));
     }
   }
 

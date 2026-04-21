@@ -63,6 +63,7 @@ __screenshots__/
 
 # Local workspace artifacts
 /portfolio-profesional.code-workspace
+/.runtime/
 
 # System files
 .DS_Store

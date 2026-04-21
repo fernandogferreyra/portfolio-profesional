@@ -46,6 +46,14 @@ app:
       auto-reply-signature: ${PORTFOLIO_CONTACT_SIGNATURE:Fernando Ferreyra}
       resend-api-key: ${PORTFOLIO_RESEND_API_KEY:}
       resend-base-url: ${PORTFOLIO_RESEND_BASE_URL:https://api.resend.com}
+  document-storage:
+    base-path: ${PORTFOLIO_DOCUMENT_STORAGE_PATH:../.runtime/documents}
+    max-file-size-bytes: ${PORTFOLIO_DOCUMENT_STORAGE_MAX_FILE_SIZE_BYTES:10485760}
+    allowed-content-types:
+      - application/pdf
+      - image/jpeg
+      - image/png
+      - image/webp
   security:
     jwt:
       secret: ${PORTFOLIO_JWT_SECRET}

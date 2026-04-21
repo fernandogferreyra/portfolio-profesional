@@ -28,6 +28,14 @@ app:
       auto-reply-signature: Fernando Ferreyra
       resend-api-key:
       resend-base-url: https://api.resend.com
+  document-storage:
+    base-path: ${java.io.tmpdir}/portfolio-backend-test-documents
+    max-file-size-bytes: 10485760
+    allowed-content-types:
+      - application/pdf
+      - image/jpeg
+      - image/png
+      - image/webp
   security:
     jwt:
       secret: ${PORTFOLIO_TEST_JWT_SECRET:${PORTFOLIO_JWT_SECRET:test-jwt-secret-key-with-minimum-length-1234567890}}
