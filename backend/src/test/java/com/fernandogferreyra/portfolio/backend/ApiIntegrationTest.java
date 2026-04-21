@@ -12,6 +12,7 @@ import com.fernandogferreyra.portfolio.backend.domain.enums.ContactMessageStatus
 import com.fernandogferreyra.portfolio.backend.domain.enums.EventType;
 import com.fernandogferreyra.portfolio.backend.repository.analytics.EventLogRepository;
 import com.fernandogferreyra.portfolio.backend.repository.contact.ContactMessageRepository;
+import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -35,10 +39,14 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private EventLogRepository eventLogRepository;
 
+    @Autowired
+    private DocumentRepository documentRepository;
+
     @BeforeEach
     void cleanMutableTables() {
         contactMessageRepository.deleteAll();
         eventLogRepository.deleteAll();
+        documentRepository.deleteAll();
     }
 
     @Test
@@ -150,6 +158,52 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.summary").value("Operational suite for project maintenance and internal field coordination."))
             .andExpect(jsonPath("$.data.stack", hasSize(4)))
             .andExpect(jsonPath("$.data.repositoryUrl").value("https://github.com/example/obrasmart-suite"));
+    }
+
+    @Test
+    void adminCanUploadAndListDocuments() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "profile-cv.pdf",
+            "application/pdf",
+            "fake-pdf-content".getBytes());
+
+        mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "cv")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.purpose").value("cv"))
+            .andExpect(jsonPath("$.data.originalFilename").value("profile-cv.pdf"))
+            .andExpect(jsonPath("$.data.contentType").value("application/pdf"))
+            .andExpect(jsonPath("$.data.sizeBytes").value(file.getSize()));
+
+        mockMvc.perform(get("/api/admin/documents")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data", hasSize(1)))
+            .andExpect(jsonPath("$.data[0].purpose").value("cv"))
+            .andExpect(jsonPath("$.data[0].originalFilename").value("profile-cv.pdf"));
+    }
+
+    @Test
+    void adminUploadRejectsUnsupportedDocumentType() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "notes.txt",
+            "text/plain",
+            "plain-text".getBytes());
+
+        mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "support_file")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isUnsupportedMediaType())
+            .andExpect(jsonPath("$.message").value("Document type is not allowed"));
     }
 
     @Test
