@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
@@ -15,85 +15,119 @@ export class ControlCenterComponent {
   private readonly languageService = inject(LanguageService);
 
   readonly authService = inject(AuthService);
+  readonly currentLanguage = this.languageService.language;
+  readonly activeWorkspace = signal<'budget' | 'update' | 'links' | 'messages'>('budget');
   readonly content = computed(() =>
     this.languageService.language() === 'es'
       ? {
-          eyebrow: 'Centro de Mando',
-          title: 'Panel privado FERCHUZ',
-          lead:
-            'Base inicial para operaciones internas. El portfolio publico sigue intacto y este espacio concentra accesos administrativos futuros.',
+          eyebrow: 'Modo privado',
+          title: 'Backoffice privado FERCHUZ',
+          lead: 'Espacio privado para cotizar, actualizar el portfolio y gestionar recursos utiles sin tocar codigo.',
           statusLabel: 'Sesion activa',
           sessionLiveLabel: 'Online',
           sessionUserLabel: 'Usuario',
           sessionRoleLabel: 'Rol',
           sessionStateLabel: 'Estado',
           sessionStateValue: 'Acceso operativo',
-          moduleCount: 7,
-          modulesLabel: 'modulos listos',
-          accessLabel: 'acceso seguro',
-          toolsEyebrow: 'Workspace privado',
-          toolsTitle: 'Herramientas internas preparadas para crecer sin ensuciar el portfolio publico.',
-          toolsLead:
-            'Cada modulo ya tiene un espacio claro dentro del dashboard. El siguiente paso puede implementarse sobre esta base sin rehacer el layout.',
-          logoutLabel: 'Cerrar sesion',
-          modules: [
+          moduleCount: 4,
+          modulesLabel: 'modulos privados',
+          accessLabel: 'backend seguro',
+          workspaces: [
             {
-              title: 'Mensajeria',
-              description:
-                'Bandeja para seguimiento de conversaciones, leads y automatizaciones operativas desde un unico punto.',
-              tag: 'Canal interno',
-              status: 'Placeholder listo',
-              action: 'Proximamente',
+              id: 'budget',
+              title: 'Presupuesto',
+              description: 'Cotiza una propuesta completa y usa la estimacion tecnica como calculadora auxiliar.',
             },
             {
-              title: 'Presupuestos PDF',
-              description:
-                'Generacion y gestion de documentos comerciales exportables con trazabilidad de version y cliente.',
-              tag: 'Documentacion',
-              status: 'Placeholder listo',
-              action: 'Proximamente',
+              id: 'update',
+              title: 'Actualizar',
+              description: 'Editar contenido del portfolio publico: perfil, skills, proyectos, CV y media.',
+            },
+            {
+              id: 'links',
+              title: 'Paginas amigas',
+              description: 'Guardar recursos, documentacion y links utiles para referencia operativa.',
+            },
+            {
+              id: 'messages',
+              title: 'Mensajeria',
+              description: 'Revisar contactos y consultas recibidas desde el sitio publico.',
             },
           ],
+          logoutLabel: 'Cerrar sesion',
+          budgetTitle: 'Presupuesto',
+          budgetLead:
+            'Completa datos del cliente, requerimientos, arquitectura y alcance para cotizar sin salir del mismo flujo.',
+          estimatorNote:
+            'La estimacion tecnica queda integrada como calculadora auxiliar para justificar horas, buffer y timeline.',
+          updateTitle: 'Actualizar portfolio',
+          updateLead:
+            'Seccion para editar foto, CV, skills, datos de contacto, proyectos, diplomas y media del sitio publico.',
+          linksTitle: 'Paginas amigas',
+          linksLead:
+            'Biblioteca privada para guardar links utiles, documentacion, referencias y recursos de trabajo.',
+          messagesTitle: 'Mensajeria',
+          messagesLead:
+            'Bandeja para revisar consultas del formulario de contacto y su contexto operativo.',
+          placeholderReady: 'Se prepara en la siguiente etapa.',
         }
       : {
-          eyebrow: 'Control Center',
-          title: 'FERCHUZ private hub',
-          lead:
-            'Initial internal operations layer. The public portfolio remains untouched and this space centralizes future admin access points.',
+          eyebrow: 'Private mode',
+          title: 'FERCHUZ private backoffice',
+          lead: 'Private space to quote, update the portfolio, and manage useful resources without touching code.',
           statusLabel: 'Active session',
           sessionLiveLabel: 'Online',
           sessionUserLabel: 'User',
           sessionRoleLabel: 'Role',
           sessionStateLabel: 'State',
           sessionStateValue: 'Operational access',
-          moduleCount: 7,
-          modulesLabel: 'modules ready',
-          accessLabel: 'secure access',
-          toolsEyebrow: 'Private workspace',
-          toolsTitle: 'Internal tools arranged to scale without disturbing the public portfolio.',
-          toolsLead:
-            'Each module already has a clear place inside the dashboard. The next feature can plug into this layout without a visual reset.',
-          logoutLabel: 'Sign out',
-          modules: [
+          moduleCount: 4,
+          modulesLabel: 'private modules',
+          accessLabel: 'secure backend',
+          workspaces: [
             {
-              title: 'Messaging',
-              description:
-                'Inbox space for conversations, leads, and operational automations from a single internal surface.',
-              tag: 'Internal channel',
-              status: 'Placeholder ready',
-              action: 'Coming soon',
+              id: 'budget',
+              title: 'Budget',
+              description: 'Quote a complete proposal and use technical estimation as an auxiliary calculator.',
             },
             {
-              title: 'PDF Estimates',
-              description:
-                'Generation and management layer for exportable commercial documents with client/version traceability.',
-              tag: 'Documentation',
-              status: 'Placeholder ready',
-              action: 'Coming soon',
+              id: 'update',
+              title: 'Update',
+              description: 'Edit public portfolio content: profile, skills, projects, CV, and media.',
+            },
+            {
+              id: 'links',
+              title: 'Friendly pages',
+              description: 'Store useful links, documentation, references, and work resources.',
+            },
+            {
+              id: 'messages',
+              title: 'Messaging',
+              description: 'Review contact form inquiries and their operating context.',
             },
           ],
+          logoutLabel: 'Sign out',
+          budgetTitle: 'Budget',
+          budgetLead:
+            'Complete client data, requirements, architecture, and scope to quote inside a single flow.',
+          estimatorNote:
+            'Technical estimation stays integrated as an auxiliary calculator to justify hours, risk buffer, and timeline.',
+          updateTitle: 'Update portfolio',
+          updateLead:
+            'Section to edit profile, CV, skills, contact details, projects, diplomas, and media from the public site.',
+          linksTitle: 'Friendly pages',
+          linksLead: 'Private library for useful links, documentation, references, and work resources.',
+          messagesTitle: 'Messaging',
+          messagesLead: 'Inbox to review contact-form inquiries and their operating context.',
+          placeholderReady: 'Prepared for the next stage.',
         },
   );
+
+  setWorkspace(workspace: string): void {
+    if (workspace === 'budget' || workspace === 'update' || workspace === 'links' || workspace === 'messages') {
+      this.activeWorkspace.set(workspace);
+    }
+  }
 
   logout(): void {
     this.authService.logout();

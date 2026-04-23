@@ -20,6 +20,10 @@ public record BudgetPreviewRequest(
     @Size(max = 160, message = "Budget name must be at most 160 characters")
     String budgetName,
 
+    @NotBlank(message = "Client is required")
+    @Size(max = 160, message = "Client must be at most 160 characters")
+    String client,
+
     @NotBlank(message = "Project type is required")
     String projectType,
 
@@ -57,6 +61,9 @@ public record BudgetPreviewRequest(
     Integer activeClients,
 
     String userScaleTierId,
+
+    @Min(value = 0, message = "Extra monthly hours must be greater than or equal to zero")
+    Integer extraMonthlyHours,
 
     List<String> notes
 ) {

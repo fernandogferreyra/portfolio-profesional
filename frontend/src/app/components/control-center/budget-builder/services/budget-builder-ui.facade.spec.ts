@@ -20,20 +20,36 @@ describe('BudgetBuilderUiFacade', () => {
     httpMock.verify();
   });
 
-  it('maps the minimal UI contract to the backend preview request', () => {
+  it('sends the backend preview payload unchanged', () => {
     let response: unknown;
 
     facade
-      .calculateBudget({
+      .previewBudget({
         budgetName: 'Commerce MVP',
+        client: 'ACME Corp',
         projectType: 'standard_project',
-        includeFrontend: true,
-        includeBackend: true,
-        includeDatabase: true,
-        hourlyRate: 20,
-        supportEnabled: true,
-        manualDiscount: 50,
+        pricingMode: 'PROJECT',
         desiredStackId: 'default_web_stack',
+        complexity: 'MEDIUM',
+        urgency: 'STANDARD',
+        selectedModuleIds: ['DISCOVERY', 'FRONTEND_APP', 'CORE_BACKEND', 'DATABASE_LAYER'],
+        moduleSelectionMode: 'EXPLICIT',
+        selectedSurchargeRuleIds: ['management-contingency-fixed'],
+        supportEnabled: true,
+        supportPlanId: 'support-basic',
+        maintenancePlanId: null,
+        hourlyRateOverride: 20,
+        manualDiscount: {
+          label: 'Manual discount',
+          reason: 'UI negotiation adjustment',
+          mode: 'FIXED',
+          value: 50,
+          cadence: 'ONE_TIME',
+        },
+        activeClients: null,
+        userScaleTierId: null,
+        extraMonthlyHours: null,
+        notes: [],
       })
       .subscribe((result) => {
         response = result;
@@ -43,6 +59,7 @@ describe('BudgetBuilderUiFacade', () => {
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({
       budgetName: 'Commerce MVP',
+      client: 'ACME Corp',
       projectType: 'standard_project',
       pricingMode: 'PROJECT',
       desiredStackId: 'default_web_stack',
@@ -52,20 +69,21 @@ describe('BudgetBuilderUiFacade', () => {
       moduleSelectionMode: 'EXPLICIT',
       selectedSurchargeRuleIds: ['management-contingency-fixed'],
       supportEnabled: true,
-      supportPlanId: 'support-basic',
-      maintenancePlanId: null,
-      hourlyRateOverride: 20,
+        supportPlanId: 'support-basic',
+        maintenancePlanId: null,
+        hourlyRateOverride: 20,
       manualDiscount: {
         label: 'Manual discount',
         reason: 'UI negotiation adjustment',
         mode: 'FIXED',
         value: 50,
         cadence: 'ONE_TIME',
-      },
-      activeClients: null,
-      userScaleTierId: null,
-      notes: [],
-    });
+        },
+        activeClients: null,
+        userScaleTierId: null,
+        extraMonthlyHours: null,
+        notes: [],
+      });
 
     request.flush({
       success: true,
@@ -73,6 +91,7 @@ describe('BudgetBuilderUiFacade', () => {
       data: {
         configurationSnapshotId: 'budget-builder-seed-v1',
         previewHash: 'preview-hash',
+        currency: 'ARS',
         totalHours: 48,
         totalWeeks: 1.5,
         baseAmount: 960,
@@ -80,6 +99,13 @@ describe('BudgetBuilderUiFacade', () => {
         monthlySubtotal: 24,
         finalOneTimeTotal: 1210,
         finalMonthlyTotal: 24,
+        technicalSummary: {
+          totalHours: 48,
+          totalWeeks: 1.5,
+          totalBaseAmount: 960,
+        },
+        areaBreakdown: [],
+        monthlyBreakdown: null,
         modules: [],
         surcharges: [],
         discounts: [],
@@ -90,13 +116,20 @@ describe('BudgetBuilderUiFacade', () => {
     expect(response).toEqual({
       configurationSnapshotId: 'budget-builder-seed-v1',
       previewHash: 'preview-hash',
+      technicalSummary: {
+        totalHours: 48,
+        totalWeeks: 1.5,
+        totalBaseAmount: 960,
+      },
+      areaBreakdown: [],
+      monthlyBreakdown: null,
       modules: [],
       technicalEstimate: {
         totalHours: 48,
         totalWeeks: 1.5,
       },
       commercialBudget: {
-        currency: 'USD',
+        currency: 'ARS',
         baseAmount: 960,
         oneTimeSubtotal: 1260,
         monthlySubtotal: 24,
@@ -113,16 +146,26 @@ describe('BudgetBuilderUiFacade', () => {
     let response: ReturnType<typeof jasmine.createSpy> | unknown;
 
     facade
-      .calculateBudget({
+      .previewBudget({
         budgetName: 'External stack quote',
+        client: 'Globex',
         projectType: 'standard_project',
-        includeFrontend: false,
-        includeBackend: true,
-        includeDatabase: false,
-        hourlyRate: 18,
-        supportEnabled: false,
-        manualDiscount: 0,
+        pricingMode: 'PROJECT',
         desiredStackId: 'outside_primary_stack',
+        complexity: 'MEDIUM',
+        urgency: 'STANDARD',
+        selectedModuleIds: ['DISCOVERY', 'CORE_BACKEND'],
+        moduleSelectionMode: 'EXPLICIT',
+        selectedSurchargeRuleIds: ['management-contingency-fixed'],
+        supportEnabled: false,
+        supportPlanId: null,
+        maintenancePlanId: null,
+        hourlyRateOverride: 18,
+        manualDiscount: null,
+        activeClients: null,
+        userScaleTierId: null,
+        extraMonthlyHours: null,
+        notes: [],
       })
       .subscribe((result) => {
         response = result;
@@ -140,6 +183,7 @@ describe('BudgetBuilderUiFacade', () => {
       data: {
         configurationSnapshotId: 'budget-builder-seed-v1',
         previewHash: 'outside-stack-preview',
+        currency: 'ARS',
         totalHours: 20,
         totalWeeks: 0.6,
         baseAmount: 360,
@@ -147,20 +191,66 @@ describe('BudgetBuilderUiFacade', () => {
         monthlySubtotal: 0,
         finalOneTimeTotal: 696,
         finalMonthlyTotal: 0,
+        technicalSummary: {
+          totalHours: 20,
+          totalWeeks: 0.6,
+          totalBaseAmount: 360,
+        },
+        areaBreakdown: [
+          {
+            areaId: 'analysis_design',
+            label: 'Analysis and design',
+            totalHours: 8,
+            baseAmount: 144,
+            moduleCount: 1,
+            shareOfTechnicalTotal: 0.4,
+            modules: [
+              {
+                id: 'DISCOVERY',
+                name: 'Discovery',
+                estimatedHours: 8,
+                baseAmount: 144,
+              },
+            ],
+          },
+          {
+            areaId: 'backend',
+            label: 'Backend',
+            totalHours: 12,
+            baseAmount: 216,
+            moduleCount: 1,
+            shareOfTechnicalTotal: 0.6,
+            modules: [
+              {
+                id: 'CORE_BACKEND',
+                name: 'Core backend',
+                estimatedHours: 12,
+                baseAmount: 216,
+              },
+            ],
+          },
+        ],
+        monthlyBreakdown: null,
         modules: [
           {
             id: 'DISCOVERY',
             category: 'analysis_design',
             name: 'Discovery',
             description: 'Initial scoping and solution framing.',
+            dependencyIds: [],
+            blockingNote: null,
             estimatedHours: 8,
+            baseAmount: 144,
           },
           {
             id: 'CORE_BACKEND',
             category: 'backend',
             name: 'Core backend',
             description: 'Core APIs and business rules.',
+            dependencyIds: [],
+            blockingNote: null,
             estimatedHours: 12,
+            baseAmount: 216,
           },
         ],
         surcharges: [
@@ -195,20 +285,66 @@ describe('BudgetBuilderUiFacade', () => {
     expect(response).toEqual({
       configurationSnapshotId: 'budget-builder-seed-v1',
       previewHash: 'outside-stack-preview',
+      technicalSummary: {
+        totalHours: 20,
+        totalWeeks: 0.6,
+        totalBaseAmount: 360,
+      },
+      areaBreakdown: [
+        {
+          areaId: 'analysis_design',
+          label: 'Analysis and design',
+          totalHours: 8,
+          baseAmount: 144,
+          moduleCount: 1,
+          shareOfTechnicalTotal: 0.4,
+          modules: [
+            {
+              id: 'DISCOVERY',
+              name: 'Discovery',
+              estimatedHours: 8,
+              baseAmount: 144,
+            },
+          ],
+        },
+        {
+          areaId: 'backend',
+          label: 'Backend',
+          totalHours: 12,
+          baseAmount: 216,
+          moduleCount: 1,
+          shareOfTechnicalTotal: 0.6,
+          modules: [
+            {
+              id: 'CORE_BACKEND',
+              name: 'Core backend',
+              estimatedHours: 12,
+              baseAmount: 216,
+            },
+          ],
+        },
+      ],
+      monthlyBreakdown: null,
       modules: [
         {
           id: 'DISCOVERY',
           category: 'analysis_design',
           name: 'Discovery',
           description: 'Initial scoping and solution framing.',
+          dependencyIds: [],
+          blockingNote: null,
           estimatedHours: 8,
+          baseAmount: 144,
         },
         {
           id: 'CORE_BACKEND',
           category: 'backend',
           name: 'Core backend',
           description: 'Core APIs and business rules.',
+          dependencyIds: [],
+          blockingNote: null,
           estimatedHours: 12,
+          baseAmount: 216,
         },
       ],
       technicalEstimate: {
@@ -216,7 +352,7 @@ describe('BudgetBuilderUiFacade', () => {
         totalWeeks: 0.6,
       },
       commercialBudget: {
-        currency: 'USD',
+        currency: 'ARS',
         baseAmount: 360,
         oneTimeSubtotal: 696,
         monthlySubtotal: 0,
@@ -254,5 +390,70 @@ describe('BudgetBuilderUiFacade', () => {
         ],
       },
     });
+  });
+
+  it('hydrates fallback configuration when backend returns empty arrays', () => {
+    let response: unknown;
+
+    facade.getActiveConfiguration().subscribe((result) => {
+      response = result;
+    });
+
+    const request = httpMock.expectOne('/api/admin/budget-builder/configuration/active');
+    expect(request.request.method).toBe('GET');
+
+    request.flush({
+      success: true,
+      message: 'Configuration loaded',
+      data: {
+        configurationSnapshotId: 'budget-builder-seed-v1',
+        version: 'v1',
+        source: 'seed',
+        currency: 'ARS',
+        createdAt: '2026-04-17T00:00:00Z',
+        workingHoursPerWeek: 32,
+        defaultHourlyRate: 20,
+        supportHourlyRate: 18,
+        extraHourRate: 24,
+        riskBufferHours: 6,
+        projectTypeDefaults: [],
+        modules: [],
+        categories: [],
+        technologies: [],
+        surchargeRules: [],
+        supportPlans: [],
+        maintenancePlans: [],
+        userScaleTiers: [],
+        complexityOptions: [],
+      },
+    });
+
+    expect(response).toEqual(
+      jasmine.objectContaining({
+        projectTypeDefaults: jasmine.arrayContaining([
+          jasmine.objectContaining({ projectType: 'standard_project' }),
+          jasmine.objectContaining({ projectType: 'saas_product' }),
+        ]),
+        modules: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'LOGIN' }),
+          jasmine.objectContaining({ id: 'ADMIN_PANEL' }),
+          jasmine.objectContaining({ id: 'REPORTS' }),
+          jasmine.objectContaining({ id: 'PAYMENTS' }),
+          jasmine.objectContaining({ id: 'NOTIFICATIONS' }),
+        ]),
+        technologies: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'default_web_stack' }),
+        ]),
+        supportPlans: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'support-basic' }),
+        ]),
+        maintenancePlans: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'maintenance-standard' }),
+        ]),
+        userScaleTiers: jasmine.arrayContaining([
+          jasmine.objectContaining({ id: 'starter' }),
+        ]),
+      }),
+    );
   });
 });

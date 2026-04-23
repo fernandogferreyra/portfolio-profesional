@@ -61,9 +61,13 @@ public class BudgetModuleResolver {
             module.quantity(),
             module.tier(),
             module.baseHours(),
+            module.optimisticHours(),
+            module.probableHours(),
+            module.pessimisticHours(),
             module.complexityWeight(),
             module.moduleMultiplier(),
             List.copyOf(module.dependencyIds()),
+            module.blockingNote(),
             module.optional(),
             null
         );

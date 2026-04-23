@@ -38,17 +38,115 @@ export const PORTFOLIO_THEMES: ThemeDefinition[] = [
     },
   },
   {
-    id: 'themeLight',
-    shortLabel: 'LIGHT',
-    label: { es: 'themeLight', en: 'themeLight' },
+    id: 'themeLightWorkbench',
+    shortLabel: 'WB',
+    label: { es: 'lightWorkbench', en: 'lightWorkbench' },
     description: {
-      es: 'Escala de grises suave, más editorial, pensada para lectura y claridad.',
-      en: 'Soft grayscale, more editorial, focused on readability and clarity.',
+      es: 'Claro profesional, inspirado en modo imprimir/PDF y optimizado para workbench.',
+      en: 'Professional light theme inspired by print/PDF mode and optimized for workbench use.',
     },
     preview: {
-      accent: '#4b5563',
-      accentSoft: 'rgba(75, 85, 99, 0.14)',
-      surface: '#f4f4f2',
+      accent: '#334155',
+      accentSoft: 'rgba(51, 65, 85, 0.12)',
+      surface: '#f7f3eb',
+    },
+  },
+  {
+    id: 'themeLinuxTerminal',
+    shortLabel: 'TTY',
+    label: { es: 'linuxTerminal', en: 'linuxTerminal' },
+    description: {
+      es: 'Terminal Linux sobria, negra y verde, con lectura monoespaciada sin adornos.',
+      en: 'Minimal Linux terminal theme with black background and green monospace text.',
+    },
+    preview: {
+      accent: '#46ff87',
+      accentSoft: 'rgba(70, 255, 135, 0.12)',
+      surface: '#061008',
+    },
+  },
+  {
+    id: 'themeRetroAmber',
+    shortLabel: 'CRT',
+    label: { es: 'retroAmber', en: 'retroAmber' },
+    description: {
+      es: 'Inspirado en monitores ámbar retro, con lectura cálida y carácter CRT.',
+      en: 'Inspired by amber retro monitors, with warm CRT-like reading.',
+    },
+    preview: {
+      accent: '#ffb347',
+      accentSoft: 'rgba(255, 179, 71, 0.14)',
+      surface: '#1b1208',
+    },
+  },
+  {
+    id: 'themeCmd',
+    shortLabel: 'CMD',
+    label: { es: 'cmd', en: 'cmd' },
+    description: {
+      es: 'Consola CMD clásica: sobria, oscura y más rígida que Linux Terminal.',
+      en: 'Classic CMD console: sober, dark, and stricter than Linux Terminal.',
+    },
+    preview: {
+      accent: '#d6d6d6',
+      accentSoft: 'rgba(214, 214, 214, 0.12)',
+      surface: '#05070c',
+    },
+  },
+  {
+    id: 'themeUbuntu',
+    shortLabel: 'UBU',
+    label: { es: 'ubuntu', en: 'ubuntu' },
+    description: {
+      es: 'Inspirado en Ubuntu clásico y GNOME: cálido, naranja y morado, con identidad de escritorio Linux.',
+      en: 'Inspired by classic Ubuntu and GNOME: warm orange and purple with Linux desktop identity.',
+    },
+    preview: {
+      accent: '#e95420',
+      accentSoft: 'rgba(233, 84, 32, 0.14)',
+      surface: '#2c001e',
+    },
+  },
+  {
+    id: 'themeWin11',
+    shortLabel: 'W11',
+    label: { es: 'W11 DARK', en: 'W11 DARK' },
+    description: {
+      es: 'Oscuro, moderno y pulido, inspirado en Windows 11.',
+      en: 'Dark, modern, and polished, inspired by Windows 11.',
+    },
+    preview: {
+      accent: '#7dd3fc',
+      accentSoft: 'rgba(125, 211, 252, 0.12)',
+      surface: '#111827',
+    },
+  },
+  {
+    id: 'themeWin98',
+    shortLabel: '98',
+    label: { es: 'win98', en: 'win98' },
+    description: {
+      es: 'Clásico Win98: escritorio teal, barras grises y relieve 3D duro.',
+      en: 'Classic Win98: teal desktop, gray bars, and hard 3D bevels.',
+    },
+    preview: {
+      accent: '#000080',
+      accentSoft: 'rgba(0, 0, 128, 0.14)',
+      surface: '#0a7f7f',
+    },
+  },
+  {
+    id: 'themeWinXP',
+    shortLabel: 'XP',
+    label: { es: 'winXP', en: 'winXP' },
+    description: {
+      es: 'Windows XP Luna: azules vivos, barras suaves y UI amistosa.',
+      en: 'Windows XP Luna: vivid blues, soft bars, and friendly UI.',
+    },
+    preview: {
+      accent: '#2b61d1',
+      accentSoft: 'rgba(43, 97, 209, 0.14)',
+      surface: '#eef5ff',
     },
   },
 ];

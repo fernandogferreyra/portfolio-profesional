@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { debounceTime, finalize, merge } from 'rxjs';
 
 import {
   DEFAULT_QUOTE_COMPLEXITY,
@@ -25,6 +25,18 @@ import { LanguageService } from '../../services/language.service';
 import { QuoteService } from '../../services/quote.service';
 import { SiteActivityService } from '../../services/site-activity.service';
 
+type ChoiceCard = {
+  id: string;
+  title: string;
+  description: string;
+  impact: string;
+  selected: boolean;
+};
+
+function safeNumber(value: number | null | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
 @Component({
   selector: 'app-control-center-estimator',
   standalone: false,
@@ -37,6 +49,9 @@ export class ControlCenterEstimatorComponent implements OnInit {
   private readonly languageService = inject(LanguageService);
   private readonly quoteService = inject(QuoteService);
   private readonly siteActivityService = inject(SiteActivityService);
+
+  private previewRequestVersion = 0;
+  private lastPreviewSignature: string | null = null;
 
   readonly currentLanguage = this.languageService.language;
   readonly moduleSelection = this.formBuilder.record(
@@ -57,6 +72,7 @@ export class ControlCenterEstimatorComponent implements OnInit {
   readonly loadingHistory = signal(false);
   readonly loadingHistoryDetail = signal(false);
   readonly formError = signal<string | null>(null);
+  readonly previewHint = signal<string | null>(null);
   readonly saveFeedback = signal<string | null>(null);
   readonly historyError = signal<string | null>(null);
   readonly historyDetailError = signal<string | null>(null);
@@ -70,198 +86,243 @@ export class ControlCenterEstimatorComponent implements OnInit {
   readonly content = computed(() =>
     this.currentLanguage() === 'es'
       ? {
-          eyebrow: 'Estimador',
-          title: 'Estimacion tecnica conectada al backend',
+          eyebrow: 'Estimador tecnico',
+          title: 'Workspace de estimacion tecnica',
           lead:
-            'Herramienta tecnica para anticipar horas, esfuerzo por modulos y tiempo aproximado antes de planificar ejecucion.',
-          workflowNote:
-            'El preview tecnico replica las reglas activas. Guardar crea un snapshot util para planificacion y referencia.',
-          infoLabel: 'Informacion del estimador tecnico',
-          infoDescription:
-            'El estimador tecnico calcula tiempo y esfuerzo por modulos sin mostrar dinero ni convertirlo en presupuesto comercial.',
-          formTitle: 'Modelar esfuerzo tecnico',
-          formLead:
-            'Selecciona tipo de proyecto, complejidad y modulos para estimar alcance, horas y tiempos de trabajo.',
-          projectTypeLabel: 'Tipo de proyecto',
-          complexityLabel: 'Complejidad tecnica',
-          modulesLabel: 'Modulos estimados',
-          selectedModulesLabel: 'seleccionados',
-          modulesCountLabel: 'Modulos',
-          calculateLabel: 'Calcular estimacion',
-          previewReadyLabel: 'Preview tecnico listo',
-          calculatingLabel: 'Estimando...',
-          saveLabel: 'Guardar estimacion',
-          savingLabel: 'Guardando...',
-          newLabel: 'Nueva estimacion',
-          discardLabel: 'Descartar',
-          previewStatusLabel: 'Preview tecnico',
-          savedStatusLabel: 'Snapshot guardado',
-          resultTitle: 'Resultado tecnico',
-          resultLead: 'Lectura tecnica del esfuerzo antes de pasar a presupuesto comercial.',
-          resultEmpty: 'Calcula una estimacion para revisar horas, esfuerzo y tiempo aproximado.',
-          resultLoading: 'Calculando horas, esfuerzo y timeline tecnico...',
-          resultProjectLabel: 'Proyecto',
-          resultComplexityLabel: 'Complejidad',
-          resultEffortLabel: 'Esfuerzo',
-          resultTotalHoursLabel: 'Horas totales',
-          resultModulesLabel: 'Modulos',
-          resultTimelineLabel: 'Tiempo aprox.',
-          breakdownTitle: 'Esfuerzo por modulo',
-          effortShareLabel: 'del esfuerzo',
-          historyTitle: 'Historial tecnico',
-          historyLead: 'Snapshots tecnicos guardados para comparar decisiones de alcance y esfuerzo.',
+            'Herramienta viva para leer horas, riesgo, timeline y dependencias antes de convertir alcance en presupuesto comercial.',
+          note:
+            'Cada cambio recalcula el preview tecnico desde backend. No hay motor local visible en este flujo.',
+          empty:
+            'Selecciona proyecto, complejidad y modulos para ver horas, buffer de riesgo y timeline en vivo.',
+          syncing: 'Sincronizando estimacion tecnica...',
+          ready: 'Preview tecnico sincronizado',
+          scenarioTitle: 'Escenario tecnico',
+          modulesTitle: 'Bloques a estimar',
+          detailsTitle: 'Lectura tecnica',
+          detailsLead:
+            'Formula, supuestos, timeline y desglose por modulo para entender de inmediato donde se va el esfuerzo.',
+          summaryTitle: 'Resumen vivo',
+          summaryLead:
+            'Usa este lateral para leer rapido total, riesgo, timeline, guardar snapshot y revisar historial.',
+          historyTitle: 'Snapshots tecnicos',
+          historyLead: 'Ultimas estimaciones persistidas para comparar decisiones de alcance.',
           historyEmpty: 'Todavia no hay estimaciones guardadas.',
           historyLoading: 'Cargando historial tecnico...',
-          historyDetailTitle: 'Detalle tecnico guardado',
+          historyDetailTitle: 'Detalle guardado',
           historyDetailLoading: 'Cargando detalle tecnico...',
-          historyDetailEmpty: 'Selecciona una estimacion guardada para revisar su desglose.',
-          saveSuccess: 'Estimacion tecnica guardada correctamente.',
-          moduleValidationMessage: 'Selecciona al menos un modulo para estimar el esfuerzo.',
-          genericPreviewError: 'No se pudo calcular la estimacion. Intenta nuevamente.',
-          genericSaveError: 'No se pudo guardar la estimacion. Intenta nuevamente.',
+          historyDetailEmpty: 'Selecciona una estimacion guardada para revisar el resultado.',
+          projectTypeLabel: 'Tipo de proyecto',
+          complexityLabel: 'Complejidad',
+          modulesLabel: 'Modulos',
+          totalHours: 'Horas totales',
+          baseHours: 'Base PERT',
+          riskBuffer: 'Buffer riesgo',
+          timeline: 'Timeline',
+          effort: 'Perfil esfuerzo',
+          assumptions: 'Supuestos activos',
+          moduleBreakdown: 'Desglose por modulo',
+          save: 'Guardar snapshot',
+          saving: 'Guardando...',
+          reset: 'Reiniciar workspace',
+          saveSuccess: 'Estimacion guardada correctamente.',
+          genericPreviewError: 'No se pudo recalcular la estimacion.',
+          genericSaveError: 'No se pudo guardar la estimacion.',
           genericHistoryError: 'No se pudo cargar el historial tecnico.',
           genericHistoryDetailError: 'No se pudo cargar el detalle tecnico seleccionado.',
+          moduleValidation: 'Selecciona al menos un modulo para estimar el esfuerzo.',
         }
       : {
-          eyebrow: 'Estimator',
-          title: 'Technical estimation connected to the backend',
+          eyebrow: 'Technical estimator',
+          title: 'Technical estimation workspace',
           lead:
-            'Technical tool to anticipate hours, module effort, and approximate timeline before planning execution.',
-          workflowNote:
-            'The technical preview mirrors active rules. Saving stores a snapshot for planning and reference.',
-          infoLabel: 'Technical estimator information',
-          infoDescription:
-            'The technical estimator measures time and effort by module without showing money or turning it into a commercial quote.',
-          formTitle: 'Model technical effort',
-          formLead:
-            'Select project type, complexity, and modules to estimate scope, hours, and delivery timing.',
-          projectTypeLabel: 'Project type',
-          complexityLabel: 'Technical complexity',
-          modulesLabel: 'Estimated modules',
-          selectedModulesLabel: 'selected',
-          modulesCountLabel: 'Modules',
-          calculateLabel: 'Calculate estimate',
-          previewReadyLabel: 'Technical preview ready',
-          calculatingLabel: 'Estimating...',
-          saveLabel: 'Save estimate',
-          savingLabel: 'Saving...',
-          newLabel: 'New estimate',
-          discardLabel: 'Discard',
-          previewStatusLabel: 'Technical preview',
-          savedStatusLabel: 'Snapshot stored',
-          resultTitle: 'Technical result',
-          resultLead: 'Technical reading of effort before moving into commercial pricing.',
-          resultEmpty: 'Calculate an estimate to review hours, effort, and approximate timing.',
-          resultLoading: 'Calculating hours, effort, and technical timeline...',
-          resultProjectLabel: 'Project',
-          resultComplexityLabel: 'Complexity',
-          resultEffortLabel: 'Effort',
-          resultTotalHoursLabel: 'Total hours',
-          resultModulesLabel: 'Modules',
-          resultTimelineLabel: 'Approx. time',
-          breakdownTitle: 'Module effort',
-          effortShareLabel: 'of effort',
-          historyTitle: 'Technical history',
-          historyLead: 'Stored technical snapshots to compare scope and effort decisions.',
-          historyEmpty: 'There are no saved estimates yet.',
+            'Live tool to read hours, risk, timeline, and dependencies before turning scope into a commercial budget.',
+          note:
+            'Every change recalculates the technical preview from backend. There is no visible local engine in this flow.',
+          empty:
+            'Select project, complexity, and modules to see hours, risk buffer, and timeline live.',
+          syncing: 'Syncing technical estimate...',
+          ready: 'Technical preview synced',
+          scenarioTitle: 'Technical scenario',
+          modulesTitle: 'Blocks to estimate',
+          detailsTitle: 'Technical readout',
+          detailsLead:
+            'Formula, assumptions, timeline, and per-module breakdown to understand instantly where the effort goes.',
+          summaryTitle: 'Live summary',
+          summaryLead:
+            'Use this rail to read total, risk, timeline, save the snapshot, and review history.',
+          historyTitle: 'Technical snapshots',
+          historyLead: 'Latest persisted estimates to compare scope decisions.',
+          historyEmpty: 'There are no stored estimates yet.',
           historyLoading: 'Loading technical history...',
-          historyDetailTitle: 'Stored technical detail',
+          historyDetailTitle: 'Stored detail',
           historyDetailLoading: 'Loading stored technical detail...',
-          historyDetailEmpty: 'Select a saved estimate to review its breakdown.',
-          saveSuccess: 'Technical estimate saved successfully.',
-          moduleValidationMessage: 'Select at least one module to estimate effort.',
-          genericPreviewError: 'The estimate could not be calculated. Try again.',
-          genericSaveError: 'The estimate could not be saved. Try again.',
+          historyDetailEmpty: 'Select a stored estimate to review the result.',
+          projectTypeLabel: 'Project type',
+          complexityLabel: 'Complexity',
+          modulesLabel: 'Modules',
+          totalHours: 'Total hours',
+          baseHours: 'PERT base',
+          riskBuffer: 'Risk buffer',
+          timeline: 'Timeline',
+          effort: 'Effort profile',
+          assumptions: 'Active assumptions',
+          moduleBreakdown: 'Module breakdown',
+          save: 'Save snapshot',
+          saving: 'Saving...',
+          reset: 'Reset workspace',
+          saveSuccess: 'Estimate saved successfully.',
+          genericPreviewError: 'The estimate could not be recalculated.',
+          genericSaveError: 'The estimate could not be saved.',
           genericHistoryError: 'The technical history could not be loaded.',
           genericHistoryDetailError: 'The selected technical detail could not be loaded.',
+          moduleValidation: 'Select at least one module to estimate effort.',
         },
   );
 
-  readonly projectOptions = computed(() =>
+  readonly projectCards = computed<ChoiceCard[]>(() =>
     QUOTE_PROJECT_TYPE_OPTIONS.map((option) => ({
-      code: option.code,
-      label: localizeQuoteText(option.label, this.currentLanguage()),
+      id: option.code,
+      title: localizeQuoteText(option.label, this.currentLanguage()),
       description: localizeQuoteText(option.description, this.currentLanguage()),
+      impact: this.getProjectImpact(option.code),
+      selected: option.code === this.estimatorForm.controls.projectType.value,
     })),
   );
-  readonly complexityOptions = computed(() =>
+  readonly complexityCards = computed<ChoiceCard[]>(() =>
     QUOTE_COMPLEXITY_OPTIONS.map((option) => ({
-      code: option.code,
-      label: localizeQuoteText(option.label, this.currentLanguage()),
+      id: option.code,
+      title: localizeQuoteText(option.label, this.currentLanguage()),
       description: localizeQuoteText(option.description, this.currentLanguage()),
+      impact: this.getComplexityImpact(option.code),
+      selected: option.code === this.estimatorForm.controls.complexity.value,
     })),
   );
-  readonly moduleOptions = computed(() =>
+  readonly moduleCards = computed(() =>
     QUOTE_MODULE_OPTIONS.map((option) => ({
       code: option.code,
       label: localizeQuoteText(option.label, this.currentLanguage()),
       note: localizeQuoteText(option.note, this.currentLanguage()),
+      selected: Boolean(this.moduleSelection.get(option.code)?.value),
     })),
   );
   readonly selectedModulesCount = computed(() => this.getSelectedModules().length);
+  readonly hasPreview = computed(() => Boolean(this.previewPayload() && this.previewResult()));
+  readonly canSavePreview = computed(() => this.hasPreview() && !this.saving() && !this.calculating());
   readonly recentHistory = computed(() => this.history().slice(0, 6));
   readonly selectedHistoryResult = computed(() => this.selectedHistoryDetail()?.resultJson ?? null);
-  readonly selectedProjectHint = computed(() => {
-    const selectedProject = this.projectOptions().find(
-      (option) => option.code === this.estimatorForm.controls.projectType.value,
-    );
-    return selectedProject?.description ?? '';
+  readonly previewStatus = computed(() => {
+    if (this.calculating()) {
+      return this.content().syncing;
+    }
+
+    if (this.formError()) {
+      return this.formError();
+    }
+
+    if (this.previewHint()) {
+      return this.previewHint();
+    }
+
+    return this.hasPreview() ? this.content().ready : this.content().empty;
   });
-  readonly hasPreview = computed(() => Boolean(this.previewPayload() && this.previewResult()));
-  readonly canSavePreview = computed(
-    () => this.hasPreview() && !this.previewSaved() && !this.saving(),
-  );
-  readonly isBuilderLocked = computed(() => this.hasPreview());
-  readonly previewStatus = computed(() =>
-    this.previewSaved() ? this.content().savedStatusLabel : this.content().previewStatusLabel,
-  );
+  readonly summaryMetrics = computed(() => {
+    const result = this.previewResult();
+    return [
+      {
+        id: 'hours',
+        label: this.content().totalHours,
+        value: `${safeNumber(result?.totalHours).toFixed(2)} h`,
+        note: this.hasPreview() ? this.content().ready : this.previewStatus(),
+      },
+      {
+        id: 'risk',
+        label: this.content().riskBuffer,
+        value: `${safeNumber(result?.riskBufferHours).toFixed(2)} h`,
+        note:
+          this.currentLanguage() === 'es'
+            ? 'Se agrega una sola vez sobre la base PERT.'
+            : 'Added once on top of the PERT base.',
+      },
+      {
+        id: 'timeline',
+        label: this.content().timeline,
+        value: result ? this.getTimelineLabel(result.totalWeeks, result.totalHours) : '--',
+        note: this.getProjectImpact(this.estimatorForm.controls.projectType.value),
+      },
+      {
+        id: 'effort',
+        label: this.content().effort,
+        value: this.getEffortLabel(result?.totalHours),
+        note: `${this.selectedModulesCount()} ${this.content().modulesLabel.toLowerCase()}`,
+      },
+    ];
+  });
+  readonly formulaRows = computed(() => {
+    const result = this.previewResult();
+    if (!result) {
+      return [];
+    }
+
+    return [
+      {
+        id: 'base',
+        label: this.content().baseHours,
+        value: `${safeNumber(result.baseHours).toFixed(2)} h`,
+        note:
+          this.currentLanguage() === 'es'
+            ? 'Suma de modulos usando PERT por bloque.'
+            : 'Sum of blocks using PERT per block.',
+      },
+      {
+        id: 'risk',
+        label: this.content().riskBuffer,
+        value: `${safeNumber(result.riskBufferHours).toFixed(2)} h`,
+        note:
+          this.currentLanguage() === 'es'
+            ? 'Cobertura fija de incertidumbre del escenario.'
+            : 'Fixed uncertainty coverage for the scenario.',
+      },
+      {
+        id: 'total',
+        label: this.content().totalHours,
+        value: `${safeNumber(result.totalHours).toFixed(2)} h`,
+        note: result ? this.getTimelineLabel(result.totalWeeks, result.totalHours) : '--',
+      },
+    ];
+  });
 
   ngOnInit(): void {
+    this.observeLiveChanges();
+    this.refreshPreview(true);
     this.loadHistory(true);
   }
 
-  submitEstimate(): void {
-    const payload = this.buildPayload();
+  selectProjectType(projectType: string): void {
+    this.estimatorForm.controls.projectType.setValue(projectType as QuoteRequestPayload['projectType']);
+  }
 
-    if (payload.modules.length === 0) {
-      this.formError.set(this.content().moduleValidationMessage);
+  selectComplexity(complexity: QuoteComplexity): void {
+    this.estimatorForm.controls.complexity.setValue(complexity);
+  }
+
+  toggleModule(moduleCode: QuoteModuleCode): void {
+    const control = this.moduleSelection.get(moduleCode);
+    if (!control) {
       return;
     }
 
-    this.formError.set(null);
-    this.saveFeedback.set(null);
-    this.calculating.set(true);
-
-    this.quoteService
-      .previewQuote(payload)
-      .pipe(
-        finalize(() => this.calculating.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (preview) => {
-          this.previewPayload.set(payload);
-          this.previewResult.set(preview);
-          this.previewSaved.set(false);
-          this.lockBuilder();
-          this.siteActivityService.trackEstimatorPreview();
-        },
-        error: (error) => {
-          this.formError.set(this.resolveErrorMessage(error, this.content().genericPreviewError));
-        },
-      });
+    control.setValue(!control.value);
   }
 
   saveEstimate(): void {
     const payload = this.previewPayload();
-
-    if (!payload || this.previewSaved()) {
+    if (!payload) {
       return;
     }
 
+    this.saving.set(true);
     this.formError.set(null);
     this.saveFeedback.set(null);
-    this.saving.set(true);
 
     this.quoteService
       .saveQuote(payload)
@@ -282,25 +343,27 @@ export class ControlCenterEstimatorComponent implements OnInit {
       });
   }
 
-  startNewEstimate(): void {
-    this.resetFormState([]);
-    this.previewPayload.set(null);
-    this.previewResult.set(null);
-    this.previewSaved.set(false);
-    this.formError.set(null);
-    this.saveFeedback.set(null);
-    this.unlockBuilder();
-    this.siteActivityService.trackEstimatorReset();
-  }
+  resetWorkspace(): void {
+    this.estimatorForm.reset(
+      {
+        projectType: DEFAULT_QUOTE_PROJECT_TYPE,
+        complexity: DEFAULT_QUOTE_COMPLEXITY,
+      },
+      { emitEvent: false },
+    );
 
-  discardPreview(): void {
-    this.previewPayload.set(null);
-    this.previewResult.set(null);
+    for (const module of QUOTE_MODULE_OPTIONS) {
+      this.moduleSelection.get(module.code)?.setValue(DEFAULT_QUOTE_MODULES.includes(module.code), {
+        emitEvent: false,
+      });
+    }
+
     this.previewSaved.set(false);
-    this.formError.set(null);
     this.saveFeedback.set(null);
-    this.unlockBuilder();
-    this.siteActivityService.trackEstimatorDiscard();
+    this.formError.set(null);
+    this.lastPreviewSignature = null;
+    this.refreshPreview(true);
+    this.siteActivityService.trackEstimatorReset();
   }
 
   selectHistoryItem(quoteId: string): void {
@@ -330,63 +393,51 @@ export class ControlCenterEstimatorComponent implements OnInit {
       });
   }
 
-  isModuleSelected(moduleCode: string): boolean {
-    return Boolean(this.moduleSelection.get(moduleCode)?.value);
-  }
-
   getProjectLabel(projectType: string): string {
     return (
-      this.projectOptions().find((option) => option.code === projectType)?.label ??
+      this.projectCards().find((option) => option.id === projectType)?.title ??
       projectType.replaceAll('_', ' ')
     );
   }
 
   getComplexityLabel(complexity: string | null | undefined): string {
-    return (
-      this.complexityOptions().find((option) => option.code === complexity)?.label ?? complexity ?? ''
-    );
+    return this.complexityCards().find((option) => option.id === complexity)?.title ?? complexity ?? '';
   }
 
-  getTimelineLabel(totalHours: number | null | undefined): string {
-    if (typeof totalHours !== 'number' || Number.isNaN(totalHours)) {
+  getTimelineLabel(totalWeeks: number | null | undefined, fallbackHours?: number | null | undefined): string {
+    let weeks = typeof totalWeeks === 'number' && !Number.isNaN(totalWeeks) ? totalWeeks : null;
+    if (weeks === null && typeof fallbackHours === 'number' && !Number.isNaN(fallbackHours)) {
+      weeks = Math.max(1, Math.round((fallbackHours / 32) * 10) / 10);
+    }
+
+    if (weeks === null) {
       return '';
     }
 
-    const weeks = totalHours / 32;
-    const roundedWeeks = Math.max(1, Math.round(weeks * 10) / 10);
-
-    if (this.currentLanguage() === 'es') {
-      return `${roundedWeeks} semanas`;
-    }
-
-    return `${roundedWeeks} weeks`;
+    return this.currentLanguage() === 'es' ? `${weeks} semanas` : `${weeks} weeks`;
   }
 
   getEffortLabel(totalHours: number | null | undefined): string {
     if (typeof totalHours !== 'number' || Number.isNaN(totalHours)) {
-      return '';
+      return '--';
     }
 
     if (this.currentLanguage() === 'es') {
       if (totalHours < 80) {
         return 'Acotado';
       }
-
       if (totalHours < 160) {
         return 'Medio';
       }
-
       return 'Intenso';
     }
 
     if (totalHours < 80) {
       return 'Focused';
     }
-
     if (totalHours < 160) {
       return 'Moderate';
     }
-
     return 'Intensive';
   }
 
@@ -404,12 +455,122 @@ export class ControlCenterEstimatorComponent implements OnInit {
     return `${Math.round((hours / totalHours) * 100)}%`;
   }
 
+  getModulePertLabel(item: QuoteResult['items'][number]): string {
+    return `PERT ${safeNumber(item.optimisticHours).toFixed(0)} / ${safeNumber(item.probableHours).toFixed(0)} / ${safeNumber(item.pessimisticHours).toFixed(0)} h`;
+  }
+
+  getProjectImpact(projectType: string): string {
+    if (projectType === 'SAAS_PLATFORM') {
+      return this.currentLanguage() === 'es'
+        ? 'Suele combinar cuentas, paneles y continuidad operativa.'
+        : 'Usually combines accounts, dashboards, and operating continuity.';
+    }
+
+    if (projectType === 'ECOMMERCE') {
+      return this.currentLanguage() === 'es'
+        ? 'Empuja integraciones, pagos y friccion operativa.'
+        : 'Pushes integrations, payments, and operating friction.';
+    }
+
+    return this.currentLanguage() === 'es'
+      ? 'Define la base del alcance tecnico.'
+      : 'Defines the base of the technical scope.';
+  }
+
+  getComplexityImpact(complexity: string): string {
+    if (complexity === 'HIGH') {
+      return this.currentLanguage() === 'es'
+        ? 'Amplifica horas, riesgo y timeline.'
+        : 'Amplifies hours, risk, and timeline.';
+    }
+
+    if (complexity === 'LOW') {
+      return this.currentLanguage() === 'es'
+        ? 'Mantiene la lectura tecnica mas contenida.'
+        : 'Keeps the technical readout more contained.';
+    }
+
+    return this.currentLanguage() === 'es'
+      ? 'Referencia equilibrada para una lectura base.'
+      : 'Balanced reference for the baseline readout.';
+  }
+
   trackByCode(_: number, item: { code: string }): string {
     return item.code;
   }
 
-  trackById(_: number, item: QuoteAdminSummary): string {
+  trackById(_: number, item: { id: string }): string {
     return item.id;
+  }
+
+  private observeLiveChanges(): void {
+    merge(this.estimatorForm.valueChanges, this.moduleSelection.valueChanges)
+      .pipe(
+        debounceTime(260),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.previewSaved.set(false);
+        this.saveFeedback.set(null);
+        this.refreshPreview();
+      });
+  }
+
+  private refreshPreview(force = false): void {
+    const payload = this.buildPayload();
+
+    if (payload.modules.length === 0) {
+      this.previewPayload.set(null);
+      this.previewResult.set(null);
+      this.previewHint.set(this.content().moduleValidation);
+      this.formError.set(null);
+      this.calculating.set(false);
+      this.lastPreviewSignature = null;
+      return;
+    }
+
+    const signature = JSON.stringify(payload);
+    if (!force && signature === this.lastPreviewSignature) {
+      return;
+    }
+
+    this.previewRequestVersion += 1;
+    const requestVersion = this.previewRequestVersion;
+
+    this.previewHint.set(null);
+    this.formError.set(null);
+    this.calculating.set(true);
+
+    this.quoteService
+      .previewQuote(payload)
+      .pipe(
+        finalize(() => {
+          if (requestVersion === this.previewRequestVersion) {
+            this.calculating.set(false);
+          }
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (preview) => {
+          if (requestVersion !== this.previewRequestVersion) {
+            return;
+          }
+
+          this.previewPayload.set(payload);
+          this.previewResult.set(preview);
+          this.lastPreviewSignature = signature;
+        },
+        error: (error) => {
+          if (requestVersion !== this.previewRequestVersion) {
+            return;
+          }
+
+          this.previewPayload.set(null);
+          this.previewResult.set(null);
+          this.formError.set(this.resolveErrorMessage(error, this.content().genericPreviewError));
+        },
+      });
   }
 
   private loadHistory(selectLatest: boolean): void {
@@ -432,11 +593,11 @@ export class ControlCenterEstimatorComponent implements OnInit {
             return;
           }
 
-          const selectedHistoryId = this.selectedHistoryId();
+          const selectedId = this.selectedHistoryId();
           const activeId =
-            selectLatest || !selectedHistoryId || !quotes.some((quote) => quote.id === selectedHistoryId)
+            selectLatest || !selectedId || !quotes.some((quote) => quote.id === selectedId)
               ? quotes[0].id
-              : selectedHistoryId;
+              : selectedId;
 
           this.selectHistoryItem(activeId);
         },
@@ -458,33 +619,6 @@ export class ControlCenterEstimatorComponent implements OnInit {
     return QUOTE_MODULE_OPTIONS.map((module) => module.code).filter((moduleCode) =>
       this.moduleSelection.get(moduleCode)?.value,
     );
-  }
-
-  private resetFormState(selectedModules: QuoteModuleCode[]): void {
-    this.estimatorForm.reset(
-      {
-        projectType: DEFAULT_QUOTE_PROJECT_TYPE,
-        complexity: DEFAULT_QUOTE_COMPLEXITY,
-      },
-      { emitEvent: false },
-    );
-
-    for (const module of QUOTE_MODULE_OPTIONS) {
-      this.moduleSelection.get(module.code)?.setValue(
-        selectedModules.includes(module.code),
-        { emitEvent: false },
-      );
-    }
-  }
-
-  private lockBuilder(): void {
-    this.estimatorForm.disable({ emitEvent: false });
-    this.moduleSelection.disable({ emitEvent: false });
-  }
-
-  private unlockBuilder(): void {
-    this.estimatorForm.enable({ emitEvent: false });
-    this.moduleSelection.enable({ emitEvent: false });
   }
 
   private resolveErrorMessage(error: unknown, fallback: string): string {

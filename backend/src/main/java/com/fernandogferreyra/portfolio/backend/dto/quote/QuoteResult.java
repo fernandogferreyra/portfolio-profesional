@@ -8,9 +8,13 @@ public record QuoteResult(
     String projectType,
     String projectLabel,
     QuoteComplexity complexity,
+    BigDecimal baseHours,
+    BigDecimal riskBufferHours,
     BigDecimal totalHours,
+    BigDecimal totalWeeks,
     BigDecimal totalCost,
     BigDecimal hourlyRate,
-    List<QuoteItem> items
+    List<QuoteItem> items,
+    List<String> assumptions
 ) {
 }

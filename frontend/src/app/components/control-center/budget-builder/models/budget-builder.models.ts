@@ -43,6 +43,7 @@ export interface BudgetProject {
   manualDiscounts?: ManualDiscountInput[];
   activeClients: number | null;
   userScaleTierId: string | null;
+  extraMonthlyHours?: number | null;
   notes: string[];
 }
 
@@ -54,9 +55,13 @@ export interface EstimateModule {
   quantity: number;
   tier: 'LITE' | 'STANDARD' | 'ADVANCED';
   baseHours: number;
+  optimisticHours?: number;
+  probableHours?: number;
+  pessimisticHours?: number;
   complexityWeight: number;
   moduleMultiplier: number;
   dependencyIds: string[];
+  blockingNote?: string | null;
   optional: boolean;
   estimatedHours?: number;
 }
@@ -71,6 +76,7 @@ export interface HourlyRateConfig {
 export interface TechnologyRule {
   id: string;
   label: string;
+  description: string;
   multiplier: number;
   surchargeRuleId: string | null;
   supportedProjectTypes: string[];
@@ -81,6 +87,7 @@ export interface CategoryRule {
   label: string;
   billingType: CategoryBillingType;
   rate: number;
+  cadence?: 'ONE_TIME' | 'MONTHLY';
 }
 
 export interface SurchargeRule {
@@ -124,6 +131,8 @@ export interface UserScaleRule {
 
 export interface ProjectTypeDefaultRule {
   projectType: string;
+  label: string;
+  description: string;
   defaultModuleIds: string[];
   defaultSurchargeRuleIds: string[];
   defaultSupportRuleId: string | null;
@@ -138,6 +147,7 @@ export interface ConfigurationSnapshot {
   estimationMethod: 'PERT' | 'FIXED';
   createdAt: string;
   workingHoursPerWeek: number;
+  riskBufferHours?: number;
   hourlyRate: HourlyRateConfig;
   commercialMultiplier: number;
   minimumBudget: number;
@@ -234,7 +244,45 @@ export interface BudgetPreviewModuleView {
   category: string;
   name: string;
   description: string;
+  dependencyIds: string[];
+  blockingNote?: string | null;
   estimatedHours: number;
+  baseAmount: number;
+}
+
+export interface TechnicalSummaryView {
+  totalHours: number;
+  totalWeeks: number;
+  totalBaseAmount: number;
+}
+
+export interface AreaModuleView {
+  id: string;
+  name: string;
+  estimatedHours: number;
+  baseAmount: number;
+}
+
+export interface AreaBreakdownView {
+  areaId: string;
+  label: string;
+  totalHours: number;
+  baseAmount: number;
+  moduleCount: number;
+  shareOfTechnicalTotal: number;
+  modules: AreaModuleView[];
+}
+
+export interface MonthlyBreakdownView {
+  developmentRecovery: number;
+  infrastructure: number;
+  support: number;
+  maintenance: number;
+  userScaleAdjustment: number;
+  extraHours: number;
+  margin: number;
+  monthlySubtotal: number;
+  finalMonthlyTotal: number;
 }
 
 export interface BudgetPreviewAdjustmentView {
@@ -258,6 +306,9 @@ export interface BudgetPreviewExplanationView {
 export interface BudgetBuilderPreviewResult {
   configurationSnapshotId: string;
   previewHash: string;
+  technicalSummary: TechnicalSummaryView;
+  areaBreakdown: AreaBreakdownView[];
+  monthlyBreakdown: MonthlyBreakdownView | null;
   modules: BudgetPreviewModuleView[];
   technicalEstimate: {
     totalHours: number;
@@ -274,4 +325,157 @@ export interface BudgetBuilderPreviewResult {
     finalMonthlyTotal: number;
     pricingExplanation: BudgetPreviewExplanationView[];
   };
+}
+
+export interface BudgetBuilderConfigView {
+  configurationSnapshotId: string;
+  version: string;
+  source: string;
+  currency: string;
+  createdAt: string;
+  workingHoursPerWeek: number;
+  defaultHourlyRate: number;
+  supportHourlyRate: number;
+  extraHourRate: number;
+  riskBufferHours: number;
+  projectTypeDefaults: ProjectTypeDefaultRule[];
+  modules: BudgetBuilderConfigModule[];
+  categories: BudgetBuilderConfigCategory[];
+  technologies: BudgetBuilderConfigTechnology[];
+  surchargeRules: BudgetBuilderConfigSurchargeRule[];
+  supportPlans: BudgetBuilderConfigSupportPlan[];
+  maintenancePlans: BudgetBuilderConfigMaintenancePlan[];
+  userScaleTiers: BudgetBuilderConfigUserScaleTier[];
+  complexityOptions: BudgetComplexity[];
+}
+
+export interface BudgetBuilderConfigModule {
+  id: string;
+  category: string;
+  name: string;
+  description: string;
+  baseHours: number;
+  optimisticHours: number;
+  probableHours: number;
+  pessimisticHours: number;
+  dependencyIds: string[];
+  blockingNote: string | null;
+  optional: boolean;
+}
+
+export interface BudgetBuilderConfigCategory {
+  id: string;
+  label: string;
+  billingType: CategoryBillingType;
+  rate: number;
+  cadence: 'ONE_TIME' | 'MONTHLY';
+}
+
+export interface BudgetBuilderConfigTechnology {
+  id: string;
+  label: string;
+  description: string;
+  surchargeRuleId: string | null;
+  supportedProjectTypes: string[];
+}
+
+export interface BudgetBuilderConfigSurchargeRule {
+  id: string;
+  code: string;
+  label: string;
+  reason: string;
+  mode: PricingAdjustmentMode;
+  appliesTo: 'ONE_TIME' | 'MONTHLY';
+  value: number;
+  enabledByDefault: boolean;
+}
+
+export interface BudgetBuilderConfigSupportPlan {
+  id: string;
+  label: string;
+  cadence: 'ONE_TIME' | 'MONTHLY';
+  includedHours: number;
+  hourlyRate: number;
+  monthlyAmount: number;
+}
+
+export interface BudgetBuilderConfigMaintenancePlan {
+  id: string;
+  label: string;
+  cadence: 'ONE_TIME' | 'MONTHLY';
+  monthlyAmount: number;
+}
+
+export interface BudgetBuilderConfigUserScaleTier {
+  id: string;
+  label: string;
+  minUsers: number;
+  maxUsers: number | null;
+  mode: PricingAdjustmentMode;
+  value: number;
+}
+
+export interface BudgetBuilderPreviewRequestPayload {
+  budgetName: string;
+  client?: string | null;
+  projectType: string;
+  pricingMode: BudgetPricingMode;
+  desiredStackId: string;
+  complexity: BudgetComplexity;
+  urgency: BudgetUrgency;
+  selectedModuleIds: string[];
+  moduleSelectionMode: BudgetModuleSelectionMode;
+  selectedSurchargeRuleIds: string[];
+  supportEnabled: boolean;
+  supportPlanId: string | null;
+  maintenancePlanId: string | null;
+  hourlyRateOverride: number | null;
+  manualDiscount: {
+    label: string;
+    reason: string;
+    mode: PricingAdjustmentMode;
+    value: number;
+    cadence: 'ONE_TIME' | 'MONTHLY';
+  } | null;
+  activeClients: number | null;
+  userScaleTierId: string | null;
+  extraMonthlyHours: number | null;
+  notes: string[];
+}
+
+export interface BudgetBuilderSaveRequestPayload {
+  input: BudgetBuilderPreviewRequestPayload;
+  expectedConfigurationSnapshotId: string;
+  expectedPreviewHash: string;
+}
+
+export interface BudgetBuilderSaveResponse {
+  id: string;
+  budgetName: string;
+  client: string;
+  configurationSnapshotId: string;
+  finalOneTimeTotal: number;
+  finalMonthlyTotal: number;
+  createdAt: string;
+}
+
+export interface BudgetBuilderSummary {
+  id: string;
+  budgetName: string;
+  client: string;
+  projectType: string;
+  pricingMode: BudgetPricingMode;
+  desiredStackId: string;
+  totalHours: number;
+  finalOneTimeTotal: number;
+  finalMonthlyTotal: number;
+  currency: string;
+  createdAt: string;
+}
+
+export interface BudgetBuilderDetail extends BudgetBuilderSummary {
+  configurationSnapshotId: string;
+  previewHash: string;
+  requestJson: BudgetBuilderPreviewRequestPayload | null;
+  resultJson: BudgetBuilderPreviewResult | null;
 }

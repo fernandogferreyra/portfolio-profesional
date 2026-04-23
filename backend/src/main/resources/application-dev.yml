@@ -2,13 +2,16 @@ spring:
   config:
     activate:
       on-profile: dev
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
   output:
     ansi:
       enabled: ALWAYS
   datasource:
     url: ${PORTFOLIO_DB_URL:jdbc:postgresql://localhost:5432/portfolio_db}
-    username: ${PORTFOLIO_DB_USERNAME:postgres}
-    password: ${PORTFOLIO_DB_PASSWORD:123456}
+    username: ${PORTFOLIO_DB_USERNAME:}
+    password: ${PORTFOLIO_DB_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
       initialization-fail-timeout: -1
@@ -32,10 +35,29 @@ logging:
 app:
   cors:
     allowed-origins: ${PORTFOLIO_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200,http://localhost:4300}
+  contact:
+    mail:
+      enabled: ${PORTFOLIO_CONTACT_MAIL_ENABLED:false}
+      provider: ${PORTFOLIO_CONTACT_MAIL_PROVIDER:noop}
+      inbox-address: ${PORTFOLIO_CONTACT_INBOX:fernandogabrielf@gmail.com}
+      from-address: ${PORTFOLIO_CONTACT_FROM:no-reply@portfolio.local}
+      auto-reply-subject-es: ${PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_ES:Gracias por contactarte}
+      auto-reply-subject-en: ${PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_EN:Thanks for reaching out}
+      auto-reply-signature: ${PORTFOLIO_CONTACT_SIGNATURE:Fernando Ferreyra}
+      resend-api-key: ${PORTFOLIO_RESEND_API_KEY:}
+      resend-base-url: ${PORTFOLIO_RESEND_BASE_URL:https://api.resend.com}
+  document-storage:
+    base-path: ${PORTFOLIO_DOCUMENT_STORAGE_PATH:./runtime/documents}
+    max-file-size-bytes: ${PORTFOLIO_DOCUMENT_STORAGE_MAX_FILE_SIZE_BYTES:10485760}
+    allowed-content-types:
+      - application/pdf
+      - image/jpeg
+      - image/png
+      - image/webp
   security:
     jwt:
-      secret: ${PORTFOLIO_JWT_SECRET:dev-jwt-secret-key-with-minimum-length-1234567890}
+      secret: ${PORTFOLIO_JWT_SECRET}
     bootstrap-admin:
-      enabled: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:true}
-      username: ${PORTFOLIO_ADMIN_USERNAME:ferchuz}
-      password: ${PORTFOLIO_ADMIN_PASSWORD:ferchuz-dev-password}
+      enabled: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:false}
+      username: ${PORTFOLIO_ADMIN_USERNAME:}
+      password: ${PORTFOLIO_ADMIN_PASSWORD:}

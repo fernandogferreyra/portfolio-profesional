@@ -2,7 +2,17 @@ import { Language } from '../i18n/translations';
 
 export type LocalizedText = Record<Language, string>;
 
-export type ThemeId = 'themeNeon' | 'themeEX' | 'themeLight';
+export type ThemeId =
+  | 'themeNeon'
+  | 'themeEX'
+  | 'themeLightWorkbench'
+  | 'themeLinuxTerminal'
+  | 'themeRetroAmber'
+  | 'themeCmd'
+  | 'themeUbuntu'
+  | 'themeWin11'
+  | 'themeWin98'
+  | 'themeWinXP';
 
 export interface ThemeDefinition {
   id: ThemeId;

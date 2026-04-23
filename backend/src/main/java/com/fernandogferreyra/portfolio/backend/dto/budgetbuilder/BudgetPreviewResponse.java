@@ -6,6 +6,7 @@ import java.util.List;
 public record BudgetPreviewResponse(
     String configurationSnapshotId,
     String previewHash,
+    String currency,
     BigDecimal totalHours,
     BigDecimal totalWeeks,
     BigDecimal baseAmount,
@@ -13,6 +14,9 @@ public record BudgetPreviewResponse(
     BigDecimal monthlySubtotal,
     BigDecimal finalOneTimeTotal,
     BigDecimal finalMonthlyTotal,
+    TechnicalSummaryDto technicalSummary,
+    List<AreaBreakdownDto> areaBreakdown,
+    MonthlyBreakdownDto monthlyBreakdown,
     List<BudgetModuleResponse> modules,
     List<BudgetSurchargeResponse> surcharges,
     List<BudgetDiscountResponse> discounts,

@@ -2,8 +2,8 @@
   width: min(1140px, 92%);
   margin: 1rem auto 1.5rem;
   padding: 0.85rem 1rem;
-  border: 1px solid var(--glass-border);
-  border-radius: 18px;
+  border: 1px var(--theme-border-style) var(--glass-border);
+  border-radius: var(--radius-lg);
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -13,6 +13,7 @@
   gap: 0.9rem;
   color: var(--color-text-muted);
   font-size: 0.8rem;
+  box-shadow: var(--shadow-card);
 }
 
 .footer-copy {
@@ -37,6 +38,84 @@
 .footer-links a:hover {
   color: var(--color-primary);
   text-shadow: 0 0 8px var(--color-primary-glow);
+}
+
+:host-context([data-theme='themeLightWorkbench']) {
+  .site-footer {
+    background: var(--theme-panel-bg);
+    border-color: var(--theme-panel-border);
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .footer-links a:hover {
+    text-shadow: none;
+  }
+}
+
+:host-context([data-theme='themeLinuxTerminal']),
+:host-context([data-theme='themeCmd']) {
+  .site-footer {
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .footer-links a:hover {
+    text-shadow: none;
+  }
+}
+
+:host-context([data-theme='themeWin98']) {
+  .site-footer {
+    width: min(1880px, calc(100vw - 0.85rem));
+    border-radius: 0;
+    border-style: outset;
+    background: #c0c0c0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .footer-links a,
+  .footer-copy {
+    color: #000000;
+  }
+}
+
+:host-context([data-theme='themeWinXP']) {
+  .site-footer {
+    width: min(1880px, calc(100vw - 0.85rem));
+    background: linear-gradient(180deg, #7db0f0 0%, #3f7dd8 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #f8fbff;
+    box-shadow: 0 6px 14px rgba(50, 86, 160, 0.18);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .footer-links a,
+  .footer-copy {
+    color: #f8fbff;
+  }
+}
+
+:host-context([data-theme='themeWin11']) {
+  .site-footer {
+    width: min(1880px, calc(100vw - 0.85rem));
+    background: rgba(17, 24, 39, 0.82);
+    border-color: rgba(125, 211, 252, 0.12);
+  }
+}
+
+:host-context([data-theme='themeUbuntu']) {
+  .site-footer {
+    width: min(1880px, calc(100vw - 0.85rem));
+    background: linear-gradient(90deg, #2c001e 0%, #772953 100%);
+    border-color: rgba(233, 84, 32, 0.24);
+  }
 }
 
 @media (max-width: 640px) {

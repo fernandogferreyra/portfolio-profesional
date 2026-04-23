@@ -23,8 +23,11 @@ public class BudgetTechnicalEstimator {
         BigDecimal rawTotalHours = estimatedModules.stream()
             .map(module -> BudgetCalculationUtils.safe(module.estimatedHours()))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal riskBufferHours = estimatedModules.isEmpty()
+            ? BigDecimal.ZERO
+            : BudgetCalculationUtils.roundCurrency(BudgetCalculationUtils.safe(configuration.riskBufferHours()));
         BigDecimal totalHours = BudgetCalculationUtils.roundTechnicalHours(
-            rawTotalHours,
+            rawTotalHours.add(riskBufferHours),
             configuration.roundingRules().technical());
         BigDecimal totalWeeks = configuration.workingHoursPerWeek() > 0
             ? BudgetCalculationUtils.roundCurrency(
@@ -46,15 +49,15 @@ public class BudgetTechnicalEstimator {
             totalHours,
             totalWeeks,
             complexityScore,
-            BigDecimal.ZERO,
+            riskBufferHours,
             BigDecimal.ZERO,
             List.of(
-                "MVP backend preview without risk or coordination buffers.",
+                "PERT is applied when optimistic, probable, and pessimistic hours are available for the module.",
                 "Project, stack, and complexity multipliers come from the active ConfigurationSnapshot."
             ),
             List.of(
-                "Advanced PERT inputs per task are pending.",
-                "Maintenance and user-scale rules are pending in the backend engine."
+                "Dependency blockers are informative and do not yet shift the calendar automatically.",
+                "Support and SaaS pricing are calculated in the commercial stage, not in the technical estimate."
             ),
             configuration.createdAt()
         );
@@ -71,8 +74,9 @@ public class BudgetTechnicalEstimator {
             .getOrDefault(project.desiredStackId(), BigDecimal.ONE);
         BigDecimal complexityMultiplier = configuration.complexityMultipliers()
             .getOrDefault(project.complexity(), BigDecimal.ONE);
+        BigDecimal moduleBaseHours = resolveModuleBaseHours(module);
         BigDecimal moduleHours = BudgetCalculationUtils.roundCurrency(
-            BudgetCalculationUtils.safe(module.baseHours())
+            moduleBaseHours
                 .multiply(BigDecimal.valueOf(Math.max(module.quantity(), 0)))
                 .multiply(BudgetCalculationUtils.safe(module.moduleMultiplier()))
                 .multiply(BudgetCalculationUtils.safe(module.complexityWeight()))
@@ -89,11 +93,32 @@ public class BudgetTechnicalEstimator {
             module.quantity(),
             module.tier(),
             module.baseHours(),
+            module.optimisticHours(),
+            module.probableHours(),
+            module.pessimisticHours(),
             module.complexityWeight(),
             module.moduleMultiplier(),
             List.copyOf(module.dependencyIds()),
+            module.blockingNote(),
             module.optional(),
             moduleHours
         );
+    }
+
+    private BigDecimal resolveModuleBaseHours(EstimateModule module) {
+        BigDecimal optimistic = BudgetCalculationUtils.safe(module.optimisticHours());
+        BigDecimal probable = BudgetCalculationUtils.safe(module.probableHours());
+        BigDecimal pessimistic = BudgetCalculationUtils.safe(module.pessimisticHours());
+
+        if (optimistic.signum() > 0 && probable.signum() > 0 && pessimistic.signum() > 0) {
+            return BudgetCalculationUtils.roundCurrency(
+                optimistic
+                    .add(probable.multiply(BigDecimal.valueOf(4)))
+                    .add(pessimistic)
+                    .divide(BigDecimal.valueOf(6), 4, java.math.RoundingMode.HALF_UP)
+            );
+        }
+
+        return BudgetCalculationUtils.safe(module.baseHours());
     }
 }

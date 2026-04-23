@@ -25,6 +25,7 @@ public class BudgetBuilderRequestMapper {
         return new BudgetProject(
             "budget-builder-preview",
             request.budgetName().trim(),
+            request.client().trim(),
             BudgetCalculationUtils.normalizeProjectKey(request.projectType()),
             request.pricingMode(),
             BudgetCalculationUtils.normalizeStackKey(request.desiredStackId()),
@@ -45,6 +46,7 @@ public class BudgetBuilderRequestMapper {
             toManualDiscount(request.manualDiscount()),
             request.activeClients(),
             request.userScaleTierId(),
+            request.extraMonthlyHours(),
             request.notes() == null
                 ? List.of()
                 : request.notes().stream()

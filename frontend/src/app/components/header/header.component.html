@@ -27,13 +27,10 @@
       (click)="goToHome($event)"
     >
       <span class="site-nav__home-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5.8"></circle>
-          <path d="M12 4.2v2.1"></path>
-          <path d="M19.8 12h-2.1"></path>
-          <path d="M12 19.8v-2.1"></path>
-          <path d="M4.2 12h2.1"></path>
-          <circle cx="12" cy="12" r="1.35" fill="currentColor" stroke="none"></circle>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.5 10.5 12 3l8.5 7.5"></path>
+          <path d="M6.5 9.5v10.5h11V9.5"></path>
+          <path d="M10 20v-5.5h4V20"></path>
         </svg>
       </span>
       <span class="site-nav__home-label">{{ content().homeLabel }}</span>
@@ -68,12 +65,16 @@
         *ngIf="authService.isAuthenticated()"
         style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;"
       >
+        <span class="header-status" [class.is-online]="authService.isAuthenticated()" [class.is-offline]="!authService.isAuthenticated()">
+          {{ onlineStatusLabel() }}
+        </span>
+
         <button
           type="button"
           class="theme-menu__trigger motion-control"
           (click)="goToControlCenter()"
         >
-          {{ adminStatusLabel() }} · {{ authService.session()?.username || 'FERCHUZ' }}
+          {{ controlCenterLabel() }}
         </button>
 
         <button

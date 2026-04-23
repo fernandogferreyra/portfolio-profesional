@@ -7,7 +7,12 @@ import java.util.Arrays;
 public enum EventType {
     VISIT_HOME("visit_home"),
     OPEN_PROJECT("open_project"),
-    CONTACT_SUBMIT("contact_submit");
+    CONTACT_SUBMIT("contact_submit"),
+    SECTION_VIEW("section_view"),
+    PROJECT_INTERACTION("project_interaction"),
+    CONTACT_INTERACTION("contact_interaction"),
+    QUOTE_INTERACTION("quote_interaction"),
+    ESTIMATOR_INTERACTION("estimator_interaction");
 
     private final String value;
 

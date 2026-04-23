@@ -5,9 +5,12 @@
 /tmp
 /out-tsc
 /bazel-out
+/frontend/dist
+/frontend/coverage
 
 # Node
 /node_modules
+/frontend/node_modules
 npm-debug.log
 yarn-error.log
 
@@ -29,14 +32,38 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
+/.env
+/.env.*
+!/.env.example
+!/.env.deploy.example
+*.log
+contact-win-body.out
+contact-win-headers.out
 /.angular/cache
+/frontend/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
+/backend/target/
 /libpeerconnection.log
 testem.log
 /typings
 __screenshots__/
+
+# Legacy root frontend leftovers
+/angular.json
+/package.json
+/package-lock.json
+/proxy.conf.json
+/tsconfig.app.json
+/tsconfig.json
+/tsconfig.spec.json
+/public/
+/src/
+
+# Local workspace artifacts
+/portfolio-profesional.code-workspace
+/.runtime/
 
 # System files
 .DS_Store

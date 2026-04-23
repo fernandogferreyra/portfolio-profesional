@@ -4,6 +4,7 @@ import com.fernandogferreyra.portfolio.backend.dto.ApiFieldError;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -64,6 +66,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiErrorResponse handleUnexpected(Exception exception, HttpServletRequest request) {
+        log.error("Unhandled exception for path={}", request.getRequestURI(), exception);
         return ApiErrorResponse.of(
             "Unexpected server error",
             "INTERNAL_SERVER_ERROR",
@@ -75,4 +78,3 @@ public class GlobalExceptionHandler {
         return new ApiFieldError(error.getField(), error.getDefaultMessage());
     }
 }
-

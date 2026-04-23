@@ -28,6 +28,30 @@ public class ContactMessage extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
+    @Column(length = 120)
+    private String source;
+
+    @Column(length = 160)
+    private String context;
+
+    @Column(length = 16)
+    private String language;
+
+    @Column(name = "user_agent", length = 500)
+    private String userAgent;
+
+    @Column(name = "submitted_at")
+    private java.time.OffsetDateTime submittedAt;
+
+    @Column(name = "reply_message", columnDefinition = "TEXT")
+    private String replyMessage;
+
+    @Column(name = "replied_at")
+    private java.time.OffsetDateTime repliedAt;
+
+    @Column(name = "replied_by", length = 120)
+    private String repliedBy;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private ContactMessageStatus status;

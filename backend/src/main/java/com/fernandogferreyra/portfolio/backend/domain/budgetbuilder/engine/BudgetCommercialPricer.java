@@ -1,18 +1,22 @@
 package com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.engine;
 
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BillingCadence;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.CategoryBillingType;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.PricingAdjustmentMode;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.BudgetProject;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.CommercialBudget;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.ConfigurationSnapshot;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.DiscountItem;
+import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.MonthlyBreakdown;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.PricingExplanationItem;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.SurchargeItem;
 import com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.model.TechnicalEstimate;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.stereotype.Component;
 
@@ -24,16 +28,32 @@ public class BudgetCommercialPricer {
         ConfigurationSnapshot configuration,
         TechnicalEstimate technicalEstimate
     ) {
-        BigDecimal subtotal = calculateCommercialSubtotal(technicalEstimate, configuration);
-        boolean hasWork = !technicalEstimate.modules().isEmpty() && subtotal.compareTo(BigDecimal.ZERO) > 0;
-        List<SurchargeItem> surchargeItems = applySimpleSurcharges(subtotal, project, configuration, hasWork);
+        boolean hasWork = !technicalEstimate.modules().isEmpty();
+        CommercialBase commercialBase = calculateCommercialBase(technicalEstimate, configuration);
+        List<SurchargeItem> surchargeItems = applySimpleSurcharges(
+            commercialBase.baseAmount(),
+            project,
+            configuration,
+            hasWork
+        );
         BigDecimal surchargeTotal = surchargeItems.stream()
             .map(SurchargeItem::amount)
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         SupportApplication supportApplication = applyBasicSupport(project, configuration, hasWork);
+        MaintenanceApplication maintenanceApplication = applyMaintenance(project, configuration, hasWork);
+        SaasApplication saasApplication = applySaasPricing(
+            project,
+            configuration,
+            hasWork,
+            commercialBase.baseAmount().add(surchargeTotal),
+            supportApplication.monthlyAmount().add(maintenanceApplication.monthlyAmount())
+        );
+        BigDecimal monthlyBaseAmount = saasApplication.monthlyAmount() != null
+            ? saasApplication.monthlyAmount()
+            : supportApplication.monthlyAmount().add(maintenanceApplication.monthlyAmount());
         List<DiscountItem> discountItems = applyManualDiscounts(
-            subtotal.add(surchargeTotal),
-            supportApplication.monthlyAmount(),
+            commercialBase.baseAmount().add(surchargeTotal),
+            monthlyBaseAmount,
             project
         );
         BigDecimal oneTimeDiscountTotal = discountItems.stream()
@@ -46,12 +66,20 @@ public class BudgetCommercialPricer {
             .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal finalOneTimeTotal = BudgetCalculationUtils.roundCommercialValue(
             BudgetCalculationUtils.clampMinimum(
-                subtotal.add(surchargeTotal).subtract(oneTimeDiscountTotal),
+                commercialBase.baseAmount().add(surchargeTotal).subtract(oneTimeDiscountTotal),
                 configuration.minimumBudget()),
             configuration.roundingRules().commercial());
         BigDecimal finalMonthlyTotal = BudgetCalculationUtils.roundCommercialValue(
-            supportApplication.monthlyAmount().subtract(monthlyDiscountTotal).max(BigDecimal.ZERO),
+            monthlyBaseAmount.subtract(monthlyDiscountTotal).max(BigDecimal.ZERO),
             configuration.roundingRules().commercial());
+        MonthlyBreakdown monthlyBreakdown = buildMonthlyBreakdown(
+            project,
+            supportApplication,
+            maintenanceApplication,
+            saasApplication,
+            monthlyBaseAmount,
+            finalMonthlyTotal
+        );
 
         return new CommercialBudget(
             project.id() + "-commercial-budget",
@@ -60,26 +88,129 @@ public class BudgetCommercialPricer {
             technicalEstimate.id(),
             configuration.currency(),
             technicalEstimate.totalHours(),
-            subtotal,
-            subtotal,
-            supportApplication.monthlyAmount(),
+            commercialBase.baseAmount(),
+            commercialBase.baseAmount(),
+            monthlyBaseAmount,
             surchargeItems,
             discountItems,
             finalOneTimeTotal,
             finalMonthlyTotal,
             supportApplication.supportRuleId(),
-            buildExplanation(technicalEstimate, subtotal, surchargeItems, discountItems, supportApplication),
+            monthlyBreakdown,
+            buildExplanation(
+                technicalEstimate,
+                commercialBase,
+                surchargeItems,
+                discountItems,
+                supportApplication,
+                maintenanceApplication,
+                saasApplication
+            ),
             configuration.createdAt()
         );
     }
 
-    private BigDecimal calculateCommercialSubtotal(
+    private MonthlyBreakdown buildMonthlyBreakdown(
+        BudgetProject project,
+        SupportApplication supportApplication,
+        MaintenanceApplication maintenanceApplication,
+        SaasApplication saasApplication,
+        BigDecimal monthlyBaseAmount,
+        BigDecimal finalMonthlyTotal
+    ) {
+        if (project.pricingMode() != com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BudgetPricingMode.SAAS
+            || saasApplication.monthlyAmount() == null) {
+            return null;
+        }
+
+        return new MonthlyBreakdown(
+            saasApplication.developmentRecovery(),
+            saasApplication.infrastructure(),
+            supportApplication.monthlyAmount(),
+            maintenanceApplication.monthlyAmount(),
+            saasApplication.userScaleAdjustment(),
+            saasApplication.extraHours(),
+            saasApplication.margin(),
+            monthlyBaseAmount,
+            finalMonthlyTotal
+        );
+    }
+
+    private CommercialBase calculateCommercialBase(
         TechnicalEstimate technicalEstimate,
         ConfigurationSnapshot configuration
     ) {
-        return BudgetCalculationUtils.roundCurrency(
-            technicalEstimate.totalHours().multiply(BudgetCalculationUtils.safe(configuration.hourlyRate().base()))
-        );
+        List<PricingExplanationItem> explanation = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+
+        for (ConfigurationSnapshot.CategoryRule categoryRule : configuration.categoryRules()) {
+            BigDecimal amount = calculateCategoryAmount(categoryRule, technicalEstimate, configuration);
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            total = total.add(amount);
+            explanation.add(new PricingExplanationItem(
+                technicalEstimate.id() + "-" + categoryRule.id(),
+                "COMMERCIAL",
+                categoryRule.label(),
+                buildCategoryExplanation(categoryRule, technicalEstimate),
+                amount,
+                technicalEstimate.modules().stream()
+                    .filter(module -> Objects.equals(module.category(), categoryRule.id()))
+                    .map(module -> module.id())
+                    .toList(),
+                "INFO"
+            ));
+        }
+
+        explanation.add(0, new PricingExplanationItem(
+            technicalEstimate.id() + "-hours",
+            "TECHNICAL",
+            "Technical effort",
+            "PERT estimation with the active risk buffer applied over the selected delivery blocks.",
+            technicalEstimate.totalHours(),
+            technicalEstimate.modules().stream().map(module -> module.id()).toList(),
+            "INFO"
+        ));
+
+        return new CommercialBase(BudgetCalculationUtils.roundCurrency(total), List.copyOf(explanation));
+    }
+
+    private BigDecimal calculateCategoryAmount(
+        ConfigurationSnapshot.CategoryRule categoryRule,
+        TechnicalEstimate technicalEstimate,
+        ConfigurationSnapshot configuration
+    ) {
+        if (categoryRule.billingType() == CategoryBillingType.TIME_BASED) {
+            BigDecimal totalCategoryHours = technicalEstimate.modules().stream()
+                .filter(module -> Objects.equals(module.category(), categoryRule.id()))
+                .map(module -> BudgetCalculationUtils.safe(module.estimatedHours()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            return BudgetCalculationUtils.roundCurrency(totalCategoryHours.multiply(BudgetCalculationUtils.safe(categoryRule.rate())));
+        }
+
+        if (categoryRule.billingType() == CategoryBillingType.FIXED_AMOUNT
+            && categoryRule.cadence() == BillingCadence.ONE_TIME) {
+            return BudgetCalculationUtils.roundCurrency(categoryRule.rate());
+        }
+
+        return BigDecimal.ZERO;
+    }
+
+    private String buildCategoryExplanation(
+        ConfigurationSnapshot.CategoryRule categoryRule,
+        TechnicalEstimate technicalEstimate
+    ) {
+        if (categoryRule.billingType() == CategoryBillingType.TIME_BASED) {
+            BigDecimal totalCategoryHours = technicalEstimate.modules().stream()
+                .filter(module -> Objects.equals(module.category(), categoryRule.id()))
+                .map(module -> BudgetCalculationUtils.safe(module.estimatedHours()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            return "Time-based category calculated from " + totalCategoryHours + " estimated hours at the configured rate.";
+        }
+
+        return "Fixed commercial category from the active configuration snapshot.";
     }
 
     private List<SurchargeItem> applySimpleSurcharges(
@@ -165,6 +296,158 @@ public class BudgetCommercialPricer {
             .orElse(new SupportApplication(null, BigDecimal.ZERO, null));
     }
 
+    private MaintenanceApplication applyMaintenance(
+        BudgetProject project,
+        ConfigurationSnapshot configuration,
+        boolean hasWork
+    ) {
+        if (!hasWork) {
+            return new MaintenanceApplication(null, BigDecimal.ZERO, null);
+        }
+
+        String maintenancePlanId = project.maintenancePlanId();
+        if (maintenancePlanId == null || maintenancePlanId.isBlank()) {
+            maintenancePlanId = configuration.projectTypeDefaults().stream()
+                .filter(rule -> rule.projectType().equals(project.projectType()))
+                .findFirst()
+                .map(ConfigurationSnapshot.ProjectTypeDefaultRule::defaultMaintenanceRuleId)
+                .orElse(null);
+        }
+
+        if (maintenancePlanId == null || maintenancePlanId.isBlank()) {
+            return new MaintenanceApplication(null, BigDecimal.ZERO, null);
+        }
+
+        String resolvedMaintenancePlanId = maintenancePlanId;
+        return configuration.maintenanceRules().stream()
+            .filter(rule -> rule.id().equals(resolvedMaintenancePlanId))
+            .findFirst()
+            .map(rule -> new MaintenanceApplication(
+                rule.id(),
+                BudgetCalculationUtils.roundCommercialValue(
+                    BudgetCalculationUtils.safe(rule.monthlyAmount()),
+                    configuration.roundingRules().commercial()),
+                rule.label()
+            ))
+            .orElse(new MaintenanceApplication(null, BigDecimal.ZERO, null));
+    }
+
+    private SaasApplication applySaasPricing(
+        BudgetProject project,
+        ConfigurationSnapshot configuration,
+        boolean hasWork,
+        BigDecimal oneTimeBaseAmount,
+        BigDecimal supportMonthlyAmount
+    ) {
+        if (!hasWork || project.pricingMode() != com.fernandogferreyra.portfolio.backend.domain.budgetbuilder.enums.BudgetPricingMode.SAAS) {
+            return new SaasApplication(null, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, List.of());
+        }
+
+        int activeClients = project.activeClients() == null || project.activeClients() <= 0 ? 1 : project.activeClients();
+        int recoveryMonths = configuration.saasPricing().recoveryMonths() == null || configuration.saasPricing().recoveryMonths() <= 0
+            ? 24
+            : configuration.saasPricing().recoveryMonths();
+        BigDecimal recoveredDevelopmentCost = BudgetCalculationUtils.roundCurrency(
+            oneTimeBaseAmount.divide(BigDecimal.valueOf(recoveryMonths), 4, RoundingMode.HALF_UP));
+        BigDecimal infrastructureCost = BudgetCalculationUtils.safe(configuration.saasPricing().monthlyInfrastructureCost());
+        BigDecimal extraHoursCost = configuration.hourlyRate().extraHourRate()
+            .multiply(BigDecimal.valueOf(Math.max(project.extraMonthlyHours() == null ? 0 : project.extraMonthlyHours(), 0)));
+        BigDecimal tierAdjustment = resolveUserScaleAdjustment(project, configuration);
+        BigDecimal basePerClient = BudgetCalculationUtils.roundCurrency(
+            recoveredDevelopmentCost.add(infrastructureCost)
+                .divide(BigDecimal.valueOf(activeClients), 4, RoundingMode.HALF_UP)
+                .add(supportMonthlyAmount)
+        );
+        BigDecimal marginAmount = BudgetCalculationUtils.roundCurrency(
+            basePerClient.multiply(BudgetCalculationUtils.safe(configuration.saasPricing().marginPercentage()))
+        );
+        BigDecimal monthlyAmount = BudgetCalculationUtils.roundCommercialValue(
+            basePerClient.add(marginAmount).add(tierAdjustment).add(extraHoursCost),
+            configuration.roundingRules().commercial()
+        );
+
+        List<PricingExplanationItem> explanation = List.of(
+            new PricingExplanationItem(
+                project.id() + "-saas-recovery",
+                "COMMERCIAL",
+                "Development recovery",
+                "One-time budget distributed across the configured SaaS recovery window.",
+                recoveredDevelopmentCost,
+                List.of("saas-recovery"),
+                "INFO"
+            ),
+            new PricingExplanationItem(
+                project.id() + "-saas-infrastructure",
+                "COMMERCIAL",
+                "Infrastructure base",
+                "Monthly infrastructure cost from the active SaaS configuration.",
+                infrastructureCost,
+                List.of("saas-infrastructure"),
+                "INFO"
+            ),
+            new PricingExplanationItem(
+                project.id() + "-saas-margin",
+                "NEGOTIATION",
+                "SaaS margin",
+                "Commercial margin applied over the per-client SaaS base.",
+                marginAmount,
+                List.of("saas-margin"),
+                "UP"
+            )
+        );
+
+        List<PricingExplanationItem> extendedExplanation = new ArrayList<>(explanation);
+
+        if (tierAdjustment.compareTo(BigDecimal.ZERO) > 0) {
+            extendedExplanation.add(new PricingExplanationItem(
+                project.id() + "-saas-tier",
+                "COMMERCIAL",
+                "User scale tier",
+                "Plan increment applied according to the selected user scale tier.",
+                tierAdjustment,
+                List.of(project.userScaleTierId() == null ? "default-tier" : project.userScaleTierId()),
+                "UP"
+            ));
+        }
+
+        if (extraHoursCost.compareTo(BigDecimal.ZERO) > 0) {
+            extendedExplanation.add(new PricingExplanationItem(
+                project.id() + "-saas-extra-hours",
+                "COMMERCIAL",
+                "Extra monthly hours",
+                "Additional monthly support hours priced with the configured extra-hour rate.",
+                extraHoursCost,
+                List.of("extra-hours"),
+                "UP"
+            ));
+        }
+
+        return new SaasApplication(
+            monthlyAmount,
+            recoveredDevelopmentCost,
+            infrastructureCost,
+            tierAdjustment,
+            extraHoursCost,
+            marginAmount,
+            List.copyOf(extendedExplanation)
+        );
+    }
+
+    private BigDecimal resolveUserScaleAdjustment(
+        BudgetProject project,
+        ConfigurationSnapshot configuration
+    ) {
+        if (project.userScaleTierId() == null || project.userScaleTierId().isBlank()) {
+            return BigDecimal.ZERO;
+        }
+
+        return configuration.userScaleRules().stream()
+            .filter(rule -> rule.id().equals(project.userScaleTierId()))
+            .findFirst()
+            .map(rule -> calculateAdjustmentAmount(BigDecimal.ONE, rule.mode(), rule.value()))
+            .orElse(BigDecimal.ZERO);
+    }
+
     private List<DiscountItem> applyManualDiscounts(
         BigDecimal oneTimeBaseAmount,
         BigDecimal monthlyBaseAmount,
@@ -199,30 +482,14 @@ public class BudgetCommercialPricer {
 
     private List<PricingExplanationItem> buildExplanation(
         TechnicalEstimate technicalEstimate,
-        BigDecimal subtotal,
+        CommercialBase commercialBase,
         List<SurchargeItem> surcharges,
         List<DiscountItem> discounts,
-        SupportApplication supportApplication
+        SupportApplication supportApplication,
+        MaintenanceApplication maintenanceApplication,
+        SaasApplication saasApplication
     ) {
-        List<PricingExplanationItem> explanation = new ArrayList<>();
-        explanation.add(new PricingExplanationItem(
-            technicalEstimate.id() + "-hours",
-            "TECHNICAL",
-            "Technical effort",
-            "Base estimate generated from the selected modules.",
-            technicalEstimate.totalHours(),
-            technicalEstimate.modules().stream().map(module -> module.id()).toList(),
-            "INFO"
-        ));
-        explanation.add(new PricingExplanationItem(
-            technicalEstimate.id() + "-subtotal",
-            "COMMERCIAL",
-            "Commercial subtotal",
-            "Subtotal based on total hours multiplied by the configured hourly rate.",
-            subtotal,
-            List.of("hourly-rate-base"),
-            "INFO"
-        ));
+        List<PricingExplanationItem> explanation = new ArrayList<>(commercialBase.explanation());
 
         surcharges.forEach(item -> explanation.add(new PricingExplanationItem(
             technicalEstimate.id() + "-" + item.code(),
@@ -249,13 +516,26 @@ public class BudgetCommercialPricer {
                 technicalEstimate.id() + "-support",
                 "COMMERCIAL",
                 supportApplication.supportLabel(),
-                "Basic monthly support applied from the active configuration.",
+                "Monthly support baseline from the active configuration.",
                 supportApplication.monthlyAmount(),
                 List.of(supportApplication.supportRuleId()),
                 "INFO"
             ));
         }
 
+        if (maintenanceApplication.monthlyAmount().compareTo(BigDecimal.ZERO) > 0) {
+            explanation.add(new PricingExplanationItem(
+                technicalEstimate.id() + "-maintenance",
+                "COMMERCIAL",
+                maintenanceApplication.maintenanceLabel() == null ? "Maintenance" : maintenanceApplication.maintenanceLabel(),
+                "Monthly maintenance plan applied from the active configuration.",
+                maintenanceApplication.monthlyAmount(),
+                List.of(maintenanceApplication.maintenanceRuleId() == null ? "maintenance" : maintenanceApplication.maintenanceRuleId()),
+                "INFO"
+            ));
+        }
+
+        explanation.addAll(saasApplication.explanation());
         return List.copyOf(explanation);
     }
 
@@ -270,10 +550,34 @@ public class BudgetCommercialPricer {
         return BudgetCalculationUtils.roundCurrency(value);
     }
 
+    private record CommercialBase(
+        BigDecimal baseAmount,
+        List<PricingExplanationItem> explanation
+    ) {
+    }
+
     private record SupportApplication(
         String supportRuleId,
         BigDecimal monthlyAmount,
         String supportLabel
+    ) {
+    }
+
+    private record MaintenanceApplication(
+        String maintenanceRuleId,
+        BigDecimal monthlyAmount,
+        String maintenanceLabel
+    ) {
+    }
+
+    private record SaasApplication(
+        BigDecimal monthlyAmount,
+        BigDecimal developmentRecovery,
+        BigDecimal infrastructure,
+        BigDecimal userScaleAdjustment,
+        BigDecimal extraHours,
+        BigDecimal margin,
+        List<PricingExplanationItem> explanation
     ) {
     }
 }

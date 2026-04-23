@@ -1,0 +1,38 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${PORTFOLIO_DB_URL}
+    username: ${PORTFOLIO_DB_USERNAME}
+    password: ${PORTFOLIO_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      initialization-fail-timeout: -1
+      connection-timeout: 3000
+      maximum-pool-size: ${PORTFOLIO_DB_POOL_SIZE:10}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+app:
+  cors:
+    allowed-origins: ${PORTFOLIO_ALLOWED_ORIGINS:http://localhost}
+  contact:
+    mail:
+      enabled: ${PORTFOLIO_CONTACT_MAIL_ENABLED:false}
+      provider: ${PORTFOLIO_CONTACT_MAIL_PROVIDER:noop}
+      inbox-address: ${PORTFOLIO_CONTACT_INBOX:}
+      from-address: ${PORTFOLIO_CONTACT_FROM:no-reply@portfolio.local}
+      auto-reply-subject-es: ${PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_ES:Gracias por contactarte}
+      auto-reply-subject-en: ${PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_EN:Thanks for reaching out}
+      auto-reply-signature: ${PORTFOLIO_CONTACT_SIGNATURE:Fernando Ferreyra}
+      resend-api-key: ${PORTFOLIO_RESEND_API_KEY:}
+      resend-base-url: ${PORTFOLIO_RESEND_BASE_URL:https://api.resend.com}
+  document-storage:
+    base-path: ${PORTFOLIO_DOCUMENT_STORAGE_PATH:/var/lib/portfolio/documents}
+    max-file-size-bytes: ${PORTFOLIO_DOCUMENT_STORAGE_MAX_FILE_SIZE_BYTES:10485760}
+    allowed-content-types:
+      - application/pdf
+      - image/jpeg
+      - image/png
+      - image/webp

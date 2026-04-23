@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PORTFOLIO_POSTGRES_DB:-portfolio_db}
+      POSTGRES_USER: ${PORTFOLIO_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${PORTFOLIO_POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PORTFOLIO_POSTGRES_USER:-postgres} -d ${PORTFOLIO_POSTGRES_DB:-portfolio_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORTFOLIO_DB_URL: jdbc:postgresql://postgres:5432/${PORTFOLIO_POSTGRES_DB:-portfolio_db}
+      PORTFOLIO_DB_USERNAME: ${PORTFOLIO_POSTGRES_USER:-postgres}
+      PORTFOLIO_DB_PASSWORD: ${PORTFOLIO_POSTGRES_PASSWORD}
+      PORTFOLIO_DB_POOL_SIZE: ${PORTFOLIO_DB_POOL_SIZE:-10}
+      PORTFOLIO_ALLOWED_ORIGINS: ${PORTFOLIO_ALLOWED_ORIGINS:-http://localhost:${PORTFOLIO_FRONTEND_PORT:-8081}}
+      PORTFOLIO_JWT_SECRET: ${PORTFOLIO_JWT_SECRET}
+      PORTFOLIO_DOCUMENT_STORAGE_PATH: ${PORTFOLIO_DOCUMENT_STORAGE_PATH:-/var/lib/portfolio/documents}
+      PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:-false}
+      PORTFOLIO_ADMIN_USERNAME: ${PORTFOLIO_ADMIN_USERNAME:-}
+      PORTFOLIO_ADMIN_PASSWORD: ${PORTFOLIO_ADMIN_PASSWORD:-}
+      PORTFOLIO_CONTACT_MAIL_ENABLED: ${PORTFOLIO_CONTACT_MAIL_ENABLED:-false}
+      PORTFOLIO_CONTACT_MAIL_PROVIDER: ${PORTFOLIO_CONTACT_MAIL_PROVIDER:-noop}
+      PORTFOLIO_CONTACT_INBOX: ${PORTFOLIO_CONTACT_INBOX:-}
+      PORTFOLIO_CONTACT_FROM: ${PORTFOLIO_CONTACT_FROM:-no-reply@portfolio.local}
+      PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_ES: ${PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_ES:-Gracias por contactarte}
+      PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_EN: ${PORTFOLIO_CONTACT_AUTOREPLY_SUBJECT_EN:-Thanks for reaching out}
+      PORTFOLIO_CONTACT_SIGNATURE: ${PORTFOLIO_CONTACT_SIGNATURE:-Fernando Ferreyra}
+      PORTFOLIO_RESEND_API_KEY: ${PORTFOLIO_RESEND_API_KEY:-}
+      PORTFOLIO_RESEND_BASE_URL: ${PORTFOLIO_RESEND_BASE_URL:-https://api.resend.com}
+    volumes:
+      - backend_documents:/var/lib/portfolio/documents
+    ports:
+      - "${PORTFOLIO_BACKEND_PORT:-8080}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${PORTFOLIO_FRONTEND_PORT:-8081}:80"
+
+volumes:
+  postgres_data:
+  backend_documents:

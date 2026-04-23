@@ -73,13 +73,13 @@ export class AdminLoginModalComponent implements AfterViewInit, OnDestroy {
   );
 
   readonly loginForm = this.formBuilder.nonNullable.group({
-    username: ['FERCHUZ', [Validators.required, Validators.maxLength(80)]],
+    username: ['', [Validators.required, Validators.maxLength(80)]],
     password: ['', [Validators.required, Validators.maxLength(255)]],
   });
 
   ngAfterViewInit(): void {
     const activeElement = this.elementRef.nativeElement.querySelector(
-      '[formControlName="password"]',
+      '[formControlName="username"]',
     ) as HTMLInputElement | null;
 
     globalThis.document?.body.style.setProperty('overflow', 'hidden');

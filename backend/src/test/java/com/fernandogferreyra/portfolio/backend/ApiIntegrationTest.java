@@ -1,7 +1,9 @@
 package com.fernandogferreyra.portfolio.backend;
 
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -10,6 +12,7 @@ import com.fernandogferreyra.portfolio.backend.domain.enums.ContactMessageStatus
 import com.fernandogferreyra.portfolio.backend.domain.enums.EventType;
 import com.fernandogferreyra.portfolio.backend.repository.analytics.EventLogRepository;
 import com.fernandogferreyra.portfolio.backend.repository.contact.ContactMessageRepository;
+import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +20,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-class ApiIntegrationTest {
+class ApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,10 +39,14 @@ class ApiIntegrationTest {
     @Autowired
     private EventLogRepository eventLogRepository;
 
+    @Autowired
+    private DocumentRepository documentRepository;
+
     @BeforeEach
     void cleanMutableTables() {
         contactMessageRepository.deleteAll();
         eventLogRepository.deleteAll();
+        documentRepository.deleteAll();
     }
 
     @Test
@@ -75,6 +85,11 @@ class ApiIntegrationTest {
         org.junit.jupiter.api.Assertions.assertEquals(ContactMessageStatus.NEW, persistedMessages.get(0).getStatus());
         org.junit.jupiter.api.Assertions.assertEquals("fer@example.com", persistedMessages.get(0).getEmail());
         org.junit.jupiter.api.Assertions.assertEquals("Portfolio contact", persistedMessages.get(0).getSubject());
+        org.junit.jupiter.api.Assertions.assertEquals("portfolio-web", persistedMessages.get(0).getSource());
+        org.junit.jupiter.api.Assertions.assertEquals("contact-form", persistedMessages.get(0).getContext());
+        org.junit.jupiter.api.Assertions.assertEquals("es", persistedMessages.get(0).getLanguage());
+        org.junit.jupiter.api.Assertions.assertEquals("Mozilla/5.0", persistedMessages.get(0).getUserAgent());
+        org.junit.jupiter.api.Assertions.assertNotNull(persistedMessages.get(0).getSubmittedAt());
     }
 
     @Test
@@ -102,6 +117,96 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void adminCanReadAndUpdateProjects() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        String projectId = mockMvc.perform(get("/api/admin/projects")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].slug").value("obrasmart"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String selectedId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(projectId)
+            .path("data")
+            .get(0)
+            .path("id")
+            .asText();
+
+        mockMvc.perform(patch("/api/admin/projects/{id}", selectedId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "slug": "obrasmart",
+                      "name": "ObraSmart Suite",
+                      "year": "2026",
+                      "category": "distributed_platform",
+                      "summary": "Operational suite for project maintenance and internal field coordination.",
+                      "repositoryUrl": "https://github.com/example/obrasmart-suite",
+                      "stack": ["Java 17", "Spring Boot", "PostgreSQL", "Angular"],
+                      "featured": true,
+                      "published": true,
+                      "displayOrder": 1
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.name").value("ObraSmart Suite"))
+            .andExpect(jsonPath("$.data.year").value("2026"))
+            .andExpect(jsonPath("$.data.summary").value("Operational suite for project maintenance and internal field coordination."))
+            .andExpect(jsonPath("$.data.stack", hasSize(4)))
+            .andExpect(jsonPath("$.data.repositoryUrl").value("https://github.com/example/obrasmart-suite"));
+    }
+
+    @Test
+    void adminCanUploadAndListDocuments() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "profile-cv.pdf",
+            "application/pdf",
+            "fake-pdf-content".getBytes());
+
+        mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "cv")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.purpose").value("cv"))
+            .andExpect(jsonPath("$.data.originalFilename").value("profile-cv.pdf"))
+            .andExpect(jsonPath("$.data.contentType").value("application/pdf"))
+            .andExpect(jsonPath("$.data.sizeBytes").value(file.getSize()));
+
+        mockMvc.perform(get("/api/admin/documents")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data", hasSize(1)))
+            .andExpect(jsonPath("$.data[0].purpose").value("cv"))
+            .andExpect(jsonPath("$.data[0].originalFilename").value("profile-cv.pdf"));
+    }
+
+    @Test
+    void adminUploadRejectsUnsupportedDocumentType() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "notes.txt",
+            "text/plain",
+            "plain-text".getBytes());
+
+        mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "support_file")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isUnsupportedMediaType())
+            .andExpect(jsonPath("$.message").value("Document type is not allowed"));
+    }
+
+    @Test
     void eventsEndpointPersistsEventLog() throws Exception {
         mockMvc.perform(post("/api/events")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -125,5 +230,114 @@ class ApiIntegrationTest {
         org.junit.jupiter.api.Assertions.assertEquals(EventType.CONTACT_SUBMIT, persistedEvents.get(0).getEventType());
         org.junit.jupiter.api.Assertions.assertEquals("portfolio-web", persistedEvents.get(0).getSource());
         org.junit.jupiter.api.Assertions.assertTrue(persistedEvents.get(0).getMetadataJson().contains("\"path\":\"/contact\""));
+    }
+
+    @Test
+    void adminCanReadTrackedEvents() throws Exception {
+        mockMvc.perform(post("/api/events")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "eventType": "section_view",
+                      "source": "portfolio-web",
+                      "path": "/projects",
+                      "reference": "view:projects",
+                      "metadata": {
+                        "action": "view:projects",
+                        "label": "Proyectos",
+                        "route": "/projects"
+                      }
+                    }
+                    """))
+            .andExpect(status().isOk());
+
+        String accessToken = loginAsAdmin();
+
+        mockMvc.perform(get("/api/admin/events")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.message").value("Events retrieved"))
+            .andExpect(jsonPath("$.data.length()").value(1))
+            .andExpect(jsonPath("$.data[0].type").value("section_view"))
+            .andExpect(jsonPath("$.data[0].action").value("view:projects"))
+            .andExpect(jsonPath("$.data[0].label").value("Proyectos"))
+            .andExpect(jsonPath("$.data[0].route").value("/projects"));
+    }
+
+    @Test
+    void adminCanReadAndReplyToContactMessages() throws Exception {
+        mockMvc.perform(post("/api/contact")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "name": "Ana Cliente",
+                      "email": "ana@example.com",
+                      "subject": "Consulta freelance",
+                      "message": "Necesito una propuesta para una web interna.",
+                      "source": "portfolio-web",
+                      "context": "contact-form",
+                      "language": "es",
+                      "userAgent": "Chrome",
+                      "submittedAt": "2026-04-11T10:15:00Z"
+                    }
+                    """))
+            .andExpect(status().isOk());
+
+        var messageId = contactMessageRepository.findAll().get(0).getId();
+        String accessToken = loginAsAdmin();
+
+        mockMvc.perform(get("/api/admin/contact-messages")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data", hasSize(1)))
+            .andExpect(jsonPath("$.data[0].name").value("Ana Cliente"))
+            .andExpect(jsonPath("$.data[0].status").value("NEW"));
+
+        mockMvc.perform(patch("/api/admin/contact-messages/{id}/status", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "status": "READ"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("READ"));
+
+        mockMvc.perform(post("/api/admin/contact-messages/{id}/reply", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "subject": "Re: Consulta freelance",
+                      "message": "Gracias por escribir. Te respondo hoy con mas detalle."
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("REPLIED"))
+            .andExpect(jsonPath("$.data.replyMessage").value("Gracias por escribir. Te respondo hoy con mas detalle."))
+            .andExpect(jsonPath("$.data.repliedBy").value("ferchuz"));
+    }
+
+    private String loginAsAdmin() throws Exception {
+        String loginResponse = mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "username": "ferchuz",
+                      "password": "ferchuz-test-password"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(loginResponse)
+            .path("data")
+            .path("accessToken")
+            .asText();
     }
 }
