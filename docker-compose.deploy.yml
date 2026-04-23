@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: ${PORTFOLIO_POSTGRES_DB:-portfolio_db}
       POSTGRES_USER: ${PORTFOLIO_POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${PORTFOLIO_POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${PORTFOLIO_POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -25,10 +25,11 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       PORTFOLIO_DB_URL: jdbc:postgresql://postgres:5432/${PORTFOLIO_POSTGRES_DB:-portfolio_db}
       PORTFOLIO_DB_USERNAME: ${PORTFOLIO_POSTGRES_USER:-postgres}
-      PORTFOLIO_DB_PASSWORD: ${PORTFOLIO_POSTGRES_PASSWORD:-postgres}
+      PORTFOLIO_DB_PASSWORD: ${PORTFOLIO_POSTGRES_PASSWORD}
       PORTFOLIO_DB_POOL_SIZE: ${PORTFOLIO_DB_POOL_SIZE:-10}
       PORTFOLIO_ALLOWED_ORIGINS: ${PORTFOLIO_ALLOWED_ORIGINS:-http://localhost:${PORTFOLIO_FRONTEND_PORT:-8081}}
       PORTFOLIO_JWT_SECRET: ${PORTFOLIO_JWT_SECRET}
+      PORTFOLIO_DOCUMENT_STORAGE_PATH: ${PORTFOLIO_DOCUMENT_STORAGE_PATH:-/var/lib/portfolio/documents}
       PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED: ${PORTFOLIO_BOOTSTRAP_ADMIN_ENABLED:-false}
       PORTFOLIO_ADMIN_USERNAME: ${PORTFOLIO_ADMIN_USERNAME:-}
       PORTFOLIO_ADMIN_PASSWORD: ${PORTFOLIO_ADMIN_PASSWORD:-}
@@ -41,6 +42,8 @@ services:
       PORTFOLIO_CONTACT_SIGNATURE: ${PORTFOLIO_CONTACT_SIGNATURE:-Fernando Ferreyra}
       PORTFOLIO_RESEND_API_KEY: ${PORTFOLIO_RESEND_API_KEY:-}
       PORTFOLIO_RESEND_BASE_URL: ${PORTFOLIO_RESEND_BASE_URL:-https://api.resend.com}
+    volumes:
+      - backend_documents:/var/lib/portfolio/documents
     ports:
       - "${PORTFOLIO_BACKEND_PORT:-8080}:8080"
 
@@ -55,3 +58,4 @@ services:
 
 volumes:
   postgres_data:
+  backend_documents:

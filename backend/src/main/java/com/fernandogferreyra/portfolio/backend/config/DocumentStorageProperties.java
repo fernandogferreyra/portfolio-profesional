@@ -15,7 +15,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.document-storage")
 public class DocumentStorageProperties {
 
-    private Path basePath = Paths.get("../.runtime/documents").toAbsolutePath().normalize();
+    private String basePath = "./runtime/documents";
     private long maxFileSizeBytes = 10 * 1024 * 1024L;
     private List<String> allowedContentTypes = new ArrayList<>(List.of(
         "application/pdf",
@@ -23,23 +23,21 @@ public class DocumentStorageProperties {
         "image/png",
         "image/webp"));
 
-    public void setBasePath(Path basePath) {
-        if (basePath == null) {
-            this.basePath = null;
-            return;
-        }
+    public Path getBasePath() {
+        String configuredBasePath = basePath == null ? "" : basePath.trim();
+        String effectiveBasePath = configuredBasePath.isEmpty() ? "./runtime/documents" : configuredBasePath;
 
-        this.basePath = basePath.toAbsolutePath().normalize();
+        return Paths.get(effectiveBasePath).toAbsolutePath().normalize();
     }
 
     @PostConstruct
     public void ensureDirectory() {
+        Path resolvedBasePath = getBasePath();
+
         try {
-            if (basePath != null) {
-                Files.createDirectories(basePath);
-            }
+            Files.createDirectories(resolvedBasePath);
         } catch (Exception exception) {
-            throw new IllegalStateException("Document storage directory could not be created: " + basePath, exception);
+            throw new IllegalStateException("Document storage directory could not be created: " + resolvedBasePath, exception);
         }
     }
 }
