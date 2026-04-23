@@ -20,6 +20,7 @@ Dejar una base reproducible de despliegue sin acoplar el repo todavia a un prove
 2. Completar al menos:
    - `PORTFOLIO_JWT_SECRET`
    - `PORTFOLIO_POSTGRES_PASSWORD`
+   - `PORTFOLIO_DOCUMENT_STORAGE_PATH` (o dejar el default `/var/lib/portfolio/documents` del compose)
 3. Levantar:
 
 ```bash
@@ -44,6 +45,7 @@ docker compose -f docker-compose.deploy.yml up --build
   - Render/Fly.io/Railway para backend
   - hosting estatico o contenedor para frontend
 - Definir manejo real de secretos fuera del repo.
+- Decidir si el volumen `backend_documents` se mantiene como volumen Docker o se mapea a storage persistente del host/proveedor.
 - Elegir estrategia de dominio y HTTPS.
 - Si se quiere CD real a proveedor, agregar luego un workflow separado con credenciales del destino.
 
