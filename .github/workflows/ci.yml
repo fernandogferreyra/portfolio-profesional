@@ -54,18 +54,19 @@ jobs:
       SPRING_PROFILES_ACTIVE: dev
       PORTFOLIO_DB_URL: jdbc:postgresql://localhost:5432/portfolio_db
       PORTFOLIO_DB_USERNAME: postgres
-      PORTFOLIO_DB_PASSWORD: postgres
+      PORTFOLIO_DB_PASSWORD: ci_portfolio_pg_password_2026
       PORTFOLIO_TEST_DB_URL: jdbc:postgresql://localhost:5432/portfolio_db
       PORTFOLIO_TEST_DB_USERNAME: postgres
-      PORTFOLIO_TEST_DB_PASSWORD: postgres
+      PORTFOLIO_TEST_DB_PASSWORD: ci_portfolio_pg_password_2026
       PORTFOLIO_JWT_SECRET: ci-test-jwt-secret-key-with-minimum-length-1234567890
+
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_DB: portfolio_db
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: ci_portfolio_pg_password_2026
         ports:
           - 5432:5432
         options: >-
@@ -73,6 +74,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     defaults:
       run:
         working-directory: backend
