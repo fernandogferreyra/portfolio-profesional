@@ -46,6 +46,8 @@
 - `main` solo debe recibir PRs desde `develop` cuando se decida una integracion estable.
 - Despues de mergear una rama de trabajo a `develop`, borrarla si ya no tiene sentido mantenerla.
 - Evitar ramas largas paralelas si el cambio puede resolverse como una serie de ramas cortas sobre `develop`.
+- Si `release-please` genera un PR vacio, NO mergearlo.
+- Ante un PR vacio de `release-please`, revisar siempre `pom.xml`, `.release-please-manifest.json` y tags antes de seguir.
 
 ## Continuidad
 
