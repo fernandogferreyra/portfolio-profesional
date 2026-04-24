@@ -77,6 +77,12 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 ## Historial de cambios
 
 - Fecha: 2026-04-24
+  - Cambio: Se estabilizo el pipeline de `release-please` para backend despues del loop de PRs vacios de snapshot. Ademas del bootstrap minimo de releases/tags para `frontend-v0.0.0` y `backend-v0.2.1`, se ajusto `release-please-config.json` para backend con `skip-snapshot=true`, de modo que el flujo no vuelva a abrir PRs automaticos de snapshot sin valor operativo.
+  - Archivos: `release-please-config.json`, `DOCUMENTATION.md`
+  - Decision: Mantener `release-type: maven` pero desactivar snapshot PRs automaticos en backend. Para este repo, el valor operativo esta en PRs de release reales; los bumps de snapshot automaticos solo generaban ruido y loops vacios.
+  - Proximos pasos: Mergear el PR de config, verificar un run limpio de `Release Please` sin PR nuevo y usar el checklist de release antes de la proxima promocion funcional a `main`.
+
+- Fecha: 2026-04-24
   - Cambio: Se corrigio el loop de `release-please` alineando `.release-please-manifest.json` con el estado actual del backend (`0.2.1`) y se documentaron reglas persistentes para evitar merges de PRs vacios de snapshot. Tambien se agrego `docs/release-checklist.md` como checklist operativo previo a merge/release.
   - Archivos: `.release-please-manifest.json`, `AGENTS.md`, `docs/release-checklist.md`, `DOCUMENTATION.md`
   - Decision: Tratar los PRs vacios de `release-please` como senal de desalineacion entre manifest/versionado, no como PRs validos de mantenimiento. El fix correcto es re-alinear manifest/version y revisar tags antes de seguir.
