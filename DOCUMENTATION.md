@@ -65,7 +65,22 @@ Quedan pendientes funcionales fuera de este corte: PDF, envio transaccional a te
 
 Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la rama integradora diaria, las ramas nuevas deben nacer desde `develop` y volver por PR a `develop`, y `main` solo debe recibir PRs desde `develop` cuando se quiera integrar una version estable.
 
+## Release Process Rules
+
+- Nunca mergear PRs vacios de `release-please`.
+- El estado `SNAPSHOT` solo debe quedar despues de una release real, no como ajuste manual aislado.
+- `.release-please-manifest.json` debe reflejar la ultima version estable conocida por `release-please`.
+- No avanzar versiones manualmente sin una release real que justifique ese cambio.
+- Antes de mergear a `main`, validar que `pom.xml`, manifest y tags no esten desalineados.
+- Si se detecta mismatch entre `pom.xml` y manifest, corregirlo antes de mergear cualquier PR de release.
+
 ## Historial de cambios
+
+- Fecha: 2026-04-24
+  - Cambio: Se corrigio el loop de `release-please` alineando `.release-please-manifest.json` con el estado actual del backend (`0.2.1`) y se documentaron reglas persistentes para evitar merges de PRs vacios de snapshot. Tambien se agrego `docs/release-checklist.md` como checklist operativo previo a merge/release.
+  - Archivos: `.release-please-manifest.json`, `AGENTS.md`, `docs/release-checklist.md`, `DOCUMENTATION.md`
+  - Decision: Tratar los PRs vacios de `release-please` como senal de desalineacion entre manifest/versionado, no como PRs validos de mantenimiento. El fix correcto es re-alinear manifest/version y revisar tags antes de seguir.
+  - Proximos pasos: Esperar CI del PR correctivo, mergear a `main` si queda verde y confirmar que `release-please` deje de abrir PRs vacios repetidos.
 
 - Fecha: 2026-04-23
   - Cambio: Se ejecuto la primera validacion fullstack real de deploy local con Docker Compose usando un entorno aislado por `--env-file .env.deploy.local`, sin depender del `.env` raiz. El stack `postgres + backend + frontend` construyo y levanto OK; se validaron `GET /api/health`, `GET /actuator/health`, `GET /api/health` via `nginx`, login admin bootstrap por `POST /api/auth/login`, `POST /api/contact` via proxy frontend y la presencia del volumen `backend_documents` montado en `/var/lib/portfolio/documents`. El unico bloqueo real encontrado fue un conflicto local del puerto `8080` por un backend `dev` ya corriendo fuera de Docker; al liberar ese proceso, el compose quedo operativo sin cambios funcionales adicionales.
