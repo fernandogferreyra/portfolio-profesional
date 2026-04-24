@@ -77,6 +77,12 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 ## Historial de cambios
 
 - Fecha: 2026-04-24
+  - Cambio: Se dejo preparada la integracion minima para deploy real del frontend en Vercel sin tocar Angular ni la logica de negocio. Se agrego `frontend/vercel.json` con rewrite de `/api/*` hacia el backend remoto para preservar el consumo relativo actual del frontend tambien en produccion cloud.
+  - Archivos: `frontend/vercel.json`, `DOCUMENTATION.md`
+  - Decision: Mantener el frontend consumiendo rutas relativas `/api` y resolver la integracion Vercel -> Render desde infraestructura/rewrite en vez de introducir una `API_BASE_URL` nueva en Angular.
+  - Proximos pasos: Reemplazar `<BACKEND_URL>` por el dominio real del backend en Render antes del deploy en Vercel y validar `GET /api/health`, login admin y `POST /api/contact` desde el frontend desplegado.
+
+- Fecha: 2026-04-24
   - Cambio: Se estabilizo el pipeline de `release-please` para backend despues del loop de PRs vacios de snapshot. Ademas del bootstrap minimo de releases/tags para `frontend-v0.0.0` y `backend-v0.2.1`, se ajusto `release-please-config.json` para backend con `skip-snapshot=true`, de modo que el flujo no vuelva a abrir PRs automaticos de snapshot sin valor operativo.
   - Archivos: `release-please-config.json`, `DOCUMENTATION.md`
   - Decision: Mantener `release-type: maven` pero desactivar snapshot PRs automaticos en backend. Para este repo, el valor operativo esta en PRs de release reales; los bumps de snapshot automaticos solo generaban ruido y loops vacios.
