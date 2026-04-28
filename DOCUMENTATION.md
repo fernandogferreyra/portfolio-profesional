@@ -42,6 +42,8 @@ En `Control Center` ya quedan operativos el `Budget Builder` real, el estimador 
 
 Ademas queda redisenado el dashboard privado como workspace de uso real y no como formulario rigido: `Budget Builder` y `Estimador tecnico` ahora recalculan en vivo contra backend, muestran resumen lateral sticky, breakdown visible, contexto por opcion, formula amigable del calculo y lectura inmediata del impacto al mover parametros. En esta iteracion no hizo falta tocar backend: los DTOs y endpoints actuales ya entregaban suficiente informacion para soportar la nueva UX.
 
+La etapa siguiente de frontend publico suma por fin el trigger faltante en `Skills`: la pagina mantiene la animacion actual por lanes como vista base, pero ahora agrega un boton `Ver todas / Skills` para alternar hacia una vista expandida con todas las habilidades agrupadas por categoria en cards compactas. Esta iteracion queda frontend-only y no toca backend ni contratos.
+
 Validacion actual cerrada:
 
 - `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`) sobre Windows con Node `20.19.0`
@@ -66,6 +68,12 @@ Quedan pendientes funcionales fuera de este corte: PDF, envio transaccional a te
 Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la rama integradora diaria, las ramas nuevas deben nacer desde `develop` y volver por PR a `develop`, y `main` solo debe recibir PRs desde `develop` cuando se quiera integrar una version estable.
 
 ## Historial de cambios
+
+- Fecha: 2026-04-28
+  - Cambio: Se implemento una etapa puntual sobre `Skills` en frontend. La vista publica conserva la animacion actual por lanes como entrada principal y ahora suma un toggle `Ver todas / Skills` para alternar hacia una grilla completa por categorias con cards compactas (`backend`, `frontend`, `data`, `tools`, `ai`, `soft`). La validacion tecnica cerro con typechecks frontend OK y `npm run build` OK con los warnings de budgets ya conocidos del repo.
+  - Archivos: `frontend/src/app/components/skills/skills.component.ts`, `frontend/src/app/components/skills/skills.component.html`, `frontend/src/app/components/skills/skills.component.scss`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Mantener la animacion actual como estado base porque ya aporta identidad visual, y resolver la exploracion completa con un toggle explicito y una grilla por categorias sin mezclar esta etapa con cambios backend.
+  - Proximos pasos: Revisar visualmente desktop/mobile, decidir si la grilla expandida necesita microajustes de densidad o jerarquia y luego abrir PR de esta rama hacia `develop`.
 
 - Fecha: 2026-04-23
   - Cambio: Se ejecuto la primera validacion fullstack real de deploy local con Docker Compose usando un entorno aislado por `--env-file .env.deploy.local`, sin depender del `.env` raiz. El stack `postgres + backend + frontend` construyo y levanto OK; se validaron `GET /api/health`, `GET /actuator/health`, `GET /api/health` via `nginx`, login admin bootstrap por `POST /api/auth/login`, `POST /api/contact` via proxy frontend y la presencia del volumen `backend_documents` montado en `/var/lib/portfolio/documents`. El unico bloqueo real encontrado fue un conflicto local del puerto `8080` por un backend `dev` ya corriendo fuera de Docker; al liberar ese proceso, el compose quedo operativo sin cambios funcionales adicionales.
