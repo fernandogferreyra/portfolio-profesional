@@ -292,6 +292,7 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data", hasSize(1)))
             .andExpect(jsonPath("$.data[0].name").value("Ana Cliente"))
+            .andExpect(jsonPath("$.data[0].messagePreview").value("Necesito una propuesta para una web interna."))
             .andExpect(jsonPath("$.data[0].status").value("NEW"));
 
         mockMvc.perform(patch("/api/admin/contact-messages/{id}/status", messageId)

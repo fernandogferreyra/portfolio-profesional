@@ -9,6 +9,7 @@ export interface ContactMessageSummary {
   name: string;
   email: string;
   subject: string;
+  messagePreview: string;
   status: ContactMessageStatus;
   language: string | null;
   context: string | null;

@@ -21,6 +21,7 @@ describe('ControlCenterMessagesComponent', () => {
       name: 'Ana Cliente',
       email: 'ana@example.com',
       subject: 'Consulta freelance',
+      messagePreview: 'Necesito una propuesta para una web interna.',
       status: 'NEW',
       language: 'es',
       context: 'contact-form',
@@ -32,6 +33,7 @@ describe('ControlCenterMessagesComponent', () => {
       name: 'John Team',
       email: 'john@example.com',
       subject: 'Partnership request',
+      messagePreview: 'We would like to discuss a possible collaboration for a new delivery platform.',
       status: 'REPLIED',
       language: 'en',
       context: 'projects',
@@ -106,6 +108,7 @@ describe('ControlCenterMessagesComponent', () => {
     expect(contactAdminService.getMessage).toHaveBeenCalledWith('1');
     expect(component.visibleMessages().length).toBe(2);
     expect(component.selectedMessageId()).toBe('1');
+    expect(component.visibleMessages()[0].messagePreview).toContain('propuesta');
     expect(component.filterOptions().find((filter) => filter.id === 'NEW')?.count).toBe(1);
   });
 

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class ContactMessageMapper {
 
     private static final String DEFAULT_SUBJECT = "Portfolio contact";
+    private static final int MESSAGE_PREVIEW_MAX_LENGTH = 140;
 
     public ContactMessage toEntity(ContactRequest request) {
         ContactMessage entity = new ContactMessage();
@@ -43,6 +44,7 @@ public class ContactMessageMapper {
             entity.getName(),
             entity.getEmail(),
             entity.getSubject(),
+            buildMessagePreview(entity.getMessage()),
             entity.getStatus(),
             entity.getLanguage(),
             entity.getContext(),
@@ -86,5 +88,18 @@ public class ContactMessageMapper {
         }
 
         return value.trim();
+    }
+
+    private String buildMessagePreview(String message) {
+        if (message == null || message.isBlank()) {
+            return "";
+        }
+
+        String normalized = message.trim().replaceAll("\\s+", " ");
+        if (normalized.length() <= MESSAGE_PREVIEW_MAX_LENGTH) {
+            return normalized;
+        }
+
+        return normalized.substring(0, MESSAGE_PREVIEW_MAX_LENGTH - 1).trim() + "…";
     }
 }

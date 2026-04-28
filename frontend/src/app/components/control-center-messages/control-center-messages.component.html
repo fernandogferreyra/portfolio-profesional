@@ -1,9 +1,9 @@
-<section class="messages-workspace">
-  <section class="messages-workspace__sidebar portfolio-subcard">
+<section class="messages-workspace" aria-label="Private inbox workspace">
+  <section class="messages-workspace__sidebar" aria-label="Inbox message list">
     <div class="messages-workspace__header">
       <div>
-        <p class="section-eyebrow">{{ content().listTitle }}</p>
-        <h3 class="portfolio-card-title">{{ content().listTitle }}</h3>
+        <p class="messages-workspace__panel-label">{{ content().listTitle }}</p>
+        <h3 class="messages-workspace__panel-title">{{ content().listTitle }}</h3>
         <p class="messages-workspace__lead">{{ content().inboxLead }}</p>
       </div>
 
@@ -12,7 +12,8 @@
       </button>
     </div>
 
-    <div class="messages-workspace__search">
+    <div class="messages-workspace__toolbar" aria-label="Inbox toolbar">
+      <div class="messages-workspace__search">
       <label class="messages-workspace__field messages-workspace__field--compact">
         <span>{{ content().listTitle }}</span>
         <input
@@ -23,6 +24,7 @@
           #searchInput
         />
       </label>
+      </div>
       <button
         type="button"
         class="messages-workspace__ghost motion-control"
@@ -33,7 +35,7 @@
       </button>
     </div>
 
-    <div class="messages-workspace__filters">
+    <div class="messages-workspace__filters" aria-label="Inbox filters">
       <button
         type="button"
         class="messages-workspace__filter motion-control"
@@ -48,40 +50,65 @@
 
     <p class="messages-workspace__state" *ngIf="loading()">{{ content().loading }}</p>
     <p class="messages-workspace__state messages-workspace__state--error" *ngIf="!loading() && listError()">{{ listError() }}</p>
-    <p class="messages-workspace__state" *ngIf="!loading() && !listError() && !visibleMessages().length">{{ content().empty }}</p>
+    <div class="messages-workspace__state-panel" *ngIf="!loading() && !listError() && !visibleMessages().length">
+      <strong>{{ content().inboxEmptyTitle }}</strong>
+      <p class="messages-workspace__state">{{ content().empty }}</p>
+    </div>
 
-    <div class="messages-workspace__list" *ngIf="!loading() && !listError() && visibleMessages().length">
+    <div class="messages-workspace__list" *ngIf="!loading() && !listError() && visibleMessages().length" role="list">
       <button
         type="button"
         class="messages-workspace__item motion-control"
         *ngFor="let message of visibleMessages(); trackBy: trackById"
         [class.is-active]="selectedMessageId() === message.id"
+        [class.is-unread]="message.status === 'NEW'"
         [attr.data-status]="message.status"
+        [attr.aria-pressed]="selectedMessageId() === message.id"
         (click)="selectMessage(message.id)"
       >
         <div class="messages-workspace__item-top">
-          <strong>{{ message.name }}</strong>
-          <span class="messages-workspace__badge" [attr.data-status]="message.status">{{ statusLabel(message.status) }}</span>
+          <div class="messages-workspace__sender-row">
+            <span class="messages-workspace__unread-dot" *ngIf="message.status === 'NEW'" aria-hidden="true"></span>
+            <strong class="messages-workspace__sender">{{ message.name }}</strong>
+          </div>
+          <span class="messages-workspace__timestamp">{{ message.createdAt | date:'short' }}</span>
         </div>
         <span class="messages-workspace__item-subject">{{ message.subject }}</span>
-        <small>{{ message.email }}</small>
+        <p class="messages-workspace__item-preview">{{ message.messagePreview }}</p>
         <div class="messages-workspace__item-meta">
-          <span>{{ message.createdAt | date:'short' }}</span>
-          <span *ngIf="message.context">{{ message.context }}</span>
+          <small>{{ message.email }}</small>
+          <small class="messages-workspace__meta-separator">•</small>
+          <small class="messages-workspace__status-text">{{ statusLabel(message.status) }}</small>
+          <small class="messages-workspace__meta-separator" *ngIf="message.context">•</small>
+          <small *ngIf="message.context">{{ message.context }}</small>
         </div>
       </button>
     </div>
   </section>
 
-  <section class="messages-workspace__detail portfolio-subcard" *ngIf="selectedMessage() as message; else noSelection">
+  <section class="messages-workspace__detail" *ngIf="selectedMessage() as message; else noSelection">
     <div class="messages-workspace__detail-head">
       <div>
-        <p class="section-eyebrow">{{ content().detailTitle }}</p>
-        <h3 class="portfolio-card-title">{{ message.subject }}</h3>
+        <p class="messages-workspace__panel-label">{{ content().detailTitle }}</p>
+        <div class="messages-workspace__from-block">
+          <strong>{{ message.name }}</strong>
+          <a class="messages-workspace__email-link" [href]="'mailto:' + message.email">{{ message.email }}</a>
+        </div>
+        <h3 class="messages-workspace__detail-subject">{{ message.subject }}</h3>
         <div class="messages-workspace__detail-summary">
-          <span class="messages-workspace__badge" [attr.data-status]="message.status">{{ statusLabel(message.status) }}</span>
+          <small class="messages-workspace__status-text">{{ statusLabel(message.status) }}</small>
+          <small class="messages-workspace__meta-separator">•</small>
           <small>{{ content().received }}: {{ message.createdAt | date:'short' }}</small>
+          <small class="messages-workspace__meta-separator">•</small>
           <small>{{ content().updated }}: {{ message.updatedAt | date:'short' }}</small>
+          <ng-container *ngIf="message.context">
+            <small class="messages-workspace__meta-separator">•</small>
+            <small>{{ content().context }}: {{ message.context }}</small>
+          </ng-container>
+          <ng-container *ngIf="message.source">
+            <small class="messages-workspace__meta-separator">•</small>
+            <small>{{ content().source }}: {{ message.source }}</small>
+          </ng-container>
         </div>
       </div>
 
@@ -95,44 +122,24 @@
       </div>
     </div>
 
-    <div class="messages-workspace__meta">
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().from }}</span>
-        <strong>{{ message.name }}</strong>
-        <small>{{ message.email }}</small>
-      </article>
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().received }}</span>
-        <strong>{{ message.createdAt | date:'short' }}</strong>
-        <small>{{ message.submittedAt ? (message.submittedAt | date:'short') : '-' }}</small>
-      </article>
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().context }}</span>
-        <strong>{{ message.context || '-' }}</strong>
-        <small>{{ content().language }}: {{ message.language || '-' }}</small>
-      </article>
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().source }}</span>
-        <strong>{{ message.source || '-' }}</strong>
-        <small>{{ content().userAgent }}: {{ message.userAgent || '-' }}</small>
-      </article>
-    </div>
-
-    <article class="messages-workspace__body">
+    <div class="messages-workspace__conversation">
+    <article class="messages-workspace__body" aria-label="Message body">
       <p>{{ message.message }}</p>
     </article>
 
-    <article class="messages-workspace__reply-preview" *ngIf="message.replyMessage">
-      <span class="section-eyebrow">{{ content().replied }}</span>
+    <article class="messages-workspace__reply-preview" *ngIf="message.replyMessage" aria-label="Existing reply">
+      <span class="messages-workspace__thread-label">{{ content().replied }}</span>
       <strong>{{ message.repliedAt | date:'short' }}</strong>
       <small>{{ content().repliedBy }}: {{ message.repliedBy || '-' }}</small>
       <p>{{ message.replyMessage }}</p>
     </article>
+    </div>
 
     <form class="messages-workspace__reply-form" [formGroup]="replyForm" (ngSubmit)="submitReply()">
-      <h4>{{ content().replyTitle }}</h4>
-      <p class="messages-workspace__hint">{{ content().replyHint }}</p>
-
+      <div class="messages-workspace__reply-head">
+        <span class="messages-workspace__thread-label">{{ content().replyTitle }}</span>
+        <a class="messages-workspace__ghost motion-control" [href]="'mailto:' + message.email">{{ content().mailto }}</a>
+      </div>
       <label class="messages-workspace__field">
         <span>{{ content().replySubject }}</span>
         <input type="text" formControlName="subject" />
@@ -153,7 +160,6 @@
       <p class="messages-workspace__feedback" *ngIf="actionFeedback()">{{ actionFeedback() }}</p>
 
       <div class="messages-workspace__reply-actions">
-        <a class="messages-workspace__ghost motion-control" [href]="'mailto:' + message.email">{{ content().from }}</a>
         <button type="submit" class="messages-workspace__primary motion-control" [disabled]="saving()">
           {{ content().replyCta }}
         </button>
@@ -162,7 +168,8 @@
   </section>
 
   <ng-template #noSelection>
-    <section class="messages-workspace__detail portfolio-subcard messages-workspace__detail--empty">
+    <section class="messages-workspace__detail messages-workspace__detail--empty">
+      <strong>{{ content().listTitle }}</strong>
       <p>{{ content().noSelection }}</p>
     </section>
   </ng-template>

@@ -9,6 +9,7 @@ public record ContactMessageAdminSummaryResponse(
     String name,
     String email,
     String subject,
+    String messagePreview,
     ContactMessageStatus status,
     String language,
     String context,
