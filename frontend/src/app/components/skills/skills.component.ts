@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 
 import { PORTFOLIO_SKILLS, SKILL_CATEGORIES, SKILL_ICONS, SKILL_LEVELS } from '../../data/portfolio.data';
 import {
@@ -84,6 +84,7 @@ export class SkillsComponent {
 
   readonly currentLanguage = this.languageService.language;
   readonly laneCopies = [0, 1] as const;
+  readonly showAllSkills = signal(false);
 
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
@@ -94,6 +95,9 @@ export class SkillsComponent {
             'Tecnologías, herramientas y capacidades de trabajo organizadas en un flujo visual continuo, claro y profesional.',
           focusTitle: 'Enfoque técnico',
           lanesTitle: 'Stack por áreas',
+          toggleShowAll: 'Ver todas',
+          toggleShowAnimated: 'Skills',
+          expandedTitle: 'Todas las skills por categoría',
           lanesDescription:
             'Cada fila reúne tecnologías o habilidades relacionadas dentro del mismo lenguaje visual, con movimiento suave y lectura rápida.',
         }
@@ -104,6 +108,9 @@ export class SkillsComponent {
             'Technologies, tools, and working capabilities organized in a continuous, clear, and professional visual flow.',
           focusTitle: 'Technical focus',
           lanesTitle: 'Stack by area',
+          toggleShowAll: 'View all',
+          toggleShowAnimated: 'Skills',
+          expandedTitle: 'All skills by category',
           lanesDescription:
             'Each lane groups related technologies or capabilities within the same visual language, with subtle motion and quick scanning.',
         },
@@ -167,6 +174,14 @@ export class SkillsComponent {
 
   trackByFocusId(_index: number, item: FocusAreaView): SkillCategoryId {
     return item.id;
+  }
+
+  trackByCategoryId(_index: number, item: CategoryView): SkillCategoryId {
+    return item.id;
+  }
+
+  toggleSkillPresentation(): void {
+    this.showAllSkills.update((current) => !current);
   }
 
   private localizeLevel(level: SkillLevelId, language: 'es' | 'en'): string {
