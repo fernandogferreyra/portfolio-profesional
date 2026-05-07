@@ -2,13 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-export type ContactMessageStatus = 'NEW' | 'READ' | 'REPLIED' | 'ARCHIVED';
+export type ContactMessageStatus = 'NEW' | 'READ' | 'REPLIED' | 'ARCHIVED' | 'SPAM' | 'TRASH';
 
 export interface ContactMessageSummary {
   id: string;
   name: string;
   email: string;
   subject: string;
+  messagePreview: string;
   status: ContactMessageStatus;
   language: string | null;
   context: string | null;
@@ -56,5 +57,9 @@ export class ContactAdminService {
       message,
       subject: subject?.trim() || undefined,
     });
+  }
+
+  deleteMessage(id: string): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/admin/contact-messages/${id}`);
   }
 }
