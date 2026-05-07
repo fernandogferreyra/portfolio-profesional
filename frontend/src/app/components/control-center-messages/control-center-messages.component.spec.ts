@@ -152,7 +152,7 @@ describe('ControlCenterMessagesComponent', () => {
     await component.markSpam();
 
     expect(contactAdminService.updateStatus).toHaveBeenCalledWith('1', 'SPAM');
-    expect(component.selectedMessage()?.status).toBe('SPAM');
+    expect(component.messages().find((message) => message.id === '1')?.status).toBe('SPAM');
   });
 
   it('moves a selected message to trash when delete is used outside trash', async () => {
