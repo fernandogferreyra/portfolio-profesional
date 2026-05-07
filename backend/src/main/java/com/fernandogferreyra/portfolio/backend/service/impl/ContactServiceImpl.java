@@ -96,6 +96,13 @@ public class ContactServiceImpl implements ContactService {
         return contactMessageMapper.toAdminDetail(contactMessageRepository.save(message));
     }
 
+    @Override
+    @Transactional
+    public void deleteMessage(UUID id) {
+        ContactMessage message = findMessage(id);
+        contactMessageRepository.delete(message);
+    }
+
     private ContactMessage findMessage(UUID id) {
         return contactMessageRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Contact message not found"));

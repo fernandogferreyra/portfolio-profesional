@@ -2,6 +2,7 @@ package com.fernandogferreyra.portfolio.backend;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -300,6 +301,28 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                     {
+                      "status": "SPAM"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("SPAM"));
+
+        mockMvc.perform(patch("/api/admin/contact-messages/{id}/status", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "status": "TRASH"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.status").value("TRASH"));
+
+        mockMvc.perform(patch("/api/admin/contact-messages/{id}/status", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
                       "status": "READ"
                     }
                     """))
@@ -319,6 +342,13 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.status").value("REPLIED"))
             .andExpect(jsonPath("$.data.replyMessage").value("Gracias por escribir. Te respondo hoy con mas detalle."))
             .andExpect(jsonPath("$.data.repliedBy").value("ferchuz"));
+
+        mockMvc.perform(delete("/api/admin/contact-messages/{id}", messageId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+
+        org.junit.jupiter.api.Assertions.assertTrue(contactMessageRepository.findById(messageId).isEmpty());
     }
 
     private String loginAsAdmin() throws Exception {

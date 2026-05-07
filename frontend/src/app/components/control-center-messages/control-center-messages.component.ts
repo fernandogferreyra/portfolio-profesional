@@ -12,6 +12,7 @@ import {
 } from '../../services/contact-admin.service';
 
 type MessageFilterId = 'ALL' | ContactMessageStatus;
+const INBOX_STATUSES: ContactMessageStatus[] = ['NEW', 'READ', 'REPLIED'];
 
 @Component({
   selector: 'app-control-center-messages',
@@ -34,6 +35,7 @@ export class ControlCenterMessagesComponent {
   readonly messages = signal<ContactMessageSummary[]>([]);
   readonly selectedMessageId = signal<string | null>(null);
   readonly selectedMessage = signal<ContactMessageDetail | null>(null);
+  readonly replyOpen = signal(false);
   readonly replyForm = this.formBuilder.nonNullable.group({
     subject: ['', [Validators.maxLength(160)]],
     message: ['', [Validators.required, Validators.maxLength(4000)]],
@@ -43,11 +45,13 @@ export class ControlCenterMessagesComponent {
     this.currentLanguage() === 'es'
       ? {
           filters: [
-            { id: 'ALL' as const, label: 'Todo' },
+            { id: 'ALL' as const, label: 'Bandeja de entrada' },
             { id: 'NEW' as const, label: 'Nuevos' },
             { id: 'READ' as const, label: 'Leidos' },
             { id: 'REPLIED' as const, label: 'Respondidos' },
             { id: 'ARCHIVED' as const, label: 'Archivados' },
+            { id: 'SPAM' as const, label: 'No deseado' },
+            { id: 'TRASH' as const, label: 'Papelera' },
           ],
           loading: 'Cargando mensajes...',
           empty: 'Todavia no hay mensajes para este filtro.',
@@ -61,9 +65,16 @@ export class ControlCenterMessagesComponent {
           replyHint: 'La respuesta se envia al email del remitente y queda registrada en la bandeja.',
           replyMessageRequired: 'Escribe una respuesta antes de enviar.',
           replyCta: 'Enviar respuesta',
+          cancelReply: 'Cancelar',
           markRead: 'Marcar como leido',
           archive: 'Archivar',
+          markSpam: 'No deseado',
+          moveTrash: 'Papelera',
+          deleteMessage: 'Eliminar',
           refresh: 'Actualizar',
+          foldersTitle: 'Carpetas',
+          commandBar: 'Acciones de correo',
+          selectedFolder: 'Carpeta activa',
           from: 'De',
           email: 'Email',
           subject: 'Asunto',
@@ -82,15 +93,18 @@ export class ControlCenterMessagesComponent {
           defaultReplySubject: 'Gracias por tu mensaje',
           replySent: 'Respuesta enviada correctamente.',
           statusUpdated: 'Estado actualizado.',
+          deleted: 'Mensaje eliminado.',
           genericError: 'No se pudo completar la accion. Intenta nuevamente.',
         }
       : {
           filters: [
-            { id: 'ALL' as const, label: 'All' },
+            { id: 'ALL' as const, label: 'Inbox' },
             { id: 'NEW' as const, label: 'New' },
             { id: 'READ' as const, label: 'Read' },
             { id: 'REPLIED' as const, label: 'Replied' },
             { id: 'ARCHIVED' as const, label: 'Archived' },
+            { id: 'SPAM' as const, label: 'Junk' },
+            { id: 'TRASH' as const, label: 'Trash' },
           ],
           loading: 'Loading messages...',
           empty: 'There are no messages for this filter yet.',
@@ -104,9 +118,16 @@ export class ControlCenterMessagesComponent {
           replyHint: 'The reply is sent to the sender email and also stored in the inbox.',
           replyMessageRequired: 'Write a reply before sending it.',
           replyCta: 'Send reply',
+          cancelReply: 'Cancel',
           markRead: 'Mark as read',
           archive: 'Archive',
+          markSpam: 'Junk',
+          moveTrash: 'Trash',
+          deleteMessage: 'Delete',
           refresh: 'Refresh',
+          foldersTitle: 'Folders',
+          commandBar: 'Mail actions',
+          selectedFolder: 'Active folder',
           from: 'From',
           email: 'Email',
           subject: 'Subject',
@@ -125,6 +146,7 @@ export class ControlCenterMessagesComponent {
           defaultReplySubject: 'Thanks for your message',
           replySent: 'Reply sent successfully.',
           statusUpdated: 'Status updated.',
+          deleted: 'Message deleted.',
           genericError: 'The action could not be completed. Please try again.',
         },
   );
@@ -142,6 +164,10 @@ export class ControlCenterMessagesComponent {
     const query = this.searchTerm().trim().toLowerCase();
 
     return this.messages().filter((message) => {
+      if (filter === 'ALL' && !INBOX_STATUSES.includes(message.status)) {
+        return false;
+      }
+
       if (filter !== 'ALL' && message.status !== filter) {
         return false;
       }
@@ -150,7 +176,13 @@ export class ControlCenterMessagesComponent {
         return true;
       }
 
-      const searchable = [message.name, message.email, message.subject, message.context ?? '']
+      const searchable = [
+        message.name,
+        message.email,
+        message.subject,
+        message.messagePreview,
+        message.context ?? '',
+      ]
         .join(' ')
         .toLowerCase();
 
@@ -165,9 +197,15 @@ export class ControlCenterMessagesComponent {
     return filters.map((filter) => ({
       ...filter,
       count:
-        filter.id === 'ALL' ? messages.length : messages.filter((message) => message.status === filter.id).length,
+        filter.id === 'ALL'
+          ? messages.filter((message) => INBOX_STATUSES.includes(message.status)).length
+          : messages.filter((message) => message.status === filter.id).length,
     }));
   });
+
+  readonly activeFilterLabel = computed(
+    () => this.filterOptions().find((filter) => filter.id === this.selectedFilter())?.label ?? this.content().listTitle,
+  );
 
   async selectFilter(filter: MessageFilterId): Promise<void> {
     this.selectedFilter.set(filter);
@@ -178,8 +216,10 @@ export class ControlCenterMessagesComponent {
     await this.loadMessages(false);
   }
 
-  async selectMessage(messageId: string): Promise<void> {
-    this.actionFeedback.set(null);
+  async selectMessage(messageId: string, clearFeedback = true): Promise<void> {
+    if (clearFeedback) {
+      this.actionFeedback.set(null);
+    }
     this.selectedMessageId.set(messageId);
 
     try {
@@ -193,9 +233,11 @@ export class ControlCenterMessagesComponent {
         subject: defaultSubject,
         message: '',
       });
+      this.replyOpen.set(false);
       this.replyForm.markAsPristine();
       this.replyForm.markAsUntouched();
     } catch (error) {
+      this.selectedMessage.set(null);
       this.listError.set(this.resolveErrorMessage(error));
     }
   }
@@ -222,6 +264,43 @@ export class ControlCenterMessagesComponent {
     await this.applyStatus('ARCHIVED');
   }
 
+  async markSpam(): Promise<void> {
+    await this.applyStatus('SPAM');
+  }
+
+  async moveTrash(): Promise<void> {
+    await this.applyStatus('TRASH');
+  }
+
+  async deleteSelectedMessage(): Promise<void> {
+    const selected = this.selectedMessage();
+    if (!selected || this.saving()) {
+      return;
+    }
+
+    if (selected.status !== 'TRASH') {
+      await this.applyStatus('TRASH');
+      return;
+    }
+
+    this.saving.set(true);
+    this.actionFeedback.set(null);
+
+    try {
+      await firstValueFrom(this.contactAdminService.deleteMessage(selected.id));
+      this.messages.update((messages) => messages.filter((message) => message.id !== selected.id));
+      this.selectedMessageId.set(null);
+      this.selectedMessage.set(null);
+      this.replyOpen.set(false);
+      this.actionFeedback.set(this.content().deleted);
+      await this.syncSelectionWithVisibleMessages(false);
+    } catch (error) {
+      this.actionFeedback.set(this.resolveErrorMessage(error));
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   async submitReply(): Promise<void> {
     const selected = this.selectedMessage();
     if (!selected || this.saving()) {
@@ -229,6 +308,7 @@ export class ControlCenterMessagesComponent {
     }
 
     if (this.replyForm.invalid) {
+      this.replyOpen.set(true);
       this.replyForm.markAllAsTouched();
       return;
     }
@@ -248,6 +328,7 @@ export class ControlCenterMessagesComponent {
       this.replyForm.patchValue({ message: '' });
       this.replyForm.markAsPristine();
       this.replyForm.markAsUntouched();
+      this.replyOpen.set(false);
       this.actionFeedback.set(this.content().replySent);
       await this.loadMessages(false);
     } catch (error) {
@@ -263,9 +344,29 @@ export class ControlCenterMessagesComponent {
 
   statusLabel(status: ContactMessageStatus): string {
     const labels: Record<ContactMessageStatus, string> = this.currentLanguage() === 'es'
-      ? { NEW: 'Nuevo', READ: 'Leido', REPLIED: 'Respondido', ARCHIVED: 'Archivado' }
-      : { NEW: 'New', READ: 'Read', REPLIED: 'Replied', ARCHIVED: 'Archived' };
+      ? { NEW: 'Nuevo', READ: 'Leido', REPLIED: 'Respondido', ARCHIVED: 'Archivado', SPAM: 'No deseado', TRASH: 'Papelera' }
+      : { NEW: 'New', READ: 'Read', REPLIED: 'Replied', ARCHIVED: 'Archived', SPAM: 'Junk', TRASH: 'Trash' };
     return labels[status];
+  }
+
+  senderInitials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+      return '?';
+    }
+
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase()).join('');
+  }
+
+  openReply(): void {
+    this.replyOpen.set(true);
+  }
+
+  cancelReply(): void {
+    this.replyOpen.set(false);
+    this.replyForm.patchValue({ message: '' });
+    this.replyForm.markAsPristine();
+    this.replyForm.markAsUntouched();
   }
 
   private async loadMessages(resetSelection: boolean): Promise<void> {
@@ -300,6 +401,7 @@ export class ControlCenterMessagesComponent {
         this.patchSummary(response.data);
       }
       this.actionFeedback.set(this.content().statusUpdated);
+      await this.syncSelectionWithVisibleMessages(false);
       await this.loadMessages(false);
     } catch (error) {
       this.actionFeedback.set(this.resolveErrorMessage(error));
@@ -339,7 +441,7 @@ export class ControlCenterMessagesComponent {
       return;
     }
 
-    await this.selectMessage(nextId);
+    await this.selectMessage(nextId, false);
   }
 
   private resolveErrorMessage(error: unknown): string {

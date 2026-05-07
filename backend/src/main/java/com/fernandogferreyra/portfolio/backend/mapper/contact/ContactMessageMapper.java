@@ -100,6 +100,6 @@ public class ContactMessageMapper {
             return normalized;
         }
 
-        return normalized.substring(0, MESSAGE_PREVIEW_MAX_LENGTH - 1).trim() + "…";
+        return normalized.substring(0, MESSAGE_PREVIEW_MAX_LENGTH - 3).trim() + "...";
     }
 }

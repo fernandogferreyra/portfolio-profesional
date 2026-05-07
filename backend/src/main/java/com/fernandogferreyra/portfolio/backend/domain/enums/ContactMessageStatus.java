@@ -4,5 +4,7 @@ public enum ContactMessageStatus {
     NEW,
     READ,
     REPLIED,
-    ARCHIVED
+    ARCHIVED,
+    SPAM,
+    TRASH
 }

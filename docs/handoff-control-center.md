@@ -11,6 +11,7 @@ Estado al 2026-04-18.
 - CI vigente para frontend + backend.
 - Base de datos: PostgreSQL en local dev y en CI/test. Flyway activo.
 - Si una base local vieja rechaza `SECTION_VIEW` u otros eventos nuevos en `event_logs`, reiniciar con la migracion `V6__align_event_logs_event_type_check.sql` aplicada por Flyway.
+- Si una base local vieja rechaza `SPAM` o `TRASH` en `contact_messages.status`, reiniciar con la migracion `V10__align_contact_messages_status_check.sql` aplicada por Flyway.
 - `develop` ya existe y fue publicada como rama integradora diaria.
 - La base funcional mas completa hoy es la linea de `feature/mensajeria`, ya absorbida como base de `develop`.
 - La limpieza Git para destrackear artefactos generados de `frontend/` y el `angular.json` legacy de la raiz se integra sobre `develop` via PR dedicado.
@@ -22,7 +23,7 @@ Estado al 2026-04-18.
 - `Budget Builder` ya absorbio buena parte del cotizador historico: reglas comerciales, mantenimiento, stacks oficiales, presets rapidos, planilla por areas y costos por modulo oficiales desde backend.
 - El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
 - `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
-- En `feature/messages-inbox-ux` la inbox admin ya empezo a ganar UX operativa: filtros con conteos, busqueda local, items mas legibles y detalle/reply mas claros sin cambiar el contrato backend.
+- En `feature/messaging-inbox-client` la inbox admin ya quedo mas parecida a una casilla de correo tipo Outlook: rail lateral, carpetas/filtros, command bar, lista densa, panel de lectura, busqueda local tambien por preview, `messagePreview` oficial desde backend, metadata visible en detalle, reply desplegable, estado real `SPAM` para `No deseado`, estado real `TRASH` para `Papelera` y eliminacion definitiva via `DELETE`, sin abrir paginacion ni busqueda backend.
 - `Actualizar` ya dejo de ser placeholder: existe una base editable minima para `projects` desde `Control Center`, con `GET/PATCH /api/admin/projects` y editor operativo de orden/copy/visibilidad.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
@@ -67,6 +68,8 @@ Estado al 2026-04-18.
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
 - Mantener la nueva vista expandida de `Skills` como mejora frontend-only nacida desde `develop`, sin reintroducir logica en backend para esta etapa.
+- Cerrar `feature/messaging-inbox-client` con validacion frontend/backend relevante y PR hacia `develop` antes de abrir polish visual pre-deploy.
+- En deploy productivo, revalidar entrega real de email de `Mensajeria` con provider activo, secretos, `PORTFOLIO_ALLOWED_ORIGINS`, `PORTFOLIO_CONTACT_FROM` y dominio/remitente verificado.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
 - Despues decidir si la siguiente rama funcional conviene que sea asociacion de documentos a `projects`, descarga controlada de documentos o base de notas/uploads internos sobre esta foundation.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
