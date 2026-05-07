@@ -12,6 +12,7 @@
       "component": "backend",
       "package-name": "portfolio-backend",
       "release-type": "maven",
+      "skip-snapshot": true,
       "changelog-path": "backend/CHANGELOG.md"
     }
   }
