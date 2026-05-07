@@ -25,11 +25,17 @@
 
   <section class="surface-card skills-shell" appRevealOnScroll [revealDelay]="80">
     <div class="skills-lanes__heading">
-      <h2 class="portfolio-section-title">{{ ui().lanesTitle }}</h2>
-      <p>{{ ui().lanesDescription }}</p>
+      <div>
+        <h2 class="portfolio-section-title">{{ showAllSkills() ? ui().expandedTitle : ui().lanesTitle }}</h2>
+        <p>{{ ui().lanesDescription }}</p>
+      </div>
+
+      <button type="button" class="skills-toggle motion-control" (click)="toggleSkillPresentation()">
+        {{ showAllSkills() ? ui().toggleShowAnimated : ui().toggleShowAll }}
+      </button>
     </div>
 
-    <section class="skills-lanes">
+    <section class="skills-lanes" *ngIf="!showAllSkills(); else allSkillsView">
       <article
         class="skills-lane motion-swap"
         *ngFor="let lane of showcaseLanes(); trackBy: trackByLaneId; let laneIndex = index"
@@ -103,5 +109,67 @@
         </div>
       </article>
     </section>
+
+    <ng-template #allSkillsView>
+      <section class="skills-groups" aria-label="All skills by category">
+        <article class="skills-group motion-panel portfolio-subcard" *ngFor="let category of categories(); trackBy: trackByCategoryId">
+          <div class="skills-group__header">
+            <span class="skills-group__label">{{ category.label }}</span>
+            <p>{{ category.description }}</p>
+          </div>
+
+          <div class="skills-group__grid">
+            <article
+              class="skill-card skill-card--compact motion-panel portfolio-subcard"
+              *ngFor="let skill of category.skills; trackBy: trackBySkillId"
+              [class.skill-card--no-level]="!skill.showLevel"
+              [style.--skill-accent]="skill.icon.accent"
+              [style.--skill-surface]="skill.icon.surface"
+              [style.--skill-border]="skill.icon.border"
+            >
+              <div class="skill-card__top">
+                <span class="skill-card__icon" aria-hidden="true">
+                  <svg
+                    [attr.viewBox]="skill.icon.viewBox"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path *ngFor="let path of skill.icon.paths" [attr.d]="path"></path>
+                  </svg>
+                </span>
+
+                <span
+                  *ngIf="skill.showLevel"
+                  class="skill-level"
+                  [class.skill-level--basic]="skill.level === 'basic'"
+                  [class.skill-level--intermediate]="skill.level === 'intermediate'"
+                  [class.skill-level--advanced]="skill.level === 'advanced'"
+                  [attr.aria-label]="skill.levelLabel"
+                >
+                  <span class="skill-level__bars" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                  <span class="skill-level__label">{{ skill.levelLabel }}</span>
+                </span>
+              </div>
+
+              <div class="skill-card__copy">
+                <h3 class="portfolio-card-title">{{ skill.name }}</h3>
+                <p>{{ skill.description }}</p>
+              </div>
+
+              <div class="skill-card__tags" *ngIf="skill.tags.length">
+                <span class="skill-card__tag motion-chip" *ngFor="let tag of skill.tags">{{ tag }}</span>
+              </div>
+            </article>
+          </div>
+        </article>
+      </section>
+    </ng-template>
   </section>
 </section>

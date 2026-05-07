@@ -27,6 +27,7 @@ Estado al 2026-04-18.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
+- `Skills` ya agrega un toggle visible `Ver todas / Skills` para alternar entre la animacion actual por lanes y una vista expandida con cards compactas agrupadas por categoria.
 - `Site Activity` ya es backend-first.
 - El portfolio publico sigue operativo y `ProjectsComponent` ya puede consumir `GET /api/projects`.
 
@@ -65,6 +66,7 @@ Estado al 2026-04-18.
 
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
+- Mantener la nueva vista expandida de `Skills` como mejora frontend-only nacida desde `develop`, sin reintroducir logica en backend para esta etapa.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
 - Despues decidir si la siguiente rama funcional conviene que sea asociacion de documentos a `projects`, descarga controlada de documentos o base de notas/uploads internos sobre esta foundation.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
