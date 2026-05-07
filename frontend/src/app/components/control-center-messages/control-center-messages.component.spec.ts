@@ -148,6 +148,13 @@ describe('ControlCenterMessagesComponent', () => {
     contactAdminService.updateStatus.and.returnValue(
       of({ success: true, message: 'ok', data: { ...messageDetail, status: 'SPAM' } }),
     );
+    contactAdminService.listMessages.and.returnValue(
+      of({
+        success: true,
+        message: 'ok',
+        data: [{ ...messages[0], status: 'SPAM' }, messages[1]],
+      }),
+    );
 
     await component.markSpam();
 
