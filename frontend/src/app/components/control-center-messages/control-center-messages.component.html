@@ -1,20 +1,83 @@
-<section class="messages-workspace">
-  <section class="messages-workspace__sidebar portfolio-subcard">
-    <div class="messages-workspace__header">
-      <div>
-        <p class="section-eyebrow">{{ content().listTitle }}</p>
-        <h3 class="portfolio-card-title">{{ content().listTitle }}</h3>
-        <p class="messages-workspace__lead">{{ content().inboxLead }}</p>
-      </div>
+<section class="mail-shell" [attr.aria-label]="content().listTitle">
+  <aside class="mail-rail" [attr.aria-label]="content().foldersTitle">
+    <div class="mail-rail__brand">M</div>
 
-      <button type="button" class="messages-workspace__ghost motion-control" (click)="refresh()">
-        {{ content().refresh }}
-      </button>
+    <button type="button" class="mail-rail__icon is-active" [attr.aria-label]="content().listTitle">
+      <span aria-hidden="true">@</span>
+    </button>
+  </aside>
+
+  <aside class="mail-folders">
+    <div class="mail-folders__head">
+      <p>{{ content().foldersTitle }}</p>
+      <strong>{{ content().listTitle }}</strong>
     </div>
 
-    <div class="messages-workspace__search">
-      <label class="messages-workspace__field messages-workspace__field--compact">
-        <span>{{ content().listTitle }}</span>
+    <nav class="mail-folders__list" [attr.aria-label]="content().foldersTitle">
+      <button
+        type="button"
+        class="mail-folder motion-control"
+        *ngFor="let filter of filterOptions()"
+        [class.is-active]="selectedFilter() === filter.id"
+        (click)="selectFilter(filter.id)"
+      >
+        <span class="mail-folder__icon" aria-hidden="true"></span>
+        <span>{{ filter.label }}</span>
+        <strong>{{ filter.count }}</strong>
+      </button>
+    </nav>
+  </aside>
+
+  <section class="mail-board">
+    <header class="mail-commandbar" [attr.aria-label]="content().commandBar">
+      <div class="mail-commandbar__actions">
+        <button type="button" class="mail-command motion-control" (click)="refresh()">
+          {{ content().refresh }}
+        </button>
+        <button
+          type="button"
+          class="mail-command motion-control"
+          (click)="markRead()"
+          [disabled]="saving() || !selectedMessage() || selectedMessage()?.status === 'READ' || selectedMessage()?.status === 'REPLIED'"
+        >
+          {{ content().markRead }}
+        </button>
+        <button
+          type="button"
+          class="mail-command motion-control"
+          (click)="archive()"
+          [disabled]="saving() || !selectedMessage() || selectedMessage()?.status === 'ARCHIVED'"
+        >
+          {{ content().archive }}
+        </button>
+        <button
+          type="button"
+          class="mail-command motion-control"
+          (click)="markSpam()"
+          [disabled]="saving() || !selectedMessage() || selectedMessage()?.status === 'SPAM'"
+        >
+          {{ content().markSpam }}
+        </button>
+        <button
+          type="button"
+          class="mail-command motion-control"
+          (click)="deleteSelectedMessage()"
+          [disabled]="saving() || !selectedMessage()"
+        >
+          {{ content().deleteMessage }}
+        </button>
+        <button
+          type="button"
+          class="mail-command mail-command--primary motion-control"
+          (click)="openReply()"
+          [disabled]="saving() || !selectedMessage()"
+        >
+          {{ content().replyTitle }}
+        </button>
+      </div>
+
+      <label class="mail-search">
+        <span>{{ content().searchPlaceholder }}</span>
         <input
           type="search"
           [value]="searchTerm()"
@@ -23,146 +86,145 @@
           #searchInput
         />
       </label>
-      <button
-        type="button"
-        class="messages-workspace__ghost motion-control"
-        *ngIf="searchTerm()"
-        (click)="clearSearch()"
-      >
+
+      <button type="button" class="mail-command motion-control" *ngIf="searchTerm()" (click)="clearSearch()">
         {{ content().clearSearch }}
       </button>
-    </div>
+    </header>
 
-    <div class="messages-workspace__filters">
-      <button
-        type="button"
-        class="messages-workspace__filter motion-control"
-        *ngFor="let filter of filterOptions()"
-        [class.is-active]="selectedFilter() === filter.id"
-        (click)="selectFilter(filter.id)"
-      >
-        <span>{{ filter.label }}</span>
-        <strong>{{ filter.count }}</strong>
-      </button>
-    </div>
-
-    <p class="messages-workspace__state" *ngIf="loading()">{{ content().loading }}</p>
-    <p class="messages-workspace__state messages-workspace__state--error" *ngIf="!loading() && listError()">{{ listError() }}</p>
-    <p class="messages-workspace__state" *ngIf="!loading() && !listError() && !visibleMessages().length">{{ content().empty }}</p>
-
-    <div class="messages-workspace__list" *ngIf="!loading() && !listError() && visibleMessages().length">
-      <button
-        type="button"
-        class="messages-workspace__item motion-control"
-        *ngFor="let message of visibleMessages(); trackBy: trackById"
-        [class.is-active]="selectedMessageId() === message.id"
-        [attr.data-status]="message.status"
-        (click)="selectMessage(message.id)"
-      >
-        <div class="messages-workspace__item-top">
-          <strong>{{ message.name }}</strong>
-          <span class="messages-workspace__badge" [attr.data-status]="message.status">{{ statusLabel(message.status) }}</span>
+    <div class="mail-grid">
+      <section class="mail-list-panel">
+        <div class="mail-list-panel__head">
+          <div>
+            <p>{{ content().selectedFolder }}</p>
+            <h3>{{ activeFilterLabel() }}</h3>
+          </div>
+          <span>{{ visibleMessages().length }}</span>
         </div>
-        <span class="messages-workspace__item-subject">{{ message.subject }}</span>
-        <small>{{ message.email }}</small>
-        <div class="messages-workspace__item-meta">
-          <span>{{ message.createdAt | date:'short' }}</span>
-          <span *ngIf="message.context">{{ message.context }}</span>
+
+        <p class="mail-state" *ngIf="loading()">{{ content().loading }}</p>
+        <p class="mail-state mail-state--error" *ngIf="!loading() && listError()">{{ listError() }}</p>
+
+        <div class="mail-empty" *ngIf="!loading() && !listError() && !visibleMessages().length">
+          <strong>{{ content().inboxEmptyTitle }}</strong>
+          <p>{{ content().empty }}</p>
         </div>
-      </button>
-    </div>
-  </section>
 
-  <section class="messages-workspace__detail portfolio-subcard" *ngIf="selectedMessage() as message; else noSelection">
-    <div class="messages-workspace__detail-head">
-      <div>
-        <p class="section-eyebrow">{{ content().detailTitle }}</p>
-        <h3 class="portfolio-card-title">{{ message.subject }}</h3>
-        <div class="messages-workspace__detail-summary">
-          <span class="messages-workspace__badge" [attr.data-status]="message.status">{{ statusLabel(message.status) }}</span>
-          <small>{{ content().received }}: {{ message.createdAt | date:'short' }}</small>
-          <small>{{ content().updated }}: {{ message.updatedAt | date:'short' }}</small>
+        <div class="mail-list" *ngIf="!loading() && !listError() && visibleMessages().length">
+          <button
+            type="button"
+            class="mail-row motion-control"
+            *ngFor="let message of visibleMessages(); trackBy: trackById"
+            [class.is-active]="selectedMessageId() === message.id"
+            [class.is-unread]="message.status === 'NEW'"
+            [attr.data-status]="message.status"
+            [attr.aria-pressed]="selectedMessageId() === message.id"
+            (click)="selectMessage(message.id)"
+          >
+            <span class="mail-row__check" aria-hidden="true"></span>
+            <span class="mail-row__avatar" aria-hidden="true">{{ senderInitials(message.name) }}</span>
+            <span class="mail-row__sender">{{ message.name }}</span>
+            <span class="mail-row__subject">{{ message.subject }}</span>
+            <span class="mail-row__preview">{{ message.messagePreview }}</span>
+            <span class="mail-row__context" *ngIf="message.context">{{ message.context }}</span>
+            <span class="mail-row__date">{{ message.createdAt | date:'shortDate' }}</span>
+          </button>
         </div>
-      </div>
+      </section>
 
-      <div class="messages-workspace__detail-actions">
-        <button type="button" class="messages-workspace__ghost motion-control" (click)="markRead()" [disabled]="saving() || message.status === 'READ' || message.status === 'REPLIED'">
-          {{ content().markRead }}
-        </button>
-        <button type="button" class="messages-workspace__ghost motion-control" (click)="archive()" [disabled]="saving() || message.status === 'ARCHIVED'">
-          {{ content().archive }}
-        </button>
-      </div>
+      <section class="mail-reading" *ngIf="selectedMessage() as message; else noSelection">
+        <header class="mail-reading__head">
+          <div class="mail-reading__subject-block">
+            <span class="mail-reading__status">{{ statusLabel(message.status) }}</span>
+            <h3>{{ message.subject }}</h3>
+            <div class="mail-reading__meta">
+              <span>{{ content().received }}: {{ message.createdAt | date:'short' }}</span>
+              <span>{{ content().updated }}: {{ message.updatedAt | date:'short' }}</span>
+              <span *ngIf="message.context">{{ content().context }}: {{ message.context }}</span>
+              <span *ngIf="message.source">{{ content().source }}: {{ message.source }}</span>
+            </div>
+          </div>
+        </header>
+
+        <article class="mail-message">
+          <div class="mail-message__avatar" aria-hidden="true">{{ senderInitials(message.name) }}</div>
+          <div class="mail-message__content">
+            <div class="mail-message__from">
+              <div>
+                <strong>{{ message.name }}</strong>
+                <a [href]="'mailto:' + message.email">{{ message.email }}</a>
+              </div>
+              <small>{{ message.submittedAt ? (message.submittedAt | date:'short') : (message.createdAt | date:'short') }}</small>
+            </div>
+
+            <div class="mail-message__metadata">
+              <span *ngIf="message.language">{{ content().language }}: {{ message.language }}</span>
+              <span *ngIf="message.userAgent">{{ content().userAgent }}: {{ message.userAgent }}</span>
+            </div>
+
+            <p class="mail-message__body">{{ message.message }}</p>
+          </div>
+        </article>
+
+        <article class="mail-reply-preview" *ngIf="message.replyMessage">
+          <span>{{ content().replied }}</span>
+          <strong>{{ message.repliedAt | date:'short' }}</strong>
+          <small>{{ content().repliedBy }}: {{ message.repliedBy || '-' }}</small>
+          <p>{{ message.replyMessage }}</p>
+        </article>
+
+        <section class="mail-reply" *ngIf="replyOpen(); else replyCollapsed">
+          <form [formGroup]="replyForm" (ngSubmit)="submitReply()">
+            <div class="mail-reply__head">
+              <strong>{{ content().replyTitle }}</strong>
+              <a class="mail-command motion-control" [href]="'mailto:' + message.email">{{ content().mailto }}</a>
+            </div>
+
+            <p>{{ content().replyHint }}</p>
+
+            <label>
+              <span>{{ content().replySubject }}</span>
+              <input type="text" formControlName="subject" />
+            </label>
+
+            <label>
+              <span>{{ content().replyMessage }}</span>
+              <textarea rows="5" formControlName="message"></textarea>
+            </label>
+
+            <p
+              class="mail-state mail-state--error"
+              *ngIf="replyForm.controls.message.invalid && replyForm.controls.message.touched"
+            >
+              {{ content().replyMessageRequired }}
+            </p>
+
+            <p class="mail-state" *ngIf="actionFeedback()">{{ actionFeedback() }}</p>
+
+            <div class="mail-reply__actions">
+              <button type="button" class="mail-command motion-control" (click)="cancelReply()">
+                {{ content().cancelReply }}
+              </button>
+              <button type="submit" class="mail-command mail-command--primary motion-control" [disabled]="saving() || replyForm.invalid">
+                {{ content().replyCta }}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <ng-template #replyCollapsed>
+          <button type="button" class="mail-reply-trigger motion-control" (click)="openReply()">
+            {{ content().replyTitle }}
+          </button>
+          <p class="mail-state" *ngIf="actionFeedback()">{{ actionFeedback() }}</p>
+        </ng-template>
+      </section>
     </div>
-
-    <div class="messages-workspace__meta">
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().from }}</span>
-        <strong>{{ message.name }}</strong>
-        <small>{{ message.email }}</small>
-      </article>
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().received }}</span>
-        <strong>{{ message.createdAt | date:'short' }}</strong>
-        <small>{{ message.submittedAt ? (message.submittedAt | date:'short') : '-' }}</small>
-      </article>
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().context }}</span>
-        <strong>{{ message.context || '-' }}</strong>
-        <small>{{ content().language }}: {{ message.language || '-' }}</small>
-      </article>
-      <article class="messages-workspace__meta-card">
-        <span>{{ content().source }}</span>
-        <strong>{{ message.source || '-' }}</strong>
-        <small>{{ content().userAgent }}: {{ message.userAgent || '-' }}</small>
-      </article>
-    </div>
-
-    <article class="messages-workspace__body">
-      <p>{{ message.message }}</p>
-    </article>
-
-    <article class="messages-workspace__reply-preview" *ngIf="message.replyMessage">
-      <span class="section-eyebrow">{{ content().replied }}</span>
-      <strong>{{ message.repliedAt | date:'short' }}</strong>
-      <small>{{ content().repliedBy }}: {{ message.repliedBy || '-' }}</small>
-      <p>{{ message.replyMessage }}</p>
-    </article>
-
-    <form class="messages-workspace__reply-form" [formGroup]="replyForm" (ngSubmit)="submitReply()">
-      <h4>{{ content().replyTitle }}</h4>
-      <p class="messages-workspace__hint">{{ content().replyHint }}</p>
-
-      <label class="messages-workspace__field">
-        <span>{{ content().replySubject }}</span>
-        <input type="text" formControlName="subject" />
-      </label>
-
-      <label class="messages-workspace__field messages-workspace__field--full">
-        <span>{{ content().replyMessage }}</span>
-        <textarea rows="6" formControlName="message"></textarea>
-      </label>
-
-      <p
-        class="messages-workspace__feedback messages-workspace__feedback--error"
-        *ngIf="replyForm.controls.message.invalid && replyForm.controls.message.touched"
-      >
-        {{ content().replyMessageRequired }}
-      </p>
-
-      <p class="messages-workspace__feedback" *ngIf="actionFeedback()">{{ actionFeedback() }}</p>
-
-      <div class="messages-workspace__reply-actions">
-        <a class="messages-workspace__ghost motion-control" [href]="'mailto:' + message.email">{{ content().from }}</a>
-        <button type="submit" class="messages-workspace__primary motion-control" [disabled]="saving()">
-          {{ content().replyCta }}
-        </button>
-      </div>
-    </form>
   </section>
 
   <ng-template #noSelection>
-    <section class="messages-workspace__detail portfolio-subcard messages-workspace__detail--empty">
+    <section class="mail-reading mail-reading--empty">
+      <strong>{{ content().listTitle }}</strong>
       <p>{{ content().noSelection }}</p>
     </section>
   </ng-template>

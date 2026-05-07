@@ -20,4 +20,6 @@ public interface ContactService {
     ContactMessageAdminDetailResponse updateStatus(UUID id, ContactMessageStatus status);
 
     ContactMessageAdminDetailResponse replyToMessage(UUID id, ContactMessageReplyRequest request);
+
+    void deleteMessage(UUID id);
 }

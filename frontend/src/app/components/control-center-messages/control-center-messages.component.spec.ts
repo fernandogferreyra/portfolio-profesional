@@ -21,6 +21,7 @@ describe('ControlCenterMessagesComponent', () => {
       name: 'Ana Cliente',
       email: 'ana@example.com',
       subject: 'Consulta freelance',
+      messagePreview: 'Necesito una propuesta para una web interna.',
       status: 'NEW',
       language: 'es',
       context: 'contact-form',
@@ -32,6 +33,7 @@ describe('ControlCenterMessagesComponent', () => {
       name: 'John Team',
       email: 'john@example.com',
       subject: 'Partnership request',
+      messagePreview: 'We would like to discuss a possible collaboration for a new delivery platform.',
       status: 'REPLIED',
       language: 'en',
       context: 'projects',
@@ -57,6 +59,7 @@ describe('ControlCenterMessagesComponent', () => {
       'getMessage',
       'updateStatus',
       'reply',
+      'deleteMessage',
     ]);
 
     contactAdminService.listMessages.and.returnValue(of({ success: true, message: 'ok', data: messages }));
@@ -76,6 +79,7 @@ describe('ControlCenterMessagesComponent', () => {
         },
       }),
     );
+    contactAdminService.deleteMessage.and.returnValue(of({ success: true, message: 'ok', data: null }));
 
     await TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
@@ -106,11 +110,18 @@ describe('ControlCenterMessagesComponent', () => {
     expect(contactAdminService.getMessage).toHaveBeenCalledWith('1');
     expect(component.visibleMessages().length).toBe(2);
     expect(component.selectedMessageId()).toBe('1');
+    expect(component.visibleMessages()[0].messagePreview).toContain('propuesta');
     expect(component.filterOptions().find((filter) => filter.id === 'NEW')?.count).toBe(1);
+    expect(component.filterOptions().find((filter) => filter.id === 'SPAM')?.count).toBe(0);
+    expect(component.filterOptions().find((filter) => filter.id === 'TRASH')?.count).toBe(0);
   });
 
   it('filters visible messages locally by search term and status', async () => {
     await component.updateSearchTerm('john');
+
+    expect(component.visibleMessages().map((message) => message.id)).toEqual(['2']);
+
+    await component.updateSearchTerm('collaboration');
 
     expect(component.visibleMessages().map((message) => message.id)).toEqual(['2']);
 
@@ -131,5 +142,44 @@ describe('ControlCenterMessagesComponent', () => {
     expect(contactAdminService.reply).toHaveBeenCalledWith('1', 'Gracias por escribir.', 'Re: Consulta freelance');
     expect(component.selectedMessage()?.status).toBe('REPLIED');
     expect(component.actionFeedback()).toBe('Respuesta enviada correctamente.');
+  });
+
+  it('marks a selected message as junk', async () => {
+    contactAdminService.updateStatus.and.returnValue(
+      of({ success: true, message: 'ok', data: { ...messageDetail, status: 'SPAM' } }),
+    );
+    contactAdminService.listMessages.and.returnValue(
+      of({
+        success: true,
+        message: 'ok',
+        data: [{ ...messages[0], status: 'SPAM' }, messages[1]],
+      }),
+    );
+
+    await component.markSpam();
+
+    expect(contactAdminService.updateStatus).toHaveBeenCalledWith('1', 'SPAM');
+    expect(component.messages().find((message) => message.id === '1')?.status).toBe('SPAM');
+  });
+
+  it('moves a selected message to trash when delete is used outside trash', async () => {
+    contactAdminService.updateStatus.and.returnValue(
+      of({ success: true, message: 'ok', data: { ...messageDetail, status: 'TRASH' } }),
+    );
+
+    await component.deleteSelectedMessage();
+
+    expect(contactAdminService.updateStatus).toHaveBeenCalledWith('1', 'TRASH');
+    expect(contactAdminService.deleteMessage).not.toHaveBeenCalled();
+  });
+
+  it('deletes a selected message permanently from trash', async () => {
+    component.selectedMessageId.set('1');
+    component.selectedMessage.set({ ...messageDetail, status: 'TRASH' });
+
+    await component.deleteSelectedMessage();
+
+    expect(contactAdminService.deleteMessage).toHaveBeenCalledWith('1');
+    expect(component.messages().some((message) => message.id === '1')).toBeFalse();
   });
 });

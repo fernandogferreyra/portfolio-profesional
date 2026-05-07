@@ -42,6 +42,8 @@ En `Control Center` ya quedan operativos el `Budget Builder` real, el estimador 
 
 Ademas queda redisenado el dashboard privado como workspace de uso real y no como formulario rigido: `Budget Builder` y `Estimador tecnico` ahora recalculan en vivo contra backend, muestran resumen lateral sticky, breakdown visible, contexto por opcion, formula amigable del calculo y lectura inmediata del impacto al mover parametros. En esta iteracion no hizo falta tocar backend: los DTOs y endpoints actuales ya entregaban suficiente informacion para soportar la nueva UX.
 
+La etapa siguiente de frontend publico suma por fin el trigger faltante en `Skills`: la pagina mantiene la animacion actual por lanes como vista base, pero ahora agrega un boton `Ver todas / Skills` para alternar hacia una vista expandida con todas las habilidades agrupadas por categoria en cards compactas. Esta iteracion queda frontend-only y no toca backend ni contratos.
+
 Validacion actual cerrada:
 
 - `npm test -- --watch=false --browsers=ChromeHeadless` en `frontend/` OK (`21 SUCCESS`) sobre Windows con Node `20.19.0`
@@ -65,34 +67,25 @@ Quedan pendientes funcionales fuera de este corte: PDF, envio transaccional a te
 
 Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la rama integradora diaria, las ramas nuevas deben nacer desde `develop` y volver por PR a `develop`, y `main` solo debe recibir PRs desde `develop` cuando se quiera integrar una version estable.
 
-## Release Process Rules
-
-- Nunca mergear PRs vacios de `release-please`.
-- El estado `SNAPSHOT` solo debe quedar despues de una release real, no como ajuste manual aislado.
-- `.release-please-manifest.json` debe reflejar la ultima version estable conocida por `release-please`.
-- No avanzar versiones manualmente sin una release real que justifique ese cambio.
-- Antes de mergear a `main`, validar que `pom.xml`, manifest y tags no esten desalineados.
-- Si se detecta mismatch entre `pom.xml` y manifest, corregirlo antes de mergear cualquier PR de release.
-
 ## Historial de cambios
 
-- Fecha: 2026-04-24
-  - Cambio: Se dejo preparada la integracion minima para deploy real del frontend en Vercel sin tocar Angular ni la logica de negocio. Se agrego `frontend/vercel.json` con rewrite de `/api/*` hacia el backend remoto para preservar el consumo relativo actual del frontend tambien en produccion cloud.
-  - Archivos: `frontend/vercel.json`, `DOCUMENTATION.md`
-  - Decision: Mantener el frontend consumiendo rutas relativas `/api` y resolver la integracion Vercel -> Render desde infraestructura/rewrite en vez de introducir una `API_BASE_URL` nueva en Angular.
-  - Proximos pasos: Reemplazar `<BACKEND_URL>` por el dominio real del backend en Render antes del deploy en Vercel y validar `GET /api/health`, login admin y `POST /api/contact` desde el frontend desplegado.
+- Fecha: 2026-05-07
+  - Cambio: Se preparo la promocion de `develop` hacia `main` sincronizando primero los cambios productivos que habian quedado solo en `main`: rewrite de Vercel hacia el backend en Render, checklist de release y alineacion de `release-please` para evitar PRs vacios/snapshot loop. La sincronizacion conserva la version mas nueva de `develop` para `Mensajeria` y `Skills`, y suma la configuracion productiva existente antes de abrir el release final.
+  - Archivos: `frontend/vercel.json`, `docs/release-checklist.md`, `backend/pom.xml`, `.release-please-manifest.json`, `release-please-config.json`, `AGENTS.md`, `DOCUMENTATION.md`
+  - Decision: No resolver el conflicto `develop -> main` pisando `main` directamente. Primero se absorben las diferencias productivas de `main` en una rama corta nacida desde `develop`, y despues se reintenta el PR de release hacia `main`.
+  - Proximos pasos: Mergear esta sincronizacion a `develop`, reabrir/actualizar el PR `develop -> main`, esperar CI/CD verde, mergear a `main` y limpiar ramas ya integradas.
 
-- Fecha: 2026-04-24
-  - Cambio: Se estabilizo el pipeline de `release-please` para backend despues del loop de PRs vacios de snapshot. Ademas del bootstrap minimo de releases/tags para `frontend-v0.0.0` y `backend-v0.2.1`, se ajusto `release-please-config.json` para backend con `skip-snapshot=true`, de modo que el flujo no vuelva a abrir PRs automaticos de snapshot sin valor operativo.
-  - Archivos: `release-please-config.json`, `DOCUMENTATION.md`
-  - Decision: Mantener `release-type: maven` pero desactivar snapshot PRs automaticos en backend. Para este repo, el valor operativo esta en PRs de release reales; los bumps de snapshot automaticos solo generaban ruido y loops vacios.
-  - Proximos pasos: Mergear el PR de config, verificar un run limpio de `Release Please` sin PR nuevo y usar el checklist de release antes de la proxima promocion funcional a `main`.
+- Fecha: 2026-05-07
+  - Cambio: Se cerro una pasada final sobre `Mensajeria` en `feature/messaging-inbox-client` despues de absorber `develop` con el PR de Skills ya mergeado. La inbox admin ahora adopta una estructura tipo Outlook con rail lateral, carpetas/filtros, command bar, lista densa de mensajes y panel de lectura. Ademas expone `messagePreview` desde backend para cada resumen, usa ese preview tambien en la busqueda local, conserva metadata operativa en el detalle (`language`, `submittedAt`, `userAgent`), despliega el reply solo cuando se solicita y evita enviar respuestas mientras el formulario esta invalido. Tambien se agregaron `No deseado` como estado real `SPAM` y `Papelera` como estado real `TRASH`, con carpetas propias, conteos, acciones desde command bar y cobertura de spec. `Eliminar` ahora se comporta como correo: fuera de papelera mueve el mensaje a `TRASH`, y dentro de papelera ejecuta eliminacion definitiva con `DELETE /api/admin/contact-messages/{id}`. Se agrego `V10__align_contact_messages_status_check.sql` para alinear bases locales viejas que tengan un `CHECK` de `contact_messages.status` sin `SPAM/TRASH`. El truncado backend del preview queda en ASCII (`...`) para mantener consistencia de codigo. Validacion ejecutada: `npx tsc -p tsconfig.app.json --noEmit` OK, `npx tsc -p tsconfig.spec.json --noEmit` OK y `mvnw.cmd -DskipTests package` OK con `JAVA_HOME` temporal. `ng test` quedo bloqueado en este WSL por `@esbuild/win32-x64` instalado desde Windows, y `ApiIntegrationTest` quedo bloqueado por Docker/Testcontainers no disponible.
+  - Archivos: `backend/src/main/java/com/fernandogferreyra/portfolio/backend/dto/contact/ContactMessageAdminSummaryResponse.java`, `backend/src/main/java/com/fernandogferreyra/portfolio/backend/mapper/contact/ContactMessageMapper.java`, `backend/src/test/java/com/fernandogferreyra/portfolio/backend/ApiIntegrationTest.java`, `frontend/src/app/services/contact-admin.service.ts`, `frontend/src/app/components/control-center-messages/control-center-messages.component.ts`, `frontend/src/app/components/control-center-messages/control-center-messages.component.html`, `frontend/src/app/components/control-center-messages/control-center-messages.component.scss`, `frontend/src/app/components/control-center-messages/control-center-messages.component.spec.ts`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Mantener la mejora acotada a mensajeria y sin abrir paginacion/busqueda backend. Para el volumen actual alcanza con cargar la inbox completa, derivar filtros y busqueda en UI, y dejar el backend como source of truth del resumen/preview.
+  - Proximos pasos: Validar visualmente, pushear `feature/messaging-inbox-client`, abrir PR hacia `develop` y, una vez mergeado, crear una nueva rama desde `develop` para el polish visual pre-deploy. En deploy real revisar entrega de email con provider activo (`Resend` o alternativo), variables productivas y dominio/remitente verificado; localmente la comunicacion app-backend puede funcionar aunque el correo no llegue si el provider esta en `noop` o sin dominio habilitado.
 
-- Fecha: 2026-04-24
-  - Cambio: Se corrigio el loop de `release-please` alineando `.release-please-manifest.json` con el estado actual del backend (`0.2.1`) y se documentaron reglas persistentes para evitar merges de PRs vacios de snapshot. Tambien se agrego `docs/release-checklist.md` como checklist operativo previo a merge/release.
-  - Archivos: `.release-please-manifest.json`, `AGENTS.md`, `docs/release-checklist.md`, `DOCUMENTATION.md`
-  - Decision: Tratar los PRs vacios de `release-please` como senal de desalineacion entre manifest/versionado, no como PRs validos de mantenimiento. El fix correcto es re-alinear manifest/version y revisar tags antes de seguir.
-  - Proximos pasos: Esperar CI del PR correctivo, mergear a `main` si queda verde y confirmar que `release-please` deje de abrir PRs vacios repetidos.
+- Fecha: 2026-04-28
+  - Cambio: Se implemento una etapa puntual sobre `Skills` en frontend. La vista publica conserva la animacion actual por lanes como entrada principal y ahora suma un toggle `Ver todas / Skills` para alternar hacia una grilla completa por categorias con cards compactas (`backend`, `frontend`, `data`, `tools`, `ai`, `soft`). La validacion tecnica cerro con typechecks frontend OK y `npm run build` OK con los warnings de budgets ya conocidos del repo.
+  - Archivos: `frontend/src/app/components/skills/skills.component.ts`, `frontend/src/app/components/skills/skills.component.html`, `frontend/src/app/components/skills/skills.component.scss`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Mantener la animacion actual como estado base porque ya aporta identidad visual, y resolver la exploracion completa con un toggle explicito y una grilla por categorias sin mezclar esta etapa con cambios backend.
+  - Proximos pasos: Revisar visualmente desktop/mobile, decidir si la grilla expandida necesita microajustes de densidad o jerarquia y luego abrir PR de esta rama hacia `develop`.
 
 - Fecha: 2026-04-23
   - Cambio: Se ejecuto la primera validacion fullstack real de deploy local con Docker Compose usando un entorno aislado por `--env-file .env.deploy.local`, sin depender del `.env` raiz. El stack `postgres + backend + frontend` construyo y levanto OK; se validaron `GET /api/health`, `GET /actuator/health`, `GET /api/health` via `nginx`, login admin bootstrap por `POST /api/auth/login`, `POST /api/contact` via proxy frontend y la presencia del volumen `backend_documents` montado en `/var/lib/portfolio/documents`. El unico bloqueo real encontrado fue un conflicto local del puerto `8080` por un backend `dev` ya corriendo fuera de Docker; al liberar ese proceso, el compose quedo operativo sin cambios funcionales adicionales.

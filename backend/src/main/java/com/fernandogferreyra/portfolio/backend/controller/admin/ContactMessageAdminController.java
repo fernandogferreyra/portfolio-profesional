@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,5 +55,11 @@ public class ContactMessageAdminController {
         @Valid @RequestBody ContactMessageReplyRequest request
     ) {
         return ApiResponse.success("Contact reply sent", contactService.replyToMessage(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteMessage(@PathVariable UUID id) {
+        contactService.deleteMessage(id);
+        return ApiResponse.success("Contact message deleted", null);
     }
 }
