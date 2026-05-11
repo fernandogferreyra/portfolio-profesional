@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/backend-v0.3.0...backend-v0.4.0) (2026-05-11)
+
+
+### Features
+
+* add public content cms blocks ([7638513](https://github.com/fernandogferreyra/portfolio-profesional/commit/76385133dca06888db6c3b89e39105e29a1bd957))
+* add public content cms blocks ([546cc2c](https://github.com/fernandogferreyra/portfolio-profesional/commit/546cc2c3a77c84c46567e2d1f36a0c4f467ee898))
+
+
+### Bug Fixes
+
+* expose public content blocks endpoint ([55476c0](https://github.com/fernandogferreyra/portfolio-profesional/commit/55476c05148c3080997ca43b84b557ad23d55428))
+
 ## [0.3.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/backend-v0.2.1...backend-v0.3.0) (2026-05-11)
 
 
