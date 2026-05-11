@@ -63,14 +63,14 @@ Estado al 2026-05-11.
 - El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
 - Faltan conectar `Skills`, credenciales y documentos a superficies concretas del CMS, abrir descarga controlada cuando haga falta, notas/uploads internos, `Paginas amigas`, PWA e integracion futura de bot/asistente.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
-- `release-please` ya pudo generar un PR limpio despues de corregir `changelog-path`: el PR `#42 chore: release main` actualizo `frontend/CHANGELOG.md`, `backend/CHANGELOG.md`, versiones y manifest sin rutas duplicadas.
+- `release-please` ya pudo generar PRs limpios despues de corregir `changelog-path`: `#42` publico `frontend 0.1.0` / `backend 0.3.0` y `#46` publica `frontend 0.2.0` / `backend 0.4.0`, siempre con changelogs en rutas correctas.
 - Despues de mergear un PR de `release-please` hacia `main`, sincronizar siempre esa metadata de release de vuelta a `develop` antes de abrir features nuevas o promover de nuevo.
 
 ## 5. Proximos pasos recomendados
 
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
-- Cerrar `feature/public-content-cms-foundation-v2` con PR hacia `develop` despues de validar CI; la etapa ya amplia el CMS editable publico mas alla de `projects` con bloques genericos.
+- Sincronizar la metadata de release `frontend 0.2.0` / `backend 0.4.0` de vuelta a `develop` antes de abrir la siguiente feature.
 - Mantener la nueva vista expandida de `Skills` como mejora frontend-only ya integrada, sin reintroducir logica en backend para esta etapa.
 - Mantener `feature/inbox-ui-polish` como etapa ya integrada; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - Mantener `feature/messaging-inbox-client` como etapa ya absorbida en `develop`; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
