@@ -9,19 +9,26 @@
 
       <nav class="control-center__nav-card" aria-label="Private workspace navigation">
         <div class="control-center__nav-title">
-          <span>{{ currentLanguage() === 'es' ? 'Modulos privados' : 'Private modules' }}</span>
+          <span>{{ content().workspaceNavTitle }}</span>
+          <strong>{{ content().moduleCount }} {{ content().modulesLabel }}</strong>
+          <p>{{ content().workspaceNavLead }}</p>
         </div>
 
         <div class="control-center__nav">
-        <button
-          type="button"
-          class="control-center__nav-item motion-control"
-          *ngFor="let workspace of content().workspaces"
-          [class.is-active]="activeWorkspace() === workspace.id"
-          (click)="setWorkspace(workspace.id)"
-        >
-          <strong>{{ workspace.title }}</strong>
-        </button>
+          <button
+            type="button"
+            class="control-center__nav-item motion-control"
+            *ngFor="let workspace of content().workspaces; let i = index"
+            [class.is-active]="activeWorkspace() === workspace.id"
+            (click)="setWorkspace(workspace.id)"
+          >
+            <span class="control-center__nav-index">0{{ i + 1 }}</span>
+            <span class="control-center__nav-copy">
+              <strong>{{ workspace.title }}</strong>
+              <small>{{ workspace.description }}</small>
+            </span>
+            <span class="control-center__nav-cta">{{ content().workspaceCta }}</span>
+          </button>
         </div>
       </nav>
     </header>
@@ -66,7 +73,7 @@
         </article>
       </section>
 
-      <section *ngSwitchDefault class="control-center__workspace">
+      <section *ngSwitchDefault class="control-center__workspace control-center__workspace--messages">
         <header class="control-center__workspace-head">
           <div>
             <p class="control-center__section-label">{{ content().messagesTitle }}</p>

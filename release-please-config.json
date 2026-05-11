@@ -6,14 +6,14 @@
       "component": "frontend",
       "package-name": "portfolio-ferchuz",
       "release-type": "node",
-      "changelog-path": "frontend/CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md"
     },
     "backend": {
       "component": "backend",
       "package-name": "portfolio-backend",
       "release-type": "maven",
       "skip-snapshot": true,
-      "changelog-path": "backend/CHANGELOG.md"
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
