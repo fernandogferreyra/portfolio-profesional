@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,6 +32,9 @@ public class PublicContentBlockEntity extends BaseEntity {
 
     @Column(name = "items_json", columnDefinition = "TEXT")
     private String itemsJson;
+
+    @Column(name = "document_id")
+    private UUID documentId;
 
     @Column(nullable = false)
     private boolean published;

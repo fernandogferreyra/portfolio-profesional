@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import com.fernandogferreyra.portfolio.backend.domain.enums.ContactMessageStatus;
 import com.fernandogferreyra.portfolio.backend.domain.enums.EventType;
@@ -204,6 +205,73 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.title").value("Editable public hero"))
             .andExpect(jsonPath("$.data.items", hasSize(2)))
             .andExpect(jsonPath("$.data.displayOrder").value(8));
+    }
+
+    @Test
+    void adminCanLinkDocumentToPublicContentBlockAndPublicCanDownloadIt() throws Exception {
+        String accessToken = loginAsAdmin();
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "profile-cv.pdf",
+            "application/pdf",
+            "fake-pdf-content".getBytes());
+
+        String uploadedDocumentBody = mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "cv")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String documentId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(uploadedDocumentBody)
+            .path("data")
+            .path("id")
+            .asText();
+
+        String blocksBody = mockMvc.perform(get("/api/admin/content-blocks")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        com.fasterxml.jackson.databind.JsonNode blocks = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(blocksBody)
+            .path("data");
+        String cvBlockId = null;
+        for (com.fasterxml.jackson.databind.JsonNode block : blocks) {
+            if ("contact.cv".equals(block.path("key").asText()) && "es".equals(block.path("language").asText())) {
+                cvBlockId = block.path("id").asText();
+                break;
+            }
+        }
+
+        org.junit.jupiter.api.Assertions.assertNotNull(cvBlockId);
+
+        mockMvc.perform(patch("/api/admin/content-blocks/{id}", cvBlockId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "title": "CV",
+                      "body": "Resumen profesional actualizado.",
+                      "items": [],
+                      "documentId": "%s",
+                      "published": true,
+                      "displayOrder": 40
+                    }
+                    """.formatted(documentId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.documentId").value(documentId))
+            .andExpect(jsonPath("$.data.documentUrl").value("/api/content-blocks/contact.cv/es/document"));
+
+        mockMvc.perform(get("/api/content-blocks/contact.cv/es/document"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/pdf"))
+            .andExpect(content().string("fake-pdf-content"));
     }
 
     @Test

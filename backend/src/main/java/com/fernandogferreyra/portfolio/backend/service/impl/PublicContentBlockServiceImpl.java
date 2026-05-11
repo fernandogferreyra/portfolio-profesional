@@ -1,11 +1,16 @@
 package com.fernandogferreyra.portfolio.backend.service.impl;
 
+import com.fernandogferreyra.portfolio.backend.domain.documents.entity.DocumentEntity;
+import com.fernandogferreyra.portfolio.backend.domain.documents.model.DocumentDownload;
 import com.fernandogferreyra.portfolio.backend.domain.publiccontent.entity.PublicContentBlockEntity;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockResponse;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockUpdateRequest;
 import com.fernandogferreyra.portfolio.backend.mapper.publiccontent.PublicContentBlockMapper;
+import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
 import com.fernandogferreyra.portfolio.backend.service.PublicContentBlockService;
+import com.fernandogferreyra.portfolio.backend.service.StorageService;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +25,8 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
 
     private final PublicContentBlockMapper publicContentBlockMapper;
     private final PublicContentBlockRepository publicContentBlockRepository;
+    private final DocumentRepository documentRepository;
+    private final StorageService storageService;
 
     @Override
     @Transactional(readOnly = true)
@@ -45,7 +52,35 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
         PublicContentBlockEntity entity = publicContentBlockRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Public content block not found"));
 
+        if (request.documentId() != null && !documentRepository.existsById(request.documentId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Linked document not found");
+        }
+
         publicContentBlockMapper.applyUpdate(entity, request);
         return publicContentBlockMapper.toResponse(publicContentBlockRepository.save(entity));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentDownload downloadPublishedBlockDocument(String key, String language) {
+        PublicContentBlockEntity block = publicContentBlockRepository.findByContentKeyAndLanguageAndPublishedTrue(key, language)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Public content block not found"));
+
+        if (block.getDocumentId() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Public content block has no linked document");
+        }
+
+        DocumentEntity document = documentRepository.findById(block.getDocumentId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document not found"));
+
+        try {
+            return new DocumentDownload(
+                storageService.load(document.getStoragePath()),
+                document.getOriginalFilename(),
+                document.getContentType(),
+                document.getSizeBytes());
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document file not found");
+        }
     }
 }

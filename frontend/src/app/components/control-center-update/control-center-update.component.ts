@@ -60,6 +60,7 @@ export class ControlCenterUpdateComponent {
     title: ['', [Validators.required, Validators.maxLength(220)]],
     body: ['', [Validators.required, Validators.maxLength(5000)]],
     items: ['', [Validators.maxLength(3000)]],
+    documentId: [''],
     displayOrder: [0, [Validators.min(0), Validators.max(999)]],
     published: [true],
   });
@@ -104,6 +105,8 @@ export class ControlCenterUpdateComponent {
           contentBlockBody: 'Cuerpo',
           contentBlockItems: 'Items / lineas',
           contentBlockItemsHint: 'Una linea por item. Sirve para badges, parrafos, disponibilidad o URL del CV.',
+          contentBlockDocument: 'Documento asociado',
+          contentBlockNoDocument: 'Sin documento',
           contentBlockSuccess: 'Bloque publico actualizado.',
           draft: 'Borrador',
           requiredError: 'Completa los campos obligatorios antes de guardar.',
@@ -146,6 +149,8 @@ export class ControlCenterUpdateComponent {
           contentBlockBody: 'Body',
           contentBlockItems: 'Items / lines',
           contentBlockItemsHint: 'One line per item. Used for badges, paragraphs, availability, or resume URL.',
+          contentBlockDocument: 'Linked document',
+          contentBlockNoDocument: 'No document',
           contentBlockSuccess: 'Public content block updated.',
           draft: 'Draft',
           requiredError: 'Complete the required fields before saving.',
@@ -247,6 +252,7 @@ export class ControlCenterUpdateComponent {
       title: block.title,
       body: block.body,
       items: block.items.join('\n'),
+      documentId: block.documentId ?? '',
       displayOrder: block.displayOrder,
       published: block.published,
     });
@@ -279,6 +285,7 @@ export class ControlCenterUpdateComponent {
             .split('\n')
             .map((item) => item.trim())
             .filter(Boolean),
+          documentId: value.documentId || null,
           displayOrder: Number(value.displayOrder),
           published: value.published,
         }),
