@@ -1,6 +1,6 @@
 # Handoff Control Center
 
-Estado al 2026-04-18.
+Estado al 2026-05-11.
 
 ## 1. Estado actual del proyecto
 
@@ -24,6 +24,7 @@ Estado al 2026-04-18.
 - El estimador tecnico ya usa backend para `preview` y `save`, con PERT, buffer de riesgo, semanas estimadas y dependencias visibles.
 - `Mensajeria` ya no es placeholder: existe inbox admin real, cambio de estado, reply y base de providers `noop|smtp|resend`.
 - En `feature/messaging-inbox-client` la inbox admin ya quedo mas parecida a una casilla de correo tipo Outlook: rail lateral, carpetas/filtros, command bar, lista densa, panel de lectura, busqueda local tambien por preview, `messagePreview` oficial desde backend, metadata visible en detalle, reply desplegable, estado real `SPAM` para `No deseado`, estado real `TRASH` para `Papelera` y eliminacion definitiva via `DELETE`, sin abrir paginacion ni busqueda backend.
+- En `feature/inbox-ui-polish` la bandeja admin queda mas cerca del comportamiento de email real: `Bandeja de entrada` muestra solo mensajes no leidos (`NEW`), el filtro separado `Nuevos` sale de la UI y un mensaje `NEW` pasa a `READ` automaticamente solo cuando el usuario lo abre manualmente, desapareciendo de entrada y quedando en `Leidos`. La etapa tambien amplia el `Control Center` al ancho visual del header, reemplaza `Modulos privados` por una navegacion mas vistosa, mejora el login admin y rediseña `Contacto > Canales directos` como hub animado de menu social/comentarios con botones circulares, orbitas, pulso central y bubble de detalle.
 - `Actualizar` ya dejo de ser placeholder: existe una base editable minima para `projects` desde `Control Center`, con `GET/PATCH /api/admin/projects` y editor operativo de orden/copy/visibilidad.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
@@ -68,7 +69,8 @@ Estado al 2026-04-18.
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
 - Mantener la nueva vista expandida de `Skills` como mejora frontend-only nacida desde `develop`, sin reintroducir logica en backend para esta etapa.
-- Cerrar `feature/messaging-inbox-client` con validacion frontend/backend relevante y PR hacia `develop` antes de abrir polish visual pre-deploy.
+- Cerrar `feature/inbox-ui-polish` con revision visual desktop/mobile y PR hacia `develop`; no requiere cambios backend porque reutiliza el endpoint oficial de estado de `Mensajeria`.
+- Mantener `feature/messaging-inbox-client` como etapa ya absorbida en `develop`; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - En deploy productivo, revalidar entrega real de email de `Mensajeria` con provider activo, secretos, `PORTFOLIO_ALLOWED_ORIGINS`, `PORTFOLIO_CONTACT_FROM` y dominio/remitente verificado.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
 - Despues decidir si la siguiente rama funcional conviene que sea asociacion de documentos a `projects`, descarga controlada de documentos o base de notas/uploads internos sobre esta foundation.

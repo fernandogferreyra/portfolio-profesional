@@ -41,6 +41,9 @@ export class AdminLoginModalComponent implements AfterViewInit, OnDestroy {
           title: 'Ingreso FERCHUZ',
           description:
             'Autenticación segura para acceder al Centro de Mando sin alterar la experiencia pública del portfolio.',
+          visualTitle: 'Control Center',
+          visualLead: 'Acceso operativo al backoffice, mensajeria y herramientas privadas.',
+          visualChips: ['JWT activo', 'ROLE_FERCHUZ', 'Backend real'],
           usernameLabel: 'Usuario',
           passwordLabel: 'Contraseña',
           usernamePlaceholder: 'FERCHUZ',
@@ -58,6 +61,9 @@ export class AdminLoginModalComponent implements AfterViewInit, OnDestroy {
           title: 'FERCHUZ login',
           description:
             'Secure authentication to reach the Control Center without affecting the public portfolio experience.',
+          visualTitle: 'Control Center',
+          visualLead: 'Operational access to the backoffice, messaging, and private tools.',
+          visualChips: ['Active JWT', 'ROLE_FERCHUZ', 'Real backend'],
           usernameLabel: 'Username',
           passwordLabel: 'Password',
           usernamePlaceholder: 'FERCHUZ',

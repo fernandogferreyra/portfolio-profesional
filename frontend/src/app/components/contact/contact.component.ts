@@ -82,6 +82,9 @@ export class ContactComponent {
           intro:
             'Estoy abierto a conversaciones profesionales sobre roles, colaboraciones y desarrollo de software. Abajo tenes los canales directos y la informacion que me ayuda a responder con contexto.',
           channelsTitle: 'Canales directos',
+          channelsLead: 'Menu rapido para pasar del portfolio a conversacion, red profesional o codigo publico.',
+          channelAction: 'Abrir canal',
+          channelReference: 'Referencia directa',
           formTitle: 'Enviar mensaje',
           formDescription:
             'Completa el formulario con el contexto principal y lo enviaremos al backend real.',
@@ -113,6 +116,9 @@ export class ContactComponent {
           intro:
             'I am open to professional conversations about roles, collaborations, and software development work. Below you will find direct channels and the context that helps me respond clearly.',
           channelsTitle: 'Direct channels',
+          channelsLead: 'Quick menu to move from the portfolio into a conversation, professional network, or public code.',
+          channelAction: 'Open channel',
+          channelReference: 'Direct reference',
           formTitle: 'Send message',
           formDescription:
             'Fill in the form with the main context and it will be sent to the real backend.',
@@ -185,7 +191,7 @@ export class ContactComponent {
             icon: 'document',
             accent: '#eab308',
             label: 'CV',
-            value: 'Ver version actual',
+            value: 'Abrir CV',
             note: 'Resumen profesional actualizado con experiencia, stack y proyectos relevantes.',
             href: '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
@@ -233,7 +239,7 @@ export class ContactComponent {
             icon: 'document',
             accent: '#eab308',
             label: 'Resume',
-            value: 'Open latest version',
+            value: 'Open resume',
             note: 'Updated professional summary with experience, stack, and relevant projects.',
             href: '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
@@ -248,6 +254,14 @@ export class ContactComponent {
 
   hasHref(channel: ContactChannel): boolean {
     return Boolean(channel.href);
+  }
+
+  channelIconViewBox(icon: ContactChannelIconId): string {
+    return this.channelIcons[icon].viewBox;
+  }
+
+  channelIconPaths(icon: ContactChannelIconId): string[] {
+    return this.channelIcons[icon].paths;
   }
 
   controlError(controlName: ContactFormControlName): string | null {
