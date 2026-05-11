@@ -11,7 +11,7 @@
 
     <groupId>com.fernandogferreyra.portfolio</groupId>
     <artifactId>backend</artifactId>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <name>portfolio-backend</name>
     <description>Backend V1 for Fernando Ferreyra professional portfolio</description>
 
