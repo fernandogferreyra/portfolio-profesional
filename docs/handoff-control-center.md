@@ -63,6 +63,7 @@ Estado al 2026-05-11.
 - Faltan ampliar el CMS editable del sitio publico mas alla de `projects`, asociar documentos a superficies concretas, abrir descarga controlada cuando haga falta, notas/uploads internos, `Paginas amigas`, PWA e integracion futura de bot/asistente.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
 - `release-please` ya esta configurado, pero todavia no debe considerarse el motor central del flujo diario hasta que el camino `develop -> main` quede mas rutinario.
+- El PR automatico `#38 chore: release main` fue detectado con rutas de changelog incorrectas (`frontend/frontend/CHANGELOG.md`, `backend/backend/CHANGELOG.md`). La correccion vigente debe usar `changelog-path: CHANGELOG.md` dentro de cada package de `release-please`; cerrar/regenerar ese PR antes de cualquier merge de release.
 
 ## 5. Proximos pasos recomendados
 
@@ -75,6 +76,7 @@ Estado al 2026-05-11.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
 - Despues decidir si la siguiente rama funcional conviene que sea asociacion de documentos a `projects`, descarga controlada de documentos o base de notas/uploads internos sobre esta foundation.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
+- Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 
 ## 6. CI y validacion
