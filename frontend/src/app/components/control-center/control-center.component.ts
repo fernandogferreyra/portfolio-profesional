@@ -31,6 +31,9 @@ export class ControlCenterComponent {
           sessionStateValue: 'Acceso operativo',
           moduleCount: 4,
           modulesLabel: 'modulos privados',
+          workspaceNavTitle: 'Centro operativo',
+          workspaceNavLead: 'Elige una superficie de trabajo y mantene el foco sin salir del panel privado.',
+          workspaceCta: 'Abrir',
           accessLabel: 'backend seguro',
           workspaces: [
             {
@@ -83,6 +86,9 @@ export class ControlCenterComponent {
           sessionStateValue: 'Operational access',
           moduleCount: 4,
           modulesLabel: 'private modules',
+          workspaceNavTitle: 'Operations hub',
+          workspaceNavLead: 'Choose a workspace and keep focus without leaving the private panel.',
+          workspaceCta: 'Open',
           accessLabel: 'secure backend',
           workspaces: [
             {

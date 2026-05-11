@@ -12,10 +12,12 @@
   --tool-muted: var(--color-text-muted);
   --tool-accent: var(--color-primary);
   --tool-accent-soft: var(--color-primary-soft);
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
+  width: min(1880px, calc(100vw - 0.85rem));
+  max-width: none;
+  margin: 0;
+  margin-left: 50%;
   padding: 0.85rem 0.5rem 2rem;
+  transform: translateX(-50%);
   overflow-x: clip;
 }
 
@@ -37,7 +39,7 @@
 
 .control-center__topbar {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 0.32fr) minmax(0, 1fr);
   gap: 1rem;
   align-items: stretch;
 }
@@ -93,6 +95,13 @@
   line-height: 1.6;
 }
 
+.control-center__nav-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.35rem 1rem;
+}
+
 .control-center__nav-title span {
   color: var(--tool-muted);
   font-size: 0.74rem;
@@ -101,22 +110,96 @@
   text-transform: uppercase;
 }
 
+.control-center__nav-title strong {
+  justify-self: end;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--tool-accent) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tool-accent-soft) 82%, transparent);
+  color: var(--tool-accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.control-center__nav-title p {
+  grid-column: 1 / -1;
+  margin: 0;
+  max-width: 58rem;
+  color: var(--tool-muted);
+  line-height: 1.55;
+}
+
 .control-center__nav {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-content: center;
-  gap: 0.65rem;
+  gap: 0.75rem;
 }
 
 .control-center__nav-item {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3rem;
-  padding: 0.65rem 0.85rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  min-height: 6.4rem;
+  padding: 0.8rem;
   border-radius: var(--radius-md);
   border: 1px var(--theme-border-style) var(--tool-border);
-  background: color-mix(in srgb, var(--tool-surface) 94%, transparent);
-  text-align: center;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--tool-accent) 12%, transparent), transparent 45%),
+    color-mix(in srgb, var(--tool-surface) 94%, transparent);
+  text-align: left;
+  overflow: hidden;
+}
+
+.control-center__nav-item::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--tool-accent), transparent);
+  opacity: 0;
+  transform: scaleX(0.45);
+  transition:
+    opacity var(--motion-fast) var(--ease-out),
+    transform var(--motion-base) var(--ease-out);
+}
+
+.control-center__nav-index {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tool-accent) 26%, transparent);
+  background: color-mix(in srgb, var(--tool-accent-soft) 82%, transparent);
+  color: var(--tool-accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.control-center__nav-copy {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.control-center__nav-copy small {
+  color: var(--tool-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.control-center__nav-cta {
+  grid-column: 2;
+  justify-self: start;
+  align-self: end;
+  color: var(--tool-accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .control-center__nav-item strong,
@@ -127,7 +210,17 @@
 
 .control-center__nav-item.is-active {
   border-color: var(--tool-border-strong);
-  background: linear-gradient(180deg, var(--tool-accent-soft), transparent 72%), var(--tool-surface);
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--tool-accent) 24%, transparent), transparent 48%),
+    linear-gradient(180deg, var(--tool-accent-soft), transparent 72%),
+    var(--tool-surface);
+  box-shadow: 0 18px 38px -34px var(--color-primary-glow);
+}
+
+.control-center__nav-item.is-active::after,
+.control-center__nav-item:hover::after {
+  opacity: 0.85;
+  transform: scaleX(1);
 }
 
 .control-center__main {
@@ -144,6 +237,10 @@
 }
 
 .control-center__workspace--budget {
+  padding: 0.8rem;
+}
+
+.control-center__workspace--messages {
   padding: 0.8rem;
 }
 

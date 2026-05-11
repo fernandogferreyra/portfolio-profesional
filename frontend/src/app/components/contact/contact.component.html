@@ -24,56 +24,76 @@
   </section>
 
   <div class="contact-grid">
-    <section class="surface-card contact-card" aria-labelledby="contact-channels-title" appRevealOnScroll="left" [revealDelay]="90">
+    <section class="surface-card contact-card contact-card--channels" aria-labelledby="contact-channels-title" appRevealOnScroll="left" [revealDelay]="90">
       <div class="section-heading">
         <h2 id="contact-channels-title" class="portfolio-section-title">{{ ui().channelsTitle }}</h2>
+        <p>{{ ui().channelsLead }}</p>
       </div>
 
-      <div class="contact-channel-list">
+      <div class="contact-social-menu" role="list">
+        <span class="contact-social-menu__orbit contact-social-menu__orbit--outer" aria-hidden="true"></span>
+        <span class="contact-social-menu__orbit contact-social-menu__orbit--inner" aria-hidden="true"></span>
+        <span class="contact-social-menu__connector contact-social-menu__connector--horizontal" aria-hidden="true"></span>
+        <span class="contact-social-menu__connector contact-social-menu__connector--vertical" aria-hidden="true"></span>
+        <span class="contact-social-menu__spark contact-social-menu__spark--one" aria-hidden="true"></span>
+        <span class="contact-social-menu__spark contact-social-menu__spark--two" aria-hidden="true"></span>
+        <span class="contact-social-menu__spark contact-social-menu__spark--three" aria-hidden="true"></span>
+        <span class="contact-social-menu__center" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+            <path d="M17 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+            <path d="m11.5 10.5 3.2 3.4"></path>
+            <path d="M14.2 17.1 9.8 13"></path>
+          </svg>
+        </span>
+
         <article
-          class="contact-channel motion-panel portfolio-subcard"
+          class="contact-social-node motion-control"
           *ngFor="let channel of channels(); let i = index"
+          role="listitem"
           appRevealOnScroll
           [revealDelay]="110 + i * 50"
+          [style.--channel-accent]="channel.accent"
+          [style.--channel-surface]="channel.accent + '22'"
         >
-          <span
-            class="contact-channel__icon"
-            aria-hidden="true"
-            [style.--channel-accent]="channel.accent"
-            [style.--channel-surface]="channel.accent + '22'"
+          <a
+            *ngIf="hasHref(channel); else staticChannel"
+            class="contact-social-node__button"
+            [href]="channel.href"
+            [attr.target]="channel.newTab ? '_blank' : null"
+            [attr.rel]="channel.newTab ? 'noopener' : null"
+            [attr.aria-label]="channel.label + ': ' + channel.value"
           >
-            <svg
-              [attr.viewBox]="channelIcons[channel.icon].viewBox"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path *ngFor="let path of channelIcons[channel.icon].paths" [attr.d]="path"></path>
-            </svg>
-          </span>
+            <ng-container *ngTemplateOutlet="channelIcon; context: { $implicit: channel }"></ng-container>
+          </a>
 
-          <div class="contact-channel__copy">
-            <p class="contact-channel__label">{{ channel.label }}</p>
+          <ng-template #staticChannel>
+            <span class="contact-social-node__button" [attr.aria-label]="channel.label + ': ' + channel.value">
+              <ng-container *ngTemplateOutlet="channelIcon; context: { $implicit: channel }"></ng-container>
+            </span>
+          </ng-template>
 
-            <a
-              *ngIf="hasHref(channel); else plainChannelValue"
-              [href]="channel.href"
-              [attr.target]="channel.newTab ? '_blank' : null"
-              [attr.rel]="channel.newTab ? 'noopener' : null"
-            >
-              {{ channel.value }}
-            </a>
-
-            <ng-template #plainChannelValue>
-              <span class="contact-channel__value">{{ channel.value }}</span>
-            </ng-template>
-
-            <p class="contact-channel__note">{{ channel.note }}</p>
+          <div class="contact-social-node__bubble">
+            <span>{{ channel.label }}</span>
+            <strong>{{ channel.value }}</strong>
+            <p>{{ channel.note }}</p>
           </div>
         </article>
       </div>
+
+      <ng-template #channelIcon let-channel>
+        <svg
+          [attr.viewBox]="channelIconViewBox(channel.icon)"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.7"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path *ngFor="let path of channelIconPaths(channel.icon)" [attr.d]="path"></path>
+        </svg>
+      </ng-template>
     </section>
 
     <section

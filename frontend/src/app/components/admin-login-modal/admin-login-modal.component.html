@@ -15,11 +15,26 @@
       <span aria-hidden="true">+</span>
     </button>
 
-    <p class="section-eyebrow admin-login-eyebrow">{{ content().badge }}</p>
-    <h2 class="portfolio-card-title admin-login-title">{{ content().title }}</h2>
-    <p class="admin-login-description">{{ content().description }}</p>
+    <div class="admin-login-visual" aria-hidden="true">
+      <span class="admin-login-visual__orb"></span>
+      <span class="admin-login-visual__ring"></span>
+      <span class="admin-login-visual__glyph">FG</span>
+      <div class="admin-login-visual__copy">
+        <strong>{{ content().visualTitle }}</strong>
+        <p>{{ content().visualLead }}</p>
+      </div>
+      <div class="admin-login-visual__chips">
+        <span *ngFor="let chip of content().visualChips">{{ chip }}</span>
+      </div>
+    </div>
 
     <form class="admin-login-form" [formGroup]="loginForm" (ngSubmit)="submit()">
+      <div class="admin-login-form__head">
+        <p class="section-eyebrow admin-login-eyebrow">{{ content().badge }}</p>
+        <h2 class="portfolio-card-title admin-login-title">{{ content().title }}</h2>
+        <p class="admin-login-description">{{ content().description }}</p>
+      </div>
+
       <label class="admin-login-field">
         <span>{{ content().usernameLabel }}</span>
         <input

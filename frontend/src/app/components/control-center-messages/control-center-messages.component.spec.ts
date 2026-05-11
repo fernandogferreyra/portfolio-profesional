@@ -108,22 +108,36 @@ describe('ControlCenterMessagesComponent', () => {
   it('loads inbox messages and selects the first visible message', () => {
     expect(contactAdminService.listMessages).toHaveBeenCalled();
     expect(contactAdminService.getMessage).toHaveBeenCalledWith('1');
-    expect(component.visibleMessages().length).toBe(2);
+    expect(component.visibleMessages().length).toBe(1);
     expect(component.selectedMessageId()).toBe('1');
     expect(component.visibleMessages()[0].messagePreview).toContain('propuesta');
-    expect(component.filterOptions().find((filter) => filter.id === 'NEW')?.count).toBe(1);
+    expect(component.filterOptions().some((filter) => (filter.id as string) === 'NEW')).toBeFalse();
     expect(component.filterOptions().find((filter) => filter.id === 'SPAM')?.count).toBe(0);
     expect(component.filterOptions().find((filter) => filter.id === 'TRASH')?.count).toBe(0);
+  });
+
+  it('marks a new message as read only when the user opens it', async () => {
+    expect(contactAdminService.updateStatus).not.toHaveBeenCalled();
+
+    await component.selectMessage('1');
+
+    expect(contactAdminService.updateStatus).toHaveBeenCalledWith('1', 'READ');
+    expect(component.selectedMessage()?.status).toBe('READ');
+    expect(component.visibleMessages().map((message) => message.id)).toEqual([]);
+
+    await component.selectFilter('READ');
+
+    expect(component.visibleMessages().map((message) => message.id)).toEqual(['1']);
   });
 
   it('filters visible messages locally by search term and status', async () => {
     await component.updateSearchTerm('john');
 
-    expect(component.visibleMessages().map((message) => message.id)).toEqual(['2']);
+    expect(component.visibleMessages().map((message) => message.id)).toEqual([]);
 
     await component.updateSearchTerm('collaboration');
 
-    expect(component.visibleMessages().map((message) => message.id)).toEqual(['2']);
+    expect(component.visibleMessages().map((message) => message.id)).toEqual([]);
 
     await component.selectFilter('REPLIED');
 

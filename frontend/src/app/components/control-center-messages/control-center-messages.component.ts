@@ -12,7 +12,7 @@ import {
 } from '../../services/contact-admin.service';
 
 type MessageFilterId = 'ALL' | ContactMessageStatus;
-const INBOX_STATUSES: ContactMessageStatus[] = ['NEW', 'READ', 'REPLIED'];
+const INBOX_STATUSES: ContactMessageStatus[] = ['NEW'];
 
 @Component({
   selector: 'app-control-center-messages',
@@ -46,7 +46,6 @@ export class ControlCenterMessagesComponent {
       ? {
           filters: [
             { id: 'ALL' as const, label: 'Bandeja de entrada' },
-            { id: 'NEW' as const, label: 'Nuevos' },
             { id: 'READ' as const, label: 'Leidos' },
             { id: 'REPLIED' as const, label: 'Respondidos' },
             { id: 'ARCHIVED' as const, label: 'Archivados' },
@@ -99,7 +98,6 @@ export class ControlCenterMessagesComponent {
       : {
           filters: [
             { id: 'ALL' as const, label: 'Inbox' },
-            { id: 'NEW' as const, label: 'New' },
             { id: 'READ' as const, label: 'Read' },
             { id: 'REPLIED' as const, label: 'Replied' },
             { id: 'ARCHIVED' as const, label: 'Archived' },
@@ -216,7 +214,7 @@ export class ControlCenterMessagesComponent {
     await this.loadMessages(false);
   }
 
-  async selectMessage(messageId: string, clearFeedback = true): Promise<void> {
+  async selectMessage(messageId: string, clearFeedback = true, markOpenedAsRead = true): Promise<void> {
     if (clearFeedback) {
       this.actionFeedback.set(null);
     }
@@ -236,6 +234,10 @@ export class ControlCenterMessagesComponent {
       this.replyOpen.set(false);
       this.replyForm.markAsPristine();
       this.replyForm.markAsUntouched();
+
+      if (markOpenedAsRead && this.selectedMessage()?.status === 'NEW') {
+        await this.markOpenedMessageAsRead(messageId);
+      }
     } catch (error) {
       this.selectedMessage.set(null);
       this.listError.set(this.resolveErrorMessage(error));
@@ -441,7 +443,19 @@ export class ControlCenterMessagesComponent {
       return;
     }
 
-    await this.selectMessage(nextId, false);
+    await this.selectMessage(nextId, false, false);
+  }
+
+  private async markOpenedMessageAsRead(messageId: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.contactAdminService.updateStatus(messageId, 'READ'));
+      if (response?.data && this.selectedMessageId() === messageId) {
+        this.selectedMessage.set(response.data);
+        this.patchSummary(response.data);
+      }
+    } catch (error) {
+      this.actionFeedback.set(this.resolveErrorMessage(error));
+    }
   }
 
   private resolveErrorMessage(error: unknown): string {
