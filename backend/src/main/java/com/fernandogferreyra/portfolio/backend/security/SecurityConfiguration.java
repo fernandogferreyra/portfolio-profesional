@@ -36,6 +36,7 @@ public class SecurityConfiguration {
                 .requestMatchers(
                     "/api/health",
                     "/api/contact",
+                    "/api/content-blocks",
                     "/api/projects",
                     "/api/events",
                     "/api/quote",
