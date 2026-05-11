@@ -62,21 +62,22 @@ Estado al 2026-05-11.
 - El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
 - Faltan ampliar el CMS editable del sitio publico mas alla de `projects`, asociar documentos a superficies concretas, abrir descarga controlada cuando haga falta, notas/uploads internos, `Paginas amigas`, PWA e integracion futura de bot/asistente.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
-- `release-please` ya esta configurado, pero todavia no debe considerarse el motor central del flujo diario hasta que el camino `develop -> main` quede mas rutinario.
-- El PR automatico `#38 chore: release main` fue detectado con rutas de changelog incorrectas (`frontend/frontend/CHANGELOG.md`, `backend/backend/CHANGELOG.md`). La correccion vigente debe usar `changelog-path: CHANGELOG.md` dentro de cada package de `release-please`; cerrar/regenerar ese PR antes de cualquier merge de release.
+- `release-please` ya pudo generar un PR limpio despues de corregir `changelog-path`: el PR `#42 chore: release main` actualizo `frontend/CHANGELOG.md`, `backend/CHANGELOG.md`, versiones y manifest sin rutas duplicadas.
+- Despues de mergear un PR de `release-please` hacia `main`, sincronizar siempre esa metadata de release de vuelta a `develop` antes de abrir features nuevas o promover de nuevo.
 
 ## 5. Proximos pasos recomendados
 
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
-- Mantener la nueva vista expandida de `Skills` como mejora frontend-only nacida desde `develop`, sin reintroducir logica en backend para esta etapa.
-- Cerrar `feature/inbox-ui-polish` con revision visual desktop/mobile y PR hacia `develop`; no requiere cambios backend porque reutiliza el endpoint oficial de estado de `Mensajeria`.
+- Crear `feature/public-content-cms-foundation-v2` desde `develop` despues de sincronizar la metadata de release y ampliar el CMS editable publico mas alla de `projects`.
+- Mantener la nueva vista expandida de `Skills` como mejora frontend-only ya integrada, sin reintroducir logica en backend para esta etapa.
+- Mantener `feature/inbox-ui-polish` como etapa ya integrada; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - Mantener `feature/messaging-inbox-client` como etapa ya absorbida en `develop`; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - En deploy productivo, revalidar entrega real de email de `Mensajeria` con provider activo, secretos, `PORTFOLIO_ALLOWED_ORIGINS`, `PORTFOLIO_CONTACT_FROM` y dominio/remitente verificado.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
 - Despues decidir si la siguiente rama funcional conviene que sea asociacion de documentos a `projects`, descarga controlada de documentos o base de notas/uploads internos sobre esta foundation.
-- Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main`.
-- Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas.
+- Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main` y esperar CI/CD verde antes de mergear.
+- Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas; despues devolver manifest/changelogs/versiones a `develop`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 
 ## 6. CI y validacion
