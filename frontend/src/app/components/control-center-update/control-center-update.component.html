@@ -140,5 +140,81 @@
         </article>
       </div>
     </section>
+
+    <section class="update-workspace__documents">
+      <div class="update-workspace__documents-header">
+        <div>
+          <p class="section-eyebrow">CMS</p>
+          <h4>{{ content().contentBlocksTitle }}</h4>
+        </div>
+      </div>
+
+      <p class="update-workspace__hint">{{ content().contentBlocksLead }}</p>
+      <p class="update-workspace__feedback" *ngIf="contentBlockFeedback()">{{ contentBlockFeedback() }}</p>
+      <p class="update-workspace__state" *ngIf="!contentBlocks().length">{{ content().contentBlocksEmpty }}</p>
+
+      <div class="update-workspace__content-grid" *ngIf="contentBlocks().length">
+        <div class="update-workspace__list update-workspace__list--compact">
+          <button
+            type="button"
+            class="update-workspace__item motion-control"
+            *ngFor="let block of contentBlocks(); trackBy: trackContentBlockById"
+            [class.is-active]="selectedContentBlockId() === block.id"
+            (click)="selectContentBlock(block)"
+          >
+            <div class="update-workspace__item-top">
+              <strong>{{ block.key }}</strong>
+              <span>{{ block.language }}</span>
+            </div>
+            <span>{{ block.title }}</span>
+            <small>#{{ block.displayOrder }} · {{ block.published ? content().published : content().draft }}</small>
+          </button>
+        </div>
+
+        <form class="update-workspace__form" [formGroup]="contentBlockForm" (ngSubmit)="submitContentBlock()" *ngIf="selectedContentBlock() as block">
+          <label class="update-workspace__field">
+            <span>{{ content().contentBlockKey }}</span>
+            <input type="text" [value]="block.key" disabled />
+          </label>
+
+          <label class="update-workspace__field">
+            <span>{{ content().contentBlockLanguage }}</span>
+            <input type="text" [value]="block.language" disabled />
+          </label>
+
+          <label class="update-workspace__field update-workspace__field--full">
+            <span>{{ content().name }}</span>
+            <input type="text" formControlName="title" />
+          </label>
+
+          <label class="update-workspace__field update-workspace__field--full">
+            <span>{{ content().contentBlockBody }}</span>
+            <textarea rows="4" formControlName="body"></textarea>
+          </label>
+
+          <label class="update-workspace__field update-workspace__field--full">
+            <span>{{ content().contentBlockItems }}</span>
+            <textarea rows="5" formControlName="items"></textarea>
+            <small>{{ content().contentBlockItemsHint }}</small>
+          </label>
+
+          <label class="update-workspace__field">
+            <span>{{ content().displayOrder }}</span>
+            <input type="number" formControlName="displayOrder" />
+          </label>
+
+          <label class="update-workspace__toggle">
+            <input type="checkbox" formControlName="published" />
+            <span>{{ content().published }}</span>
+          </label>
+
+          <div class="update-workspace__actions update-workspace__field--full">
+            <button type="submit" class="update-workspace__primary motion-control" [disabled]="saving()">
+              {{ content().save }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
   </section>
 </section>

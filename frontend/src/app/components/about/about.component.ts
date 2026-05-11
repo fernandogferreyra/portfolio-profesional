@@ -1,7 +1,9 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
 import { translations } from '../../i18n/translations';
 import { LanguageService } from '../../services/language.service';
+import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
 
 @Component({
   selector: 'app-about',
@@ -11,30 +13,28 @@ import { LanguageService } from '../../services/language.service';
 })
 export class AboutComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly publicContentService = inject(PublicContentService);
 
   readonly currentLanguage = this.languageService.language;
+  readonly contentBlocks = signal<PublicContentBlock[]>([]);
   readonly content = computed(() => {
     const language = this.currentLanguage();
     const baseContent = translations[language].about;
+    const heroBlock = this.contentBlock('about.hero');
+    const storyBlock = this.contentBlock('about.story');
 
     return language === 'es'
       ? {
           ...baseContent,
           eyebrow: 'Fullstack Developer | Backend-focused',
-          heroTitle:
-            'Experiencia técnica construida desde electrónica, hardware y diagnóstico de sistemas, hoy aplicada al desarrollo fullstack con foco en backend.',
-          heroLead:
-            'Desarrollador fullstack con foco en backend. Mi recorrido en electrónica, hardware y diagnóstico me dio una base técnica que hoy aplico en APIs, integraciones, arquitectura y desarrollo de software.',
+          heroTitle: heroBlock?.title ?? 'Experiencia técnica construida desde electrónica, hardware y diagnóstico de sistemas, hoy aplicada al desarrollo fullstack con foco en backend.',
+          heroLead: heroBlock?.body ?? 'Desarrollador fullstack con foco en backend. Mi recorrido en electrónica, hardware y diagnóstico me dio una base técnica que hoy aplico en APIs, integraciones, arquitectura y desarrollo de software.',
+          heroBadges: this.blockItems(heroBlock, baseContent.heroBadges),
           summaryDescription:
             'Combino formación en programación, experiencia técnica de campo y foco actual en backend para construir servicios, APIs e integraciones con criterio de mantenimiento.',
-          storyTitle: 'Base técnica y transición al software',
-          storyDescription:
-            'Mi recorrido profesional comenzó en electrónica, hardware y diagnóstico de sistemas. Esa experiencia fue la base desde la que pasé al desarrollo de software.',
-          paragraphs: [
-            'Durante años trabajé en electrónica, reparación de hardware, soporte técnico y diagnóstico de fallas. Esa etapa me dio precisión técnica, método de análisis y una forma práctica de resolver problemas complejos.',
-            'Con esa base avancé hacia el desarrollo de software, completé la Tecnicatura Universitaria en Programación en UTN FRC y empecé a trabajar con Java, Spring Boot, .NET, Angular y bases de datos relacionales y no relacionales.',
-            'Hoy me posiciono como desarrollador fullstack con foco en backend. Trabajo en APIs, microservicios, integraciones y aplicaciones end-to-end, priorizando claridad técnica, mantenibilidad y escalabilidad.',
-          ],
+          storyTitle: storyBlock?.title ?? 'Base técnica y transición al software',
+          storyDescription: storyBlock?.body ?? 'Mi recorrido profesional comenzó en electrónica, hardware y diagnóstico de sistemas. Esa experiencia fue la base desde la que pasé al desarrollo de software.',
+          paragraphs: this.blockItems(storyBlock, baseContent.paragraphs),
           journey: [
             {
               title: 'Electrónica y hardware',
@@ -65,20 +65,14 @@ export class AboutComponent {
       : {
           ...baseContent,
           eyebrow: 'Fullstack Developer | Backend-focused',
-          heroTitle:
-            'Technical experience built through electronics, hardware, and systems diagnostics, now applied to fullstack development with a backend focus.',
-          heroLead:
-            'Fullstack developer with a backend focus. My background in electronics, hardware, and diagnostics gave me a technical foundation that I now apply to APIs, integrations, architecture, and software development.',
+          heroTitle: heroBlock?.title ?? 'Technical experience built through electronics, hardware, and systems diagnostics, now applied to fullstack development with a backend focus.',
+          heroLead: heroBlock?.body ?? 'Fullstack developer with a backend focus. My background in electronics, hardware, and diagnostics gave me a technical foundation that I now apply to APIs, integrations, architecture, and software development.',
+          heroBadges: this.blockItems(heroBlock, baseContent.heroBadges),
           summaryDescription:
             'I combine programming training, field technical experience, and a current backend focus to build services, APIs, and integrations with maintainability in mind.',
-          storyTitle: 'Technical foundation and transition into software',
-          storyDescription:
-            'My professional path started in electronics, hardware, and systems diagnostics. That experience became the foundation for my transition into software development.',
-          paragraphs: [
-            'I spent years working in electronics, hardware repair, technical support, and system diagnostics. That stage gave me technical precision, analytical discipline, and a practical way to approach complex problems.',
-            'With that foundation I moved into software development, completed the University Programming Technician degree at UTN FRC, and started building applications with Java, Spring Boot, .NET, Angular, and both relational and non-relational databases.',
-            'Today I work as a fullstack developer with a backend focus. I build APIs, microservices, integrations, and end-to-end applications while prioritizing technical clarity, maintainability, and scalability.',
-          ],
+          storyTitle: storyBlock?.title ?? 'Technical foundation and transition into software',
+          storyDescription: storyBlock?.body ?? 'My professional path started in electronics, hardware, and systems diagnostics. That experience became the foundation for my transition into software development.',
+          paragraphs: this.blockItems(storyBlock, baseContent.paragraphs),
           journey: [
             {
               title: 'Electronics and hardware',
@@ -161,4 +155,27 @@ export class AboutComponent {
           },
         ],
   );
+
+  constructor() {
+    void this.loadContentBlocks();
+  }
+
+  private async loadContentBlocks(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.publicContentService.listPublicContentBlocks());
+      this.contentBlocks.set(response?.data ?? []);
+    } catch {
+      this.contentBlocks.set([]);
+    }
+  }
+
+  private contentBlock(key: string): PublicContentBlock | null {
+    const language = this.currentLanguage();
+
+    return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
+  }
+
+  private blockItems(block: PublicContentBlock | null, fallback: string[]): string[] {
+    return block?.items?.length ? block.items : fallback;
+  }
 }

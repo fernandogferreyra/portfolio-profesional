@@ -162,6 +162,51 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void publicContentBlocksEndpointReturnsPublishedBlocks() throws Exception {
+        mockMvc.perform(get("/api/content-blocks"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].key").value("about.hero"))
+            .andExpect(jsonPath("$.data[0].language").value("es"));
+    }
+
+    @Test
+    void adminCanReadAndUpdatePublicContentBlocks() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        String responseBody = mockMvc.perform(get("/api/admin/content-blocks")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[0].key").value("about.hero"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String selectedId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(responseBody)
+            .path("data")
+            .get(0)
+            .path("id")
+            .asText();
+
+        mockMvc.perform(patch("/api/admin/content-blocks/{id}", selectedId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "title": "Editable public hero",
+                      "body": "Backend managed public copy.",
+                      "items": ["Backend", "CMS"],
+                      "published": true,
+                      "displayOrder": 8
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.title").value("Editable public hero"))
+            .andExpect(jsonPath("$.data.items", hasSize(2)))
+            .andExpect(jsonPath("$.data.displayOrder").value(8));
+    }
+
+    @Test
     void adminCanUploadAndListDocuments() throws Exception {
         String accessToken = loginAsAdmin();
 

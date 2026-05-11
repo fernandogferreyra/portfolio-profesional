@@ -6,6 +6,8 @@ import { firstValueFrom } from 'rxjs';
 import { DocumentAdminItem, DocumentAdminService } from '../../services/document-admin.service';
 import { LanguageService } from '../../services/language.service';
 import { ProjectAdminItem, ProjectAdminService } from '../../services/project-admin.service';
+import { PublicContentBlock } from '../../services/public-content.service';
+import { PublicContentAdminService } from '../../services/public-content-admin.service';
 
 @Component({
   selector: 'app-control-center-update',
@@ -17,6 +19,7 @@ export class ControlCenterUpdateComponent {
   private readonly languageService = inject(LanguageService);
   private readonly documentAdminService = inject(DocumentAdminService);
   private readonly projectAdminService = inject(ProjectAdminService);
+  private readonly publicContentAdminService = inject(PublicContentAdminService);
   private readonly formBuilder = inject(FormBuilder);
 
   readonly currentLanguage = this.languageService.language;
@@ -26,12 +29,18 @@ export class ControlCenterUpdateComponent {
   readonly error = signal<string | null>(null);
   readonly feedback = signal<string | null>(null);
   readonly documentFeedback = signal<string | null>(null);
+  readonly contentBlockFeedback = signal<string | null>(null);
   readonly projects = signal<ProjectAdminItem[]>([]);
   readonly documents = signal<DocumentAdminItem[]>([]);
+  readonly contentBlocks = signal<PublicContentBlock[]>([]);
   readonly selectedProjectId = signal<string | null>(null);
+  readonly selectedContentBlockId = signal<string | null>(null);
   readonly selectedDocumentPurpose = signal('cv');
   readonly selectedProject = computed(
     () => this.projects().find((project) => project.id === this.selectedProjectId()) ?? null,
+  );
+  readonly selectedContentBlock = computed(
+    () => this.contentBlocks().find((block) => block.id === this.selectedContentBlockId()) ?? null,
   );
   readonly categoryOptions = ['distributed_platform', 'frontend_system', 'certification', 'asset', 'quote'];
   readonly documentPurposeOptions = ['cv', 'support_file', 'project_reference', 'general_document'];
@@ -45,6 +54,13 @@ export class ControlCenterUpdateComponent {
     repositoryUrl: ['', [Validators.maxLength(400)]],
     displayOrder: [0, [Validators.min(0), Validators.max(999)]],
     featured: [false],
+    published: [true],
+  });
+  readonly contentBlockForm = this.formBuilder.nonNullable.group({
+    title: ['', [Validators.required, Validators.maxLength(220)]],
+    body: ['', [Validators.required, Validators.maxLength(5000)]],
+    items: ['', [Validators.maxLength(3000)]],
+    displayOrder: [0, [Validators.min(0), Validators.max(999)]],
     published: [true],
   });
 
@@ -80,6 +96,16 @@ export class ControlCenterUpdateComponent {
           documentsEmpty: 'Todavia no hay documentos cargados.',
           uploadSuccess: 'Documento subido.',
           uploadHint: 'Usa esta base para CVs, archivos de apoyo o futuras referencias del CMS. Tipos permitidos: PDF, JPG, PNG y WEBP.',
+          contentBlocksTitle: 'Bloques publicos',
+          contentBlocksLead: 'Hero, about, contacto y referencias publicas editables desde backend.',
+          contentBlocksEmpty: 'Todavia no hay bloques publicos cargados.',
+          contentBlockKey: 'Clave',
+          contentBlockLanguage: 'Idioma',
+          contentBlockBody: 'Cuerpo',
+          contentBlockItems: 'Items / lineas',
+          contentBlockItemsHint: 'Una linea por item. Sirve para badges, parrafos, disponibilidad o URL del CV.',
+          contentBlockSuccess: 'Bloque publico actualizado.',
+          draft: 'Borrador',
           requiredError: 'Completa los campos obligatorios antes de guardar.',
         }
       : {
@@ -112,12 +138,22 @@ export class ControlCenterUpdateComponent {
           documentsEmpty: 'There are no uploaded documents yet.',
           uploadSuccess: 'Document uploaded.',
           uploadHint: 'Use this base for CVs, support files, or future CMS references. Allowed types: PDF, JPG, PNG, and WEBP.',
+          contentBlocksTitle: 'Public blocks',
+          contentBlocksLead: 'Editable backend-driven hero, about, contact, and public reference blocks.',
+          contentBlocksEmpty: 'There are no public content blocks yet.',
+          contentBlockKey: 'Key',
+          contentBlockLanguage: 'Language',
+          contentBlockBody: 'Body',
+          contentBlockItems: 'Items / lines',
+          contentBlockItemsHint: 'One line per item. Used for badges, paragraphs, availability, or resume URL.',
+          contentBlockSuccess: 'Public content block updated.',
+          draft: 'Draft',
           requiredError: 'Complete the required fields before saving.',
         },
   );
 
   constructor() {
-    void Promise.all([this.loadProjects(), this.loadDocuments()]);
+    void Promise.all([this.loadProjects(), this.loadDocuments(), this.loadContentBlocks()]);
   }
 
   async selectProject(project: ProjectAdminItem): Promise<void> {
@@ -178,7 +214,9 @@ export class ControlCenterUpdateComponent {
       if (response?.data) {
         const updated = response.data;
         this.projects.update((projects) =>
-          projects.map((item) => (item.id === updated.id ? updated : item)).sort((left, right) => left.displayOrder - right.displayOrder),
+          projects
+            .map((item) => (item.id === updated.id ? updated : item))
+            .sort((left, right) => left.displayOrder - right.displayOrder),
         );
         await this.selectProject(updated);
       }
@@ -198,6 +236,70 @@ export class ControlCenterUpdateComponent {
     return item.id;
   }
 
+  trackContentBlockById(_: number, item: PublicContentBlock): string {
+    return item.id;
+  }
+
+  selectContentBlock(block: PublicContentBlock): void {
+    this.selectedContentBlockId.set(block.id);
+    this.contentBlockFeedback.set(null);
+    this.contentBlockForm.reset({
+      title: block.title,
+      body: block.body,
+      items: block.items.join('\n'),
+      displayOrder: block.displayOrder,
+      published: block.published,
+    });
+    this.contentBlockForm.markAsPristine();
+    this.contentBlockForm.markAsUntouched();
+  }
+
+  async submitContentBlock(): Promise<void> {
+    const block = this.selectedContentBlock();
+    if (!block || this.saving()) {
+      return;
+    }
+
+    if (this.contentBlockForm.invalid) {
+      this.contentBlockForm.markAllAsTouched();
+      this.contentBlockFeedback.set(this.content().requiredError);
+      return;
+    }
+
+    const value = this.contentBlockForm.getRawValue();
+    this.saving.set(true);
+    this.contentBlockFeedback.set(null);
+
+    try {
+      const response = await firstValueFrom(
+        this.publicContentAdminService.updateContentBlock(block.id, {
+          title: value.title.trim(),
+          body: value.body.trim(),
+          items: value.items
+            .split('\n')
+            .map((item) => item.trim())
+            .filter(Boolean),
+          displayOrder: Number(value.displayOrder),
+          published: value.published,
+        }),
+      );
+      if (response?.data) {
+        const updated = response.data;
+        this.contentBlocks.update((blocks) =>
+          blocks
+            .map((item) => (item.id === updated.id ? updated : item))
+            .sort((left, right) => left.displayOrder - right.displayOrder),
+        );
+        this.selectContentBlock(updated);
+      }
+      this.contentBlockFeedback.set(this.content().contentBlockSuccess);
+    } catch (error) {
+      this.contentBlockFeedback.set(this.resolveErrorMessage(error));
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
   async onDocumentSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement | null;
     const file = input?.files?.item(0) ?? null;
@@ -206,7 +308,7 @@ export class ControlCenterUpdateComponent {
     }
 
     this.uploadingDocument.set(true);
-      this.documentFeedback.set(null);
+    this.documentFeedback.set(null);
 
     try {
       const response = await firstValueFrom(this.documentAdminService.uploadDocument(file, this.selectedDocumentPurpose()));
@@ -264,6 +366,20 @@ export class ControlCenterUpdateComponent {
       this.documents.set(response?.data ?? []);
     } catch (error) {
       this.documentFeedback.set(this.resolveErrorMessage(error));
+    }
+  }
+
+  private async loadContentBlocks(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.publicContentAdminService.listContentBlocks());
+      const blocks = response?.data ?? [];
+      this.contentBlocks.set(blocks);
+
+      if (blocks.length) {
+        this.selectContentBlock(blocks[0]);
+      }
+    } catch (error) {
+      this.contentBlockFeedback.set(this.resolveErrorMessage(error));
     }
   }
 

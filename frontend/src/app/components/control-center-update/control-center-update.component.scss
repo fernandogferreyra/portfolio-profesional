@@ -20,6 +20,18 @@
   gap: 0.8rem;
 }
 
+.update-workspace__content-grid {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.42fr) minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.update-workspace__list--compact {
+  max-height: 34rem;
+  overflow: auto;
+}
+
 .update-workspace__sidebar,
 .update-workspace__detail {
   padding: 0.9rem;
@@ -200,6 +212,10 @@
   }
 
   .update-workspace__form {
+    grid-template-columns: 1fr;
+  }
+
+  .update-workspace__content-grid {
     grid-template-columns: 1fr;
   }
 
