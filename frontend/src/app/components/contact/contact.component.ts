@@ -9,6 +9,7 @@ import {
   ContactService,
 } from '../../services/contact.service';
 import { LanguageService } from '../../services/language.service';
+import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
 
 type ContactChannelIconId = 'email' | 'phone' | 'linkedin' | 'github' | 'document';
 type ContactFormControlName = 'name' | 'email' | 'context' | 'subject' | 'message';
@@ -40,9 +41,11 @@ export class ContactComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly languageService = inject(LanguageService);
   private readonly contactService = inject(ContactService);
+  private readonly publicContentService = inject(PublicContentService);
 
   readonly contactRecipient = 'fernandogabrielf@gmail.com';
   readonly currentLanguage = this.languageService.language;
+  readonly contentBlocks = signal<PublicContentBlock[]>([]);
   readonly formState = signal<ContactFormState>('idle');
   readonly serverMessage = signal('');
   readonly contactForm = this.formBuilder.nonNullable.group({
@@ -78,9 +81,8 @@ export class ContactComponent {
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Contacto',
-          title: 'Si queres conversar sobre una oportunidad o un proyecto, podemos hablar.',
-          intro:
-            'Estoy abierto a conversaciones profesionales sobre roles, colaboraciones y desarrollo de software. Abajo tenes los canales directos y la informacion que me ayuda a responder con contexto.',
+          title: this.contentBlock('contact.hero')?.title ?? 'Si queres conversar sobre una oportunidad o un proyecto, podemos hablar.',
+          intro: this.contentBlock('contact.hero')?.body ?? 'Estoy abierto a conversaciones profesionales sobre roles, colaboraciones y desarrollo de software. Abajo tenes los canales directos y la informacion que me ayuda a responder con contexto.',
           channelsTitle: 'Canales directos',
           channelsLead: 'Menu rapido para pasar del portfolio a conversacion, red profesional o codigo publico.',
           channelAction: 'Abrir canal',
@@ -112,9 +114,8 @@ export class ContactComponent {
         }
       : {
           eyebrow: 'Contact',
-          title: 'If you want to discuss an opportunity or a project, we can talk.',
-          intro:
-            'I am open to professional conversations about roles, collaborations, and software development work. Below you will find direct channels and the context that helps me respond clearly.',
+          title: this.contentBlock('contact.hero')?.title ?? 'If you want to discuss an opportunity or a project, we can talk.',
+          intro: this.contentBlock('contact.hero')?.body ?? 'I am open to professional conversations about roles, collaborations, and software development work. Below you will find direct channels and the context that helps me respond clearly.',
           channelsTitle: 'Direct channels',
           channelsLead: 'Quick menu to move from the portfolio into a conversation, professional network, or public code.',
           channelAction: 'Open channel',
@@ -190,10 +191,10 @@ export class ContactComponent {
             id: 'cv',
             icon: 'document',
             accent: '#eab308',
-            label: 'CV',
+            label: this.contentBlock('contact.cv')?.title ?? 'CV',
             value: 'Abrir CV',
-            note: 'Resumen profesional actualizado con experiencia, stack y proyectos relevantes.',
-            href: '/docs/cv-fernando-ferreyra.pdf',
+            note: this.contentBlock('contact.cv')?.body ?? 'Resumen profesional actualizado con experiencia, stack y proyectos relevantes.',
+            href: this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
           },
         ]
@@ -238,19 +239,26 @@ export class ContactComponent {
             id: 'cv',
             icon: 'document',
             accent: '#eab308',
-            label: 'Resume',
+            label: this.contentBlock('contact.cv')?.title ?? 'Resume',
             value: 'Open resume',
-            note: 'Updated professional summary with experience, stack, and relevant projects.',
-            href: '/docs/cv-fernando-ferreyra.pdf',
+            note: this.contentBlock('contact.cv')?.body ?? 'Updated professional summary with experience, stack, and relevant projects.',
+            href: this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
           },
         ],
   );
   readonly availability = computed(() =>
-    this.currentLanguage() === 'es'
-      ? ['Oportunidades profesionales', 'Colaboracion tecnica', 'Proyectos freelance']
-      : ['Professional opportunities', 'Technical collaboration', 'Freelance projects'],
+    this.blockItems(
+      this.contentBlock('contact.hero'),
+      this.currentLanguage() === 'es'
+        ? ['Oportunidades profesionales', 'Colaboracion tecnica', 'Proyectos freelance']
+        : ['Professional opportunities', 'Technical collaboration', 'Freelance projects'],
+    ),
   );
+
+  constructor() {
+    void this.loadContentBlocks();
+  }
 
   hasHref(channel: ContactChannel): boolean {
     return Boolean(channel.href);
@@ -351,5 +359,24 @@ export class ContactComponent {
     }
 
     return this.ui().formErrorLabel;
+  }
+
+  private async loadContentBlocks(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.publicContentService.listPublicContentBlocks());
+      this.contentBlocks.set(response?.data ?? []);
+    } catch {
+      this.contentBlocks.set([]);
+    }
+  }
+
+  private contentBlock(key: string): PublicContentBlock | null {
+    const language = this.currentLanguage();
+
+    return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
+  }
+
+  private blockItems(block: PublicContentBlock | null, fallback: string[]): string[] {
+    return block?.items?.length ? block.items : fallback;
   }
 }
