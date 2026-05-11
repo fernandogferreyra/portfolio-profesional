@@ -113,6 +113,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/publiccontent/entity/PublicContentBlockEntity.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/PublicContentBlockController.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/admin/PublicContentBlockAdminController.java`
+- `backend/src/main/java/com/fernandogferreyra/portfolio/backend/security/SecurityConfiguration.java`
 - `frontend/src/app/services/public-content.service.ts`
 - `frontend/src/app/services/public-content-admin.service.ts`
 - `frontend/src/app/components/about/about.component.ts`
