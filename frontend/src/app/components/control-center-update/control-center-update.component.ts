@@ -97,6 +97,9 @@ export class ControlCenterUpdateComponent {
           documentsEmpty: 'Todavia no hay documentos cargados.',
           uploadSuccess: 'Documento subido.',
           uploadHint: 'Usa esta base para CVs, archivos de apoyo o futuras referencias del CMS. Tipos permitidos: PDF, JPG, PNG y WEBP.',
+          useDocumentInBlock: 'Usar en bloque',
+          selectedDocumentInBlock: 'Seleccionado',
+          documentSelectedForBlock: 'Seleccionado para este bloque. Guarda el CMS para publicar el cambio.',
           contentBlocksTitle: 'Bloques publicos',
           contentBlocksLead: 'Hero, about, contacto y referencias publicas editables desde backend.',
           contentBlocksEmpty: 'Todavia no hay bloques publicos cargados.',
@@ -107,6 +110,8 @@ export class ControlCenterUpdateComponent {
           contentBlockItemsHint: 'Una linea por item. Sirve para badges, parrafos, disponibilidad o URL del CV.',
           contentBlockDocument: 'Documento asociado',
           contentBlockNoDocument: 'Sin documento',
+          contentBlockDocumentHelp: 'Seleccionar o sacar un documento no se publica hasta guardar cambios del bloque CMS.',
+          clearContentBlockDocument: 'Sacar documento',
           contentBlockSuccess: 'Bloque publico actualizado.',
           draft: 'Borrador',
           requiredError: 'Completa los campos obligatorios antes de guardar.',
@@ -141,6 +146,9 @@ export class ControlCenterUpdateComponent {
           documentsEmpty: 'There are no uploaded documents yet.',
           uploadSuccess: 'Document uploaded.',
           uploadHint: 'Use this base for CVs, support files, or future CMS references. Allowed types: PDF, JPG, PNG, and WEBP.',
+          useDocumentInBlock: 'Use in block',
+          selectedDocumentInBlock: 'Selected',
+          documentSelectedForBlock: 'Selected for this block. Save the CMS block to publish the change.',
           contentBlocksTitle: 'Public blocks',
           contentBlocksLead: 'Editable backend-driven hero, about, contact, and public reference blocks.',
           contentBlocksEmpty: 'There are no public content blocks yet.',
@@ -151,6 +159,8 @@ export class ControlCenterUpdateComponent {
           contentBlockItemsHint: 'One line per item. Used for badges, paragraphs, availability, or resume URL.',
           contentBlockDocument: 'Linked document',
           contentBlockNoDocument: 'No document',
+          contentBlockDocumentHelp: 'Selecting or removing a document is not published until you save the CMS block.',
+          clearContentBlockDocument: 'Remove document',
           contentBlockSuccess: 'Public content block updated.',
           draft: 'Draft',
           requiredError: 'Complete the required fields before saving.',
@@ -243,6 +253,26 @@ export class ControlCenterUpdateComponent {
 
   trackContentBlockById(_: number, item: PublicContentBlock): string {
     return item.id;
+  }
+
+  isDocumentSelectedForBlock(document: DocumentAdminItem): boolean {
+    return this.contentBlockForm.controls.documentId.value === document.id;
+  }
+
+  useDocumentInSelectedBlock(document: DocumentAdminItem): void {
+    if (!this.selectedContentBlock()) {
+      return;
+    }
+
+    this.contentBlockForm.controls.documentId.setValue(document.id);
+    this.contentBlockForm.markAsDirty();
+    this.contentBlockFeedback.set(this.content().documentSelectedForBlock);
+  }
+
+  clearContentBlockDocument(): void {
+    this.contentBlockForm.controls.documentId.setValue('');
+    this.contentBlockForm.markAsDirty();
+    this.contentBlockFeedback.set(this.content().contentBlockDocumentHelp);
   }
 
   selectContentBlock(block: PublicContentBlock): void {
