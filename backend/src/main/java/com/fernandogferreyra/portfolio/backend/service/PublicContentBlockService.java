@@ -1,5 +1,6 @@
 package com.fernandogferreyra.portfolio.backend.service;
 
+import com.fernandogferreyra.portfolio.backend.domain.documents.model.DocumentDownload;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockResponse;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockUpdateRequest;
 import java.util.List;
@@ -12,4 +13,6 @@ public interface PublicContentBlockService {
     List<PublicContentBlockResponse> getAdminBlocks();
 
     PublicContentBlockResponse updateBlock(UUID id, PublicContentBlockUpdateRequest request);
+
+    DocumentDownload downloadPublishedBlockDocument(String key, String language);
 }

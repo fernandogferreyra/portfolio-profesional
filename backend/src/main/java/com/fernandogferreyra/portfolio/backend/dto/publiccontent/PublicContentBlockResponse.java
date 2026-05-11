@@ -11,6 +11,8 @@ public record PublicContentBlockResponse(
     String title,
     String body,
     List<String> items,
+    UUID documentId,
+    String documentUrl,
     boolean published,
     int displayOrder,
     OffsetDateTime createdAt,

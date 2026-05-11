@@ -194,7 +194,7 @@ export class ContactComponent {
             label: this.contentBlock('contact.cv')?.title ?? 'CV',
             value: 'Abrir CV',
             note: this.contentBlock('contact.cv')?.body ?? 'Resumen profesional actualizado con experiencia, stack y proyectos relevantes.',
-            href: this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
+            href: this.contentBlock('contact.cv')?.documentUrl ?? this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
           },
         ]
@@ -242,7 +242,7 @@ export class ContactComponent {
             label: this.contentBlock('contact.cv')?.title ?? 'Resume',
             value: 'Open resume',
             note: this.contentBlock('contact.cv')?.body ?? 'Updated professional summary with experience, stack, and relevant projects.',
-            href: this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
+            href: this.contentBlock('contact.cv')?.documentUrl ?? this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
           },
         ],

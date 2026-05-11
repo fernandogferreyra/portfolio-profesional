@@ -198,6 +198,16 @@
             <small>{{ content().contentBlockItemsHint }}</small>
           </label>
 
+          <label class="update-workspace__field update-workspace__field--full">
+            <span>{{ content().contentBlockDocument }}</span>
+            <select formControlName="documentId">
+              <option value="">{{ content().contentBlockNoDocument }}</option>
+              <option *ngFor="let document of documents(); trackBy: trackDocumentById" [value]="document.id">
+                {{ document.originalFilename }} · {{ document.purpose }}
+              </option>
+            </select>
+          </label>
+
           <label class="update-workspace__field">
             <span>{{ content().displayOrder }}</span>
             <input type="number" formControlName="displayOrder" />

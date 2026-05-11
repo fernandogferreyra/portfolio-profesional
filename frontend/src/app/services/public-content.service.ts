@@ -9,6 +9,8 @@ export interface PublicContentBlock {
   title: string;
   body: string;
   items: string[];
+  documentId: string | null;
+  documentUrl: string | null;
   published: boolean;
   displayOrder: number;
   createdAt: string;
@@ -19,6 +21,7 @@ export interface PublicContentBlockUpdatePayload {
   title: string;
   body: string;
   items: string[];
+  documentId: string | null;
   published: boolean;
   displayOrder: number;
 }

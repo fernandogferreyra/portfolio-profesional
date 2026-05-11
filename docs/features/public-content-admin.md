@@ -12,6 +12,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - El backend expone bloques genericos de contenido publico con `GET /api/content-blocks` y `GET/PATCH /api/admin/content-blocks`.
 - `Actualizar` permite editar bloques bilingues para hero/about/contact y referencia de CV sin tocar codigo.
 - `About` y `Contact` consumen esos bloques desde backend con fallback local para no romper la UI si la API no responde.
+- Los bloques publicos pueden asociarse a un documento existente mediante `documentId`; la descarga publica se expone solo por bloque publicado con `GET /api/content-blocks/{key}/{language}/document`.
 - El detalle rico del portfolio publico todavia sigue viviendo en `frontend/src/app/data/portfolio.data.ts`.
 
 ## Flujo funcional
@@ -28,6 +29,8 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 10. Edita titulo, cuerpo, items, orden y visibilidad.
 11. El frontend envia `PATCH /api/admin/content-blocks/{id}`.
 12. `AboutComponent` y `ContactComponent` leen `GET /api/content-blocks` y aplican el contenido publicado por clave e idioma.
+13. Si el bloque tiene `documentId`, el frontend usa `documentUrl` para abrir el archivo asociado.
+14. El backend sirve ese archivo solo si el bloque esta publicado y el documento existe.
 
 ## Backend
 
@@ -36,6 +39,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `GET /api/admin/projects`
 - `PATCH /api/admin/projects/{id}`
 - `GET /api/content-blocks`
+- `GET /api/content-blocks/{key}/{language}/document`
 - `GET /api/admin/content-blocks`
 - `PATCH /api/admin/content-blocks/{id}`
 
@@ -45,6 +49,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `ProjectAdminUpdateRequest`
 - `PublicContentBlockResponse`
 - `PublicContentBlockUpdateRequest`
+- `DocumentDownload`
 
 ### Capas tocadas
 
@@ -59,6 +64,8 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `service/impl/PublicContentBlockServiceImpl`
 - `repository/publiccontent/PublicContentBlockRepository`
 - `mapper/publiccontent/PublicContentBlockMapper`
+- `service/StorageService`
+- `service/impl/LocalStorageServiceImpl`
 
 ### Reglas actuales
 
@@ -69,6 +76,8 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - Los bloques publicos se identifican por `content_key` + `language` y se siembran por Flyway.
 - La API admin de bloques edita registros existentes; no crea ni elimina todavia.
 - `items_json` guarda listas simples para badges, parrafos, disponibilidad o URL de CV.
+- `document_id` en `public_content_blocks` referencia a `documents(id)` y usa `ON DELETE SET NULL` para no romper bloques si se limpia metadata documental.
+- La descarga publica no expone `/api/documents/{id}` generico: se resuelve por bloque publicado para mantener control de superficie.
 
 ## Frontend
 
@@ -88,7 +97,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `displayOrder`
 - `featured`
 - `published`
-- bloques publicos: `title`, `body`, `items`, `displayOrder`, `published`
+- bloques publicos: `title`, `body`, `items`, `documentId`, `displayOrder`, `published`
 
 ### Limitaciones actuales
 
@@ -96,6 +105,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - No elimina proyectos.
 - No crea ni elimina bloques publicos.
 - No edita todavia media, descripcion larga, metricas ni secciones ricas.
+- No abre descarga publica generica para todos los documentos.
 - El detalle enriquecido del portfolio publico sigue fusionandose localmente en `ProjectsComponent`.
 - `Skills` todavia no consume el CMS; queda para una siguiente iteracion para evitar mezclar catalogo tecnico con copy editable.
 
@@ -110,6 +120,8 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `frontend/src/app/components/control-center-update/control-center-update.component.scss`
 - `frontend/src/app/services/project-admin.service.ts`
 - `backend/src/main/resources/db/migration/V11__public_content_blocks.sql`
+- `backend/src/main/resources/db/migration/V12__public_content_blocks_document_link.sql`
+- `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/documents/model/DocumentDownload.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/publiccontent/entity/PublicContentBlockEntity.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/PublicContentBlockController.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/admin/PublicContentBlockAdminController.java`
@@ -128,7 +140,8 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - Backend:
   - se agrego cobertura en `ApiIntegrationTest` para `GET/PATCH /api/admin/projects`
   - se agrego cobertura en `ApiIntegrationTest` para `GET /api/content-blocks` y `GET/PATCH /api/admin/content-blocks`
-  - en este entorno no se pudo ejecutar Maven por falta de `JAVA_HOME`
+  - se agrego cobertura para asociar un documento al bloque `contact.cv` y descargarlo via `GET /api/content-blocks/contact.cv/es/document`
+  - en este entorno no se pudo ejecutar Maven por falta de `JAVA_HOME`; la validacion backend queda para CI o entorno Java 17 operativo.
 
 ## Decisiones tecnicas
 
@@ -137,14 +150,16 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - No mover todavia el detalle rico del frontend a backend para no abrir una migracion grande en esta misma etapa.
 - Resolver el nuevo alcance con bloques genericos en vez de una tabla por seccion. Esto permite avanzar sobre hero/about/contact/CV sin reabrir una arquitectura vertical ni duplicar logica de render.
 - Mantener fallback local en frontend para que el sitio publico siga operativo si el endpoint de contenido no responde.
+- Asociar documentos por `documentId` dentro del bloque, en vez de guardar URLs publicas hardcodeadas en `items`.
+- Exponer descarga por bloque publicado y no por documento global para no abrir acceso publico accidental a todo el storage.
 
 ## Pendientes
 
 - Alta y baja de proyectos.
 - Edicion de media, acciones, metricas y contenido rico.
 - Conectar `Skills`, credenciales y links directos restantes a la misma base si el patron queda estable.
-- Conectar esta superficie con storage documental cuando exista `feature/document-storage-foundation`.
-- Asociar documentos subidos a bloques o superficies concretas, especialmente CV.
+- Mejorar UX de seleccion de documentos con filtros por `purpose`.
+- Evaluar descarga controlada con token o auditoria si el contenido deja de ser publico.
 
 ## Diagrama
 
@@ -162,4 +177,8 @@ flowchart LR
   SaveBlocks --> ContentDB[(public_content_blocks)]
   ContentDB --> PublicBlocks[GET /api/content-blocks]
   PublicBlocks --> AboutContact[About / Contact]
+  EditBlocks --> LinkDoc[Asociar documentId]
+  LinkDoc --> Documents[(documents)]
+  AboutContact --> Download[GET /api/content-blocks/key/lang/document]
+  Download --> Storage[(document storage)]
 ```

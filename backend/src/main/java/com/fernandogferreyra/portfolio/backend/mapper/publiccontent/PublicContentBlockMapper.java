@@ -26,6 +26,8 @@ public class PublicContentBlockMapper {
             entity.getTitle(),
             entity.getBody(),
             readItems(entity.getItemsJson()),
+            entity.getDocumentId(),
+            buildDocumentUrl(entity),
             entity.isPublished(),
             entity.getDisplayOrder(),
             entity.getCreatedAt(),
@@ -36,8 +38,17 @@ public class PublicContentBlockMapper {
         entity.setTitle(request.title().trim());
         entity.setBody(request.body().trim());
         entity.setItemsJson(writeItems(request.items()));
+        entity.setDocumentId(request.documentId());
         entity.setPublished(request.published());
         entity.setDisplayOrder(request.displayOrder());
+    }
+
+    private String buildDocumentUrl(PublicContentBlockEntity entity) {
+        if (entity.getDocumentId() == null) {
+            return null;
+        }
+
+        return "/api/content-blocks/" + entity.getContentKey() + "/" + entity.getLanguage() + "/document";
     }
 
     private List<String> readItems(String itemsJson) {

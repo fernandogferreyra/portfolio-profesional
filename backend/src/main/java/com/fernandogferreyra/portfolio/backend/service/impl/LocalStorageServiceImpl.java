@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,5 +28,17 @@ public class LocalStorageServiceImpl implements StorageService {
         Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
         return new StoredDocumentFile(storedFilename, basePath.relativize(targetPath).toString().replace('\\', '/'));
+    }
+
+    @Override
+    public Resource load(String storagePath) throws IOException {
+        Path basePath = documentStorageProperties.getBasePath();
+        Path targetPath = basePath.resolve(storagePath).normalize();
+
+        if (!targetPath.startsWith(basePath.normalize()) || !Files.exists(targetPath) || !Files.isRegularFile(targetPath)) {
+            throw new IOException("Stored document is not available");
+        }
+
+        return new UrlResource(targetPath.toUri());
     }
 }
