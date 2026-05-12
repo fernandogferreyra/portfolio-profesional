@@ -241,9 +241,21 @@
           </label>
 
           <div class="update-workspace__actions update-workspace__field--full">
+            <button
+              type="button"
+              class="update-workspace__secondary motion-control"
+              *ngIf="block.language === 'es'"
+              [disabled]="!canTranslateSelectedContentBlock() || translatingContentBlock() || saving()"
+              (click)="translateSelectedContentBlockToEnglish()"
+            >
+              {{ translatingContentBlock() ? content().translatingToEnglish : content().translateToEnglish }}
+            </button>
             <button type="submit" class="update-workspace__primary motion-control" [disabled]="saving()">
               {{ content().save }}
             </button>
+            <small class="update-workspace__action-hint" *ngIf="block.language === 'es'">
+              {{ content().translateToEnglishHelp }}
+            </small>
           </div>
         </form>
       </div>

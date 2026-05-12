@@ -39,6 +39,7 @@
 
 .update-workspace__lead,
 .update-workspace__hint,
+.update-workspace__action-hint,
 .update-workspace__field small,
 .update-workspace__state,
 .update-workspace__feedback,
@@ -174,6 +175,10 @@
 .update-workspace__secondary.is-active,
 .update-workspace__secondary:disabled {
   opacity: 0.72;
+}
+
+.update-workspace__action-hint {
+  flex: 1 1 100%;
 }
 
 .update-workspace__documents {
