@@ -27,6 +27,8 @@ Estado al 2026-05-11.
 - En `feature/inbox-ui-polish` la bandeja admin queda mas cerca del comportamiento de email real: `Bandeja de entrada` muestra solo mensajes no leidos (`NEW`), el filtro separado `Nuevos` sale de la UI y un mensaje `NEW` pasa a `READ` automaticamente solo cuando el usuario lo abre manualmente, desapareciendo de entrada y quedando en `Leidos`. La etapa tambien amplia el `Control Center` al ancho visual del header, reemplaza `Modulos privados` por una navegacion mas vistosa, mejora el login admin y rediseña `Contacto > Canales directos` como hub animado de menu social/comentarios con botones circulares, orbitas, pulso central y bubble de detalle.
 - `Actualizar` ya dejo de ser placeholder: existe una base editable minima para `projects` desde `Control Center`, con `GET/PATCH /api/admin/projects` y editor operativo de orden/copy/visibilidad.
 - En `feature/public-content-cms-foundation-v2`, `Actualizar` suma bloques publicos editables para hero/about/contact/CV: `GET /api/content-blocks`, `GET/PATCH /api/admin/content-blocks`, migracion `V11__public_content_blocks.sql` y consumo con fallback en `About` y `Contact`.
+- En `feature/cms-document-links`, los bloques publicos pueden asociar `documentId` y exponer descarga solo via bloque publicado (`GET /api/content-blocks/{key}/{language}/document`), preparando `contact.cv` para dejar de depender de una URL hardcodeada.
+- En `feature/cms-document-ux`, `Actualizar` mejora el flujo documental: cada documento puede marcarse con `Usar en bloque`, el bloque CMS permite `Sacar documento`, y la UI aclara que asociar/quitar requiere guardar el bloque para publicar el cambio.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
@@ -61,22 +63,23 @@ Estado al 2026-05-11.
 
 - Parte del historial reciente sigue repartido en ramas historicas, de backup o de higiene que deberian limpiarse cuando ya no aporten nada.
 - El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
-- Faltan conectar `Skills`, credenciales y documentos a superficies concretas del CMS, abrir descarga controlada cuando haga falta, notas/uploads internos, `Paginas amigas`, PWA e integracion futura de bot/asistente.
+- Faltan conectar `Skills` y credenciales al CMS, mejorar UX de documentos por `purpose`, abrir descarga controlada con auditoria/token si hace falta, notas/uploads internos, `Paginas amigas`, PWA e integracion futura de bot/asistente.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
-- `release-please` ya pudo generar un PR limpio despues de corregir `changelog-path`: el PR `#42 chore: release main` actualizo `frontend/CHANGELOG.md`, `backend/CHANGELOG.md`, versiones y manifest sin rutas duplicadas.
+- `release-please` ya pudo generar PRs limpios despues de corregir `changelog-path`: `#42` publico `frontend 0.1.0` / `backend 0.3.0` y `#46` publica `frontend 0.2.0` / `backend 0.4.0`, siempre con changelogs en rutas correctas.
 - Despues de mergear un PR de `release-please` hacia `main`, sincronizar siempre esa metadata de release de vuelta a `develop` antes de abrir features nuevas o promover de nuevo.
+- Los previews de Vercel usan `frontend/vercel.json` y reescriben `/api` hacia el backend productivo de Render. Si el frontend de un PR usa campos backend nuevos, el guardado real puede fallar/no persistir hasta que `main` y el backend productivo esten desplegados con esa API.
 
 ## 5. Proximos pasos recomendados
 
 - Trabajar desde `develop` con ramas cortas por alcance.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
-- Cerrar `feature/public-content-cms-foundation-v2` con PR hacia `develop` despues de validar CI; la etapa ya amplia el CMS editable publico mas alla de `projects` con bloques genericos.
+- Sincronizar la metadata de release `frontend 0.2.0` / `backend 0.4.0` de vuelta a `develop` antes de abrir la siguiente feature.
 - Mantener la nueva vista expandida de `Skills` como mejora frontend-only ya integrada, sin reintroducir logica en backend para esta etapa.
 - Mantener `feature/inbox-ui-polish` como etapa ya integrada; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - Mantener `feature/messaging-inbox-client` como etapa ya absorbida en `develop`; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - En deploy productivo, revalidar entrega real de email de `Mensajeria` con provider activo, secretos, `PORTFOLIO_ALLOWED_ORIGINS`, `PORTFOLIO_CONTACT_FROM` y dominio/remitente verificado.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
-- Despues decidir si la siguiente rama funcional conviene que sea asociacion de documentos a bloques/superficies publicas, conectar `Skills` al CMS o descarga controlada de documentos.
+- Cerrar `feature/cms-document-ux` con PR hacia `develop` para mejorar la asociacion/quita de documentos en CMS; despues decidir si conviene conectar `Skills` al CMS, credenciales o mejorar documentos por `purpose`.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main` y esperar CI/CD verde antes de mergear.
 - Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas; despues devolver manifest/changelogs/versiones a `develop`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.

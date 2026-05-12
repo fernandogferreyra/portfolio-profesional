@@ -136,7 +136,18 @@
             <strong>{{ document.originalFilename }}</strong>
             <small>{{ document.purpose }} · {{ document.contentType }} · {{ formatBytes(document.sizeBytes) }}</small>
           </div>
-          <small>{{ document.createdAt | date:'short' }}</small>
+          <div class="update-workspace__document-actions">
+            <small>{{ document.createdAt | date:'short' }}</small>
+            <button
+              type="button"
+              class="update-workspace__secondary motion-control"
+              [class.is-active]="isDocumentSelectedForBlock(document)"
+              [disabled]="!selectedContentBlock() || isDocumentSelectedForBlock(document)"
+              (click)="useDocumentInSelectedBlock(document)"
+            >
+              {{ isDocumentSelectedForBlock(document) ? content().selectedDocumentInBlock : content().useDocumentInBlock }}
+            </button>
+          </div>
         </article>
       </div>
     </section>
@@ -196,6 +207,27 @@
             <span>{{ content().contentBlockItems }}</span>
             <textarea rows="5" formControlName="items"></textarea>
             <small>{{ content().contentBlockItemsHint }}</small>
+          </label>
+
+          <label class="update-workspace__field update-workspace__field--full">
+            <span>{{ content().contentBlockDocument }}</span>
+            <div class="update-workspace__linked-document">
+              <select formControlName="documentId">
+                <option value="">{{ content().contentBlockNoDocument }}</option>
+                <option *ngFor="let document of documents(); trackBy: trackDocumentById" [value]="document.id">
+                  {{ document.originalFilename }} · {{ document.purpose }}
+                </option>
+              </select>
+              <button
+                type="button"
+                class="update-workspace__secondary motion-control"
+                [disabled]="!contentBlockForm.controls.documentId.value"
+                (click)="clearContentBlockDocument()"
+              >
+                {{ content().clearContentBlockDocument }}
+              </button>
+            </div>
+            <small>{{ content().contentBlockDocumentHelp }}</small>
           </label>
 
           <label class="update-workspace__field">
