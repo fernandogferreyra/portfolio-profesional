@@ -27,7 +27,6 @@
     <section class="surface-card contact-card contact-card--channels" aria-labelledby="contact-channels-title" appRevealOnScroll="left" [revealDelay]="90">
       <div class="section-heading">
         <h2 id="contact-channels-title" class="portfolio-section-title">{{ ui().channelsTitle }}</h2>
-        <p>{{ ui().channelsLead }}</p>
       </div>
 
       <div class="contact-social-menu" role="list">
@@ -110,7 +109,6 @@
         class="contact-form-shell"
         [formGroup]="contactForm"
         (ngSubmit)="submitContactForm()"
-        aria-describedby="contact-form-note"
         [attr.aria-busy]="isSubmitting()"
         novalidate
       >
@@ -164,7 +162,6 @@
         >
           {{ isSubmitting() ? ui().formSubmittingLabel : ui().formButtonLabel }}
         </button>
-        <p id="contact-form-note" class="contact-form-note">{{ ui().formNote }}</p>
       </form>
     </section>
   </div>

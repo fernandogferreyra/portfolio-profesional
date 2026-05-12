@@ -84,7 +84,6 @@ export class ContactComponent {
           title: this.contentBlock('contact.hero')?.title ?? 'Si queres conversar sobre una oportunidad o un proyecto, podemos hablar.',
           intro: this.contentBlock('contact.hero')?.body ?? 'Estoy abierto a conversaciones profesionales sobre roles, colaboraciones y desarrollo de software. Abajo tenes los canales directos y la informacion que me ayuda a responder con contexto.',
           channelsTitle: 'Canales directos',
-          channelsLead: 'Menu rapido para pasar del portfolio a conversacion, red profesional o codigo publico.',
           channelAction: 'Abrir canal',
           channelReference: 'Referencia directa',
           formTitle: 'Enviar mensaje',
@@ -108,8 +107,6 @@ export class ContactComponent {
           validationRequired: 'Este campo es obligatorio.',
           validationEmail: 'Ingresa un email valido.',
           validationTooLong: 'El contenido supera el maximo permitido.',
-          formNote:
-            'El formulario usa el endpoint real del backend para registrar el mensaje.',
           availabilityTitle: 'Disponibilidad',
         }
       : {
@@ -117,7 +114,6 @@ export class ContactComponent {
           title: this.contentBlock('contact.hero')?.title ?? 'If you want to discuss an opportunity or a project, we can talk.',
           intro: this.contentBlock('contact.hero')?.body ?? 'I am open to professional conversations about roles, collaborations, and software development work. Below you will find direct channels and the context that helps me respond clearly.',
           channelsTitle: 'Direct channels',
-          channelsLead: 'Quick menu to move from the portfolio into a conversation, professional network, or public code.',
           channelAction: 'Open channel',
           channelReference: 'Direct reference',
           formTitle: 'Send message',
@@ -141,8 +137,6 @@ export class ContactComponent {
           validationRequired: 'This field is required.',
           validationEmail: 'Enter a valid email address.',
           validationTooLong: 'The content exceeds the maximum allowed length.',
-          formNote:
-            'This form uses the real backend endpoint to register the message.',
           availabilityTitle: 'Availability',
         },
   );
@@ -151,23 +145,24 @@ export class ContactComponent {
   readonly channels = computed<ContactChannel[]>(() =>
     this.currentLanguage() === 'es'
       ? [
-          {
+          this.contactChannel('email', {
             id: 'email',
             icon: 'email',
             accent: '#ef4444',
             label: 'Gmail / Email',
             value: 'fernandogabrielf@gmail.com',
             note: 'Canal principal para oportunidades profesionales y conversaciones tecnicas.',
-          },
-          {
+            href: 'mailto:fernandogabrielf@gmail.com',
+          }),
+          this.contactChannel('phone', {
             id: 'phone',
             icon: 'phone',
             accent: '#22c55e',
             label: 'Telefono / WhatsApp',
             value: 'Disponible a pedido',
             note: 'Canal directo para intercambio rapido cuando el proceso ya requiere una conversacion mas puntual.',
-          },
-          {
+          }),
+          this.contactChannel('linkedin', {
             id: 'linkedin',
             icon: 'linkedin',
             accent: '#0a66c2',
@@ -176,8 +171,8 @@ export class ContactComponent {
             note: 'Perfil profesional para procesos formales, networking y seguimiento.',
             href: 'https://www.linkedin.com/in/fernando-ferreyra-40a126328',
             newTab: true,
-          },
-          {
+          }),
+          this.contactChannel('github', {
             id: 'github',
             icon: 'github',
             accent: '#94a3b8',
@@ -186,8 +181,8 @@ export class ContactComponent {
             note: 'Codigo, experimentos y decisiones tecnicas visibles en repositorios publicos.',
             href: 'https://github.com/fernandogferreyra',
             newTab: true,
-          },
-          {
+          }),
+          this.contactChannel('cv', {
             id: 'cv',
             icon: 'document',
             accent: '#eab308',
@@ -196,26 +191,27 @@ export class ContactComponent {
             note: this.contentBlock('contact.cv')?.body ?? 'Resumen profesional actualizado con experiencia, stack y proyectos relevantes.',
             href: this.contentBlock('contact.cv')?.documentUrl ?? this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
-          },
+          }),
         ]
       : [
-          {
+          this.contactChannel('email', {
             id: 'email',
             icon: 'email',
             accent: '#ef4444',
             label: 'Gmail / Email',
             value: 'fernandogabrielf@gmail.com',
             note: 'Primary channel for professional opportunities and technical conversations.',
-          },
-          {
+            href: 'mailto:fernandogabrielf@gmail.com',
+          }),
+          this.contactChannel('phone', {
             id: 'phone',
             icon: 'phone',
             accent: '#22c55e',
             label: 'Phone / WhatsApp',
             value: 'Available on request',
             note: 'Direct channel for faster communication once a process requires a more specific conversation.',
-          },
-          {
+          }),
+          this.contactChannel('linkedin', {
             id: 'linkedin',
             icon: 'linkedin',
             accent: '#0a66c2',
@@ -224,8 +220,8 @@ export class ContactComponent {
             note: 'Professional profile for formal processes, networking, and follow-up.',
             href: 'https://www.linkedin.com/in/fernando-ferreyra-40a126328',
             newTab: true,
-          },
-          {
+          }),
+          this.contactChannel('github', {
             id: 'github',
             icon: 'github',
             accent: '#94a3b8',
@@ -234,8 +230,8 @@ export class ContactComponent {
             note: 'Code, experiments, and visible technical decisions in public repositories.',
             href: 'https://github.com/fernandogferreyra',
             newTab: true,
-          },
-          {
+          }),
+          this.contactChannel('cv', {
             id: 'cv',
             icon: 'document',
             accent: '#eab308',
@@ -244,7 +240,7 @@ export class ContactComponent {
             note: this.contentBlock('contact.cv')?.body ?? 'Updated professional summary with experience, stack, and relevant projects.',
             href: this.contentBlock('contact.cv')?.documentUrl ?? this.contentBlock('contact.cv')?.items?.[0] ?? '/docs/cv-fernando-ferreyra.pdf',
             newTab: true,
-          },
+          }),
         ],
   );
   readonly availability = computed(() =>
@@ -374,6 +370,20 @@ export class ContactComponent {
     const language = this.currentLanguage();
 
     return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
+  }
+
+  private contactChannel(key: string, fallback: ContactChannel): ContactChannel {
+    const block = this.contentBlock(`contact.${key}`);
+    const value = key === 'cv' ? fallback.value : block?.items?.[0]?.trim() || fallback.value;
+    const href = block?.documentUrl ?? block?.items?.[1]?.trim() ?? (key === 'cv' ? block?.items?.[0]?.trim() : undefined) ?? fallback.href;
+
+    return {
+      ...fallback,
+      label: block?.title?.trim() || fallback.label,
+      value,
+      note: block?.body?.trim() || fallback.note,
+      href,
+    };
   }
 
   private blockItems(block: PublicContentBlock | null, fallback: string[]): string[] {

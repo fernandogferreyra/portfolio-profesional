@@ -31,6 +31,9 @@ Estado al 2026-05-11.
 - En `feature/cms-document-ux`, `Actualizar` mejora el flujo documental: cada documento puede marcarse con `Usar en bloque`, el bloque CMS permite `Sacar documento`, y la UI aclara que asociar/quitar requiere guardar el bloque para publicar el cambio.
 - En `feature/mistral-admin-ai-backend`, el backend incorpora la base admin de IA con Mistral dentro del monolito: `POST /api/admin/ai/translate`, `POST /api/admin/ai/chat`, variables `PORTFOLIO_MISTRAL_*` y llamada server-side sin exponer API key al frontend.
 - En `feature/mistral-admin-ai-frontend`, `Actualizar` permite generar automaticamente la version inglesa de un bloque CMS desde su version espanola usando `POST /api/admin/ai/translate`.
+- La promocion `#54` llevo la IA admin a `main` y GitHub/Vercel reporto deployment exitoso para `864e282c`; el codigo de `origin/main` contiene `Usar en bloque` y `Generar ingles con IA`, pero las URLs de Vercel consultadas devuelven `401` desde fuera y requieren validacion visual con sesion/alias correcto antes de mergear el release `#51`.
+- En `feature/update-cms-loading-resilience`, `Actualizar` deja de esconder Documentos y CMS cuando la carga de proyectos queda pendiente; el editor de proyectos queda con estado propio y los controles CMS/documentales pueden mostrarse aunque `/api/admin/projects` tarde o falle.
+- En la misma linea local se preparo la extension de CMS para canales de contacto: bloques `contact.email`, `contact.phone`, `contact.linkedin`, `contact.github` y `contact.cv`; Contact consume esos bloques, se eliminaron textos publicos que no aportaban, el login ya no muestra FERCHUZ como copy visible del modal, y la accion IA del CMS pasa a guardar el bloque actual y traducir al otro idioma.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
@@ -71,6 +74,9 @@ Estado al 2026-05-11.
 - `release-please` ya pudo generar PRs limpios despues de corregir `changelog-path`: `#42` publico `frontend 0.1.0` / `backend 0.3.0` y `#46` publica `frontend 0.2.0` / `backend 0.4.0`, siempre con changelogs en rutas correctas.
 - Despues de mergear un PR de `release-please` hacia `main`, sincronizar siempre esa metadata de release de vuelta a `develop` antes de abrir features nuevas o promover de nuevo.
 - Los previews de Vercel usan `frontend/vercel.json` y reescriben `/api` hacia el backend productivo de Render. Si el frontend de un PR usa campos backend nuevos, el guardado real puede fallar/no persistir hasta que `main` y el backend productivo esten desplegados con esa API.
+- El deployment GitHub/Vercel de `main` para `864e282c` figura en `success`, pero `webfetch` recibe `401` tanto en la URL reportada por el usuario como en la URL target del deployment; validar desde navegador autenticado o alias publico antes de asumir que produccion visual esta actualizada.
+- La captura `actualizar2.jpg` no muestra frontend viejo sino `Actualizar` bloqueado en `Cargando proyectos...`; la causa de UX era que Documentos y CMS estaban anidados bajo `*ngIf="selectedProject()"`.
+- El modelo actual de proyectos sigue siendo monolingue en backend; para resolver bien ES/EN en proyectos se necesita una etapa dedicada de contenido bilingue de proyectos. Como mitigacion inmediata, se prepara una migracion que corrige los summaries semilla en espanol para no mostrar ingles en la vista ES.
 
 ## 5. Proximos pasos recomendados
 
@@ -85,6 +91,9 @@ Estado al 2026-05-11.
 - Cerrar `feature/mistral-admin-ai-frontend` con PR hacia `develop`; despues promover `develop` a `main` y configurar `PORTFOLIO_MISTRAL_ENABLED=true` + `PORTFOLIO_MISTRAL_API_KEY` en Render para activar traduccion real.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main` y esperar CI/CD verde antes de mergear.
 - Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas; despues devolver manifest/changelogs/versiones a `develop`.
+- No mergear `#51 chore: release main` hasta confirmar visualmente que `Control Center > Actualizar` en el deployment correcto muestra `Usar en bloque` y `Generar ingles con IA`.
+- Integrar la correccion de resiliencia de carga de `Actualizar` si se confirma que Vercel puede quedar temporalmente en estado de proyectos pendientes.
+- Abrir una rama dedicada para `EditMode` visual: boton protegido por login, estado verde/rojo, vista publica intacta cuando esta desactivado y edicion contextual por seccion cuando esta activado. No mezclarlo con fixes de CMS/IA para evitar ampliar demasiado el alcance.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
 
 ## 6. CI y validacion
