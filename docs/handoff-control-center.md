@@ -29,6 +29,7 @@ Estado al 2026-05-11.
 - En `feature/public-content-cms-foundation-v2`, `Actualizar` suma bloques publicos editables para hero/about/contact/CV: `GET /api/content-blocks`, `GET/PATCH /api/admin/content-blocks`, migracion `V11__public_content_blocks.sql` y consumo con fallback en `About` y `Contact`.
 - En `feature/cms-document-links`, los bloques publicos pueden asociar `documentId` y exponer descarga solo via bloque publicado (`GET /api/content-blocks/{key}/{language}/document`), preparando `contact.cv` para dejar de depender de una URL hardcodeada.
 - En `feature/cms-document-ux`, `Actualizar` mejora el flujo documental: cada documento puede marcarse con `Usar en bloque`, el bloque CMS permite `Sacar documento`, y la UI aclara que asociar/quitar requiere guardar el bloque para publicar el cambio.
+- En `feature/mistral-admin-ai-backend`, el backend incorpora la base admin de IA con Mistral dentro del monolito: `POST /api/admin/ai/translate`, `POST /api/admin/ai/chat`, variables `PORTFOLIO_MISTRAL_*` y llamada server-side sin exponer API key al frontend.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
@@ -64,6 +65,7 @@ Estado al 2026-05-11.
 - Parte del historial reciente sigue repartido en ramas historicas, de backup o de higiene que deberian limpiarse cuando ya no aporten nada.
 - El commit local mas nuevo heredado de `feature/mensajeria` tiene un mensaje que no refleja bien su contenido real de email/configuracion.
 - Faltan conectar `Skills` y credenciales al CMS, mejorar UX de documentos por `purpose`, abrir descarga controlada con auditoria/token si hace falta, notas/uploads internos, `Paginas amigas`, PWA e integracion futura de bot/asistente.
+- `GestionAsistente` de OBRASMART queda como referencia funcional para bot/IA, pero el portfolio mantiene por ahora la integracion IA dentro del backend monolitico.
 - La build sigue cargando warnings de budgets en Angular aunque el flujo general ya compila.
 - `release-please` ya pudo generar PRs limpios despues de corregir `changelog-path`: `#42` publico `frontend 0.1.0` / `backend 0.3.0` y `#46` publica `frontend 0.2.0` / `backend 0.4.0`, siempre con changelogs en rutas correctas.
 - Despues de mergear un PR de `release-please` hacia `main`, sincronizar siempre esa metadata de release de vuelta a `develop` antes de abrir features nuevas o promover de nuevo.
@@ -79,7 +81,7 @@ Estado al 2026-05-11.
 - Mantener `feature/messaging-inbox-client` como etapa ya absorbida en `develop`; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - En deploy productivo, revalidar entrega real de email de `Mensajeria` con provider activo, secretos, `PORTFOLIO_ALLOWED_ORIGINS`, `PORTFOLIO_CONTACT_FROM` y dominio/remitente verificado.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
-- Cerrar `feature/cms-document-ux` con PR hacia `develop` para mejorar la asociacion/quita de documentos en CMS; despues decidir si conviene conectar `Skills` al CMS, credenciales o mejorar documentos por `purpose`.
+- Cerrar `feature/mistral-admin-ai-backend` con PR hacia `develop`; despues implementar el frontend de traduccion IA en rama separada y mantener el bot completo para cuando existan acciones CMS reales.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main` y esperar CI/CD verde antes de mergear.
 - Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas; despues devolver manifest/changelogs/versiones a `develop`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
