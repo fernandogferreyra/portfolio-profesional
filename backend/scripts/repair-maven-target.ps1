@@ -28,6 +28,14 @@ if (Test-Path $targetPath) {
 }
 
 if ($Verify) {
+    if ([string]::IsNullOrWhiteSpace($env:JAVA_HOME)) {
+        $defaultJdk = 'C:\Program Files\Java\jdk-17'
+        if (Test-Path $defaultJdk) {
+            $env:JAVA_HOME = $defaultJdk
+            Write-Host "JAVA_HOME was not set. Using detected JDK: $env:JAVA_HOME"
+        }
+    }
+
     Write-Host 'Running Maven process-resources verification...'
     Push-Location $backendRoot
     try {

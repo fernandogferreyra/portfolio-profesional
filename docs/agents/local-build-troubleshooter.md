@@ -59,6 +59,8 @@ backend\scripts\repair-maven-target.ps1
 
 Después, volver a importar/refrescar Maven en el IDE.
 
+El script intenta usar `C:\Program Files\Java\jdk-17` para la verificacion si `JAVA_HOME` no esta definido en la terminal. Para Eclipse/STS/VS Code Java, configurar tambien `JAVA_HOME` en el entorno del IDE o reiniciar el IDE despues de definirlo en Windows.
+
 ## Si Sigue Fallando
 
 1. Cerrar Eclipse/STS/VS Code Java extensions.
