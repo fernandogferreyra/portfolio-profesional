@@ -86,6 +86,18 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 ## Historial de cambios
 
 - Fecha: 2026-05-12
+  - Cambio: Se abrio `feature/update-cms-loading-resilience` para corregir la UX observada en `actualizar2.jpg`: la pantalla no estaba mostrando frontend viejo sino que quedaba en `Cargando proyectos...`, y como Documentos/CMS estaban dentro del bloque condicionado por `selectedProject()`, tambien desaparecian `Usar en bloque` y `Generar ingles con IA`. El template ahora mantiene el panel derecho visible, muestra un estado propio para el editor de proyectos y deja Documentos/CMS disponibles aunque `/api/admin/projects` tarde o falle.
+  - Archivos: `frontend/src/app/components/control-center-update/control-center-update.component.html`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Resolver el bloqueo con un cambio minimo de template, sin tocar contratos backend ni mover logica critica al frontend.
+  - Proximos pasos: Validar typecheck frontend, abrir PR a `develop`, promover nuevamente a `main` cuando este estable y luego recien continuar con `#51` si el release sigue limpio.
+
+- Fecha: 2026-05-12
+  - Cambio: Se verifico el estado posterior a la promocion `#54` hacia `main`. GitHub Actions muestra CI/CD verde para `864e282c`, el deployment GitHub/Vercel de Production figura en `success`, y `origin/main` contiene los controles esperados `Usar en bloque` y `Generar ingles con IA`. La URL abierta previamente y la URL target del deployment respondieron `401` desde `webfetch`, por lo que queda pendiente validacion visual desde navegador autenticado o alias publico correcto antes de mergear el release `#51`.
+  - Archivos: `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Tratar el problema como validacion de URL/deployment protegido o cacheado, no como ausencia de codigo en `main`. Mantener `#51 chore: release main` abierto hasta confirmar la UI desplegada correcta.
+  - Proximos pasos: Abrir el deployment correcto `https://fernandogf-7hifu3gug-fernandogabrielf-5922s-projects.vercel.app` o el alias publico de Vercel con sesion valida, hacer hard refresh/incognito si aplica, entrar a `/control-center > Actualizar`, seleccionar un bloque CMS `es` y confirmar los botones antes de mergear `#51`.
+
+- Fecha: 2026-05-12
   - Cambio: Se abrio `feature/mistral-admin-ai-frontend` para conectar el editor CMS con la traduccion Mistral backend. Se agrego `AdminAiService` en Angular y un boton `Generar ingles con IA` visible en bloques `es`, que traduce titulo, cuerpo e items y guarda el bloque `en` correspondiente desde el mismo editor. Validacion ejecutada: `npx tsc -p tsconfig.app.json --noEmit` OK, `npx tsc -p tsconfig.spec.json --noEmit` OK y `git diff --check` OK.
   - Archivos: `frontend/src/app/services/admin-ai.service.ts`, `frontend/src/app/components/control-center-update/control-center-update.component.ts`, `frontend/src/app/components/control-center-update/control-center-update.component.html`, `frontend/src/app/components/control-center-update/control-center-update.component.scss`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
   - Decision: Automatizar primero ES -> EN en bloques CMS y no crear todavia el bot conversacional completo. La traduccion guarda solo el bloque ingles; el bloque espanol se guarda manualmente para conservar control editorial.

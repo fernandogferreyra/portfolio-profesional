@@ -28,82 +28,96 @@
     </div>
   </section>
 
-  <section class="update-workspace__detail portfolio-subcard" *ngIf="selectedProject() as project">
-    <div class="update-workspace__header">
-      <div>
-        <p class="section-eyebrow">{{ content().detailTitle }}</p>
-        <h3 class="portfolio-card-title">{{ project.name }}</h3>
+  <section class="update-workspace__detail portfolio-subcard">
+    <ng-container *ngIf="selectedProject() as project; else projectEditorState">
+      <div class="update-workspace__header">
+        <div>
+          <p class="section-eyebrow">{{ content().detailTitle }}</p>
+          <h3 class="portfolio-card-title">{{ project.name }}</h3>
+        </div>
+        <div class="update-workspace__meta">
+          <small>{{ content().createdAt }}: {{ project.createdAt | date:'short' }}</small>
+          <small>{{ content().updatedAt }}: {{ project.updatedAt | date:'short' }}</small>
+        </div>
       </div>
-      <div class="update-workspace__meta">
-        <small>{{ content().createdAt }}: {{ project.createdAt | date:'short' }}</small>
-        <small>{{ content().updatedAt }}: {{ project.updatedAt | date:'short' }}</small>
+
+      <p class="update-workspace__hint">{{ content().formHint }}</p>
+
+      <form class="update-workspace__form" [formGroup]="projectForm" (ngSubmit)="submit()">
+        <label class="update-workspace__field">
+          <span>{{ content().slug }}</span>
+          <input type="text" formControlName="slug" />
+        </label>
+
+        <label class="update-workspace__field">
+          <span>{{ content().name }}</span>
+          <input type="text" formControlName="name" />
+        </label>
+
+        <label class="update-workspace__field">
+          <span>{{ content().year }}</span>
+          <input type="text" formControlName="year" />
+        </label>
+
+        <label class="update-workspace__field">
+          <span>{{ content().category }}</span>
+          <select formControlName="category">
+            <option *ngFor="let option of categoryOptions" [value]="option">{{ option }}</option>
+          </select>
+        </label>
+
+        <label class="update-workspace__field update-workspace__field--full">
+          <span>{{ content().summary }}</span>
+          <textarea rows="4" formControlName="summary"></textarea>
+        </label>
+
+        <label class="update-workspace__field update-workspace__field--full">
+          <span>{{ content().stack }}</span>
+          <input type="text" formControlName="stack" />
+          <small>{{ content().stackHint }}</small>
+        </label>
+
+        <label class="update-workspace__field update-workspace__field--full">
+          <span>{{ content().repositoryUrl }}</span>
+          <input type="url" formControlName="repositoryUrl" />
+        </label>
+
+        <label class="update-workspace__field">
+          <span>{{ content().displayOrder }}</span>
+          <input type="number" formControlName="displayOrder" />
+        </label>
+
+        <label class="update-workspace__toggle">
+          <input type="checkbox" formControlName="featured" />
+          <span>{{ content().featured }}</span>
+        </label>
+
+        <label class="update-workspace__toggle">
+          <input type="checkbox" formControlName="published" />
+          <span>{{ content().published }}</span>
+        </label>
+
+        <p class="update-workspace__feedback" *ngIf="feedback()">{{ feedback() }}</p>
+
+        <div class="update-workspace__actions">
+          <button type="submit" class="update-workspace__primary motion-control" [disabled]="saving()">
+            {{ content().save }}
+          </button>
+        </div>
+      </form>
+    </ng-container>
+
+    <ng-template #projectEditorState>
+      <div class="update-workspace__header">
+        <div>
+          <p class="section-eyebrow">{{ content().detailTitle }}</p>
+          <h3 class="portfolio-card-title">{{ content().listTitle }}</h3>
+        </div>
       </div>
-    </div>
-
-    <p class="update-workspace__hint">{{ content().formHint }}</p>
-
-    <form class="update-workspace__form" [formGroup]="projectForm" (ngSubmit)="submit()">
-      <label class="update-workspace__field">
-        <span>{{ content().slug }}</span>
-        <input type="text" formControlName="slug" />
-      </label>
-
-      <label class="update-workspace__field">
-        <span>{{ content().name }}</span>
-        <input type="text" formControlName="name" />
-      </label>
-
-      <label class="update-workspace__field">
-        <span>{{ content().year }}</span>
-        <input type="text" formControlName="year" />
-      </label>
-
-      <label class="update-workspace__field">
-        <span>{{ content().category }}</span>
-        <select formControlName="category">
-          <option *ngFor="let option of categoryOptions" [value]="option">{{ option }}</option>
-        </select>
-      </label>
-
-      <label class="update-workspace__field update-workspace__field--full">
-        <span>{{ content().summary }}</span>
-        <textarea rows="4" formControlName="summary"></textarea>
-      </label>
-
-      <label class="update-workspace__field update-workspace__field--full">
-        <span>{{ content().stack }}</span>
-        <input type="text" formControlName="stack" />
-        <small>{{ content().stackHint }}</small>
-      </label>
-
-      <label class="update-workspace__field update-workspace__field--full">
-        <span>{{ content().repositoryUrl }}</span>
-        <input type="url" formControlName="repositoryUrl" />
-      </label>
-
-      <label class="update-workspace__field">
-        <span>{{ content().displayOrder }}</span>
-        <input type="number" formControlName="displayOrder" />
-      </label>
-
-      <label class="update-workspace__toggle">
-        <input type="checkbox" formControlName="featured" />
-        <span>{{ content().featured }}</span>
-      </label>
-
-      <label class="update-workspace__toggle">
-        <input type="checkbox" formControlName="published" />
-        <span>{{ content().published }}</span>
-      </label>
-
-      <p class="update-workspace__feedback" *ngIf="feedback()">{{ feedback() }}</p>
-
-      <div class="update-workspace__actions">
-        <button type="submit" class="update-workspace__primary motion-control" [disabled]="saving()">
-          {{ content().save }}
-        </button>
-      </div>
-    </form>
+      <p class="update-workspace__state" *ngIf="loading()">{{ content().loading }}</p>
+      <p class="update-workspace__state update-workspace__state--error" *ngIf="!loading() && error()">{{ error() }}</p>
+      <p class="update-workspace__state" *ngIf="!loading() && !error()">{{ content().empty }}</p>
+    </ng-template>
 
     <section class="update-workspace__documents">
       <div class="update-workspace__documents-header">
