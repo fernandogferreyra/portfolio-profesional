@@ -36,3 +36,10 @@ app:
       - image/jpeg
       - image/png
       - image/webp
+  ai:
+    mistral:
+      enabled: ${PORTFOLIO_MISTRAL_ENABLED:false}
+      url: ${PORTFOLIO_MISTRAL_URL:https://api.mistral.ai/v1/chat/completions}
+      api-key: ${PORTFOLIO_MISTRAL_API_KEY:}
+      model: ${PORTFOLIO_MISTRAL_MODEL:mistral-small-latest}
+      timeout-seconds: ${PORTFOLIO_MISTRAL_TIMEOUT_SECONDS:20}
