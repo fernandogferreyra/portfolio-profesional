@@ -115,11 +115,11 @@ export class ControlCenterUpdateComponent {
           contentBlockNoDocument: 'Sin documento',
           contentBlockDocumentHelp: 'Seleccionar o sacar un documento no se publica hasta guardar cambios del bloque CMS.',
           clearContentBlockDocument: 'Sacar documento',
-          translateToEnglish: 'Generar ingles con IA',
-          translatingToEnglish: 'Generando ingles...',
-          translateToEnglishHelp: 'Edita el bloque en espanol y usa Mistral para actualizar automaticamente su version inglesa.',
-          translateToEnglishSuccess: 'Bloque ingles actualizado con IA. Guarda el bloque espanol si tambien cambiaste el original.',
-          translateToEnglishUnavailable: 'Este bloque no tiene version inglesa asociada.',
+          translateToEnglish: 'Guardar y traducir con IA',
+          translatingToEnglish: 'Guardando y traduciendo...',
+          translateToEnglishHelp: 'Guarda este bloque y actualiza automaticamente el otro idioma con IA.',
+          translateToEnglishSuccess: 'Bloque guardado y traduccion actualizada con IA.',
+          translateToEnglishUnavailable: 'Este bloque no tiene otro idioma asociado.',
           contentBlockSuccess: 'Bloque publico actualizado.',
           draft: 'Borrador',
           requiredError: 'Completa los campos obligatorios antes de guardar.',
@@ -169,11 +169,11 @@ export class ControlCenterUpdateComponent {
           contentBlockNoDocument: 'No document',
           contentBlockDocumentHelp: 'Selecting or removing a document is not published until you save the CMS block.',
           clearContentBlockDocument: 'Remove document',
-          translateToEnglish: 'Generate English with AI',
-          translatingToEnglish: 'Generating English...',
-          translateToEnglishHelp: 'Edit the Spanish block and use Mistral to automatically update its English version.',
-          translateToEnglishSuccess: 'English block updated with AI. Save the Spanish block if you also changed the source.',
-          translateToEnglishUnavailable: 'This block has no linked English version.',
+          translateToEnglish: 'Save and translate with AI',
+          translatingToEnglish: 'Saving and translating...',
+          translateToEnglishHelp: 'Saves this block and automatically updates the other language with AI.',
+          translateToEnglishSuccess: 'Block saved and translation updated with AI.',
+          translateToEnglishUnavailable: 'This block has no linked language version.',
           contentBlockSuccess: 'Public content block updated.',
           draft: 'Draft',
           requiredError: 'Complete the required fields before saving.',
@@ -270,7 +270,7 @@ export class ControlCenterUpdateComponent {
 
   canTranslateSelectedContentBlock(): boolean {
     const block = this.selectedContentBlock();
-    return Boolean(block && block.language === 'es' && this.findEnglishContentBlock(block));
+    return Boolean(block && this.findTranslationTargetContentBlock(block));
   }
 
   isDocumentSelectedForBlock(document: DocumentAdminItem): boolean {
@@ -357,8 +357,8 @@ export class ControlCenterUpdateComponent {
 
   async translateSelectedContentBlockToEnglish(): Promise<void> {
     const block = this.selectedContentBlock();
-    const englishBlock = block ? this.findEnglishContentBlock(block) : null;
-    if (!block || block.language !== 'es' || !englishBlock || this.translatingContentBlock()) {
+    const targetBlock = block ? this.findTranslationTargetContentBlock(block) : null;
+    if (!block || !targetBlock || this.translatingContentBlock()) {
       this.contentBlockFeedback.set(this.content().translateToEnglishUnavailable);
       return;
     }
@@ -376,6 +376,24 @@ export class ControlCenterUpdateComponent {
     this.contentBlockFeedback.set(null);
 
     try {
+      const sourceResponse = await firstValueFrom(
+        this.publicContentAdminService.updateContentBlock(block.id, {
+          title: value.title.trim(),
+          body: value.body.trim(),
+          items: sourceItems,
+          documentId: value.documentId || null,
+          displayOrder: Number(value.displayOrder),
+          published: value.published,
+        }),
+      );
+      if (sourceResponse?.data) {
+        this.contentBlocks.update((blocks) =>
+          blocks
+            .map((item) => (item.id === sourceResponse.data.id ? sourceResponse.data : item))
+            .sort((left, right) => left.displayOrder - right.displayOrder),
+        );
+      }
+
       const translatedTitle = await this.translateText(value.title, `${block.key} title`);
       const translatedBody = await this.translateText(value.body, `${block.key} body`);
       const translatedItems = sourceItems.length
@@ -383,13 +401,13 @@ export class ControlCenterUpdateComponent {
         : [];
 
       const response = await firstValueFrom(
-        this.publicContentAdminService.updateContentBlock(englishBlock.id, {
+        this.publicContentAdminService.updateContentBlock(targetBlock.id, {
           title: translatedTitle,
           body: translatedBody,
           items: translatedItems,
           documentId: value.documentId || null,
-          displayOrder: englishBlock.displayOrder,
-          published: value.published,
+          displayOrder: targetBlock.displayOrder,
+          published: targetBlock.published,
         }),
       );
 
@@ -492,8 +510,9 @@ export class ControlCenterUpdateComponent {
     }
   }
 
-  private findEnglishContentBlock(block: PublicContentBlock): PublicContentBlock | null {
-    return this.contentBlocks().find((item) => item.key === block.key && item.language === 'en') ?? null;
+  private findTranslationTargetContentBlock(block: PublicContentBlock): PublicContentBlock | null {
+    const targetLanguage = block.language === 'es' ? 'en' : 'es';
+    return this.contentBlocks().find((item) => item.key === block.key && item.language === targetLanguage) ?? null;
   }
 
   private parseContentBlockItems(items: string): string[] {
@@ -504,11 +523,14 @@ export class ControlCenterUpdateComponent {
   }
 
   private async translateText(text: string, context: string): Promise<string> {
+    const block = this.selectedContentBlock();
+    const sourceLanguage: 'es' | 'en' = block?.language === 'en' ? 'en' : 'es';
+    const targetLanguage: 'es' | 'en' = sourceLanguage === 'es' ? 'en' : 'es';
     const response = await firstValueFrom(
       this.adminAiService.translate({
         text: text.trim(),
-        sourceLanguage: 'es',
-        targetLanguage: 'en',
+        sourceLanguage,
+        targetLanguage,
         context,
       }),
     );
