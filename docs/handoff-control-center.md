@@ -30,6 +30,7 @@ Estado al 2026-05-11.
 - En `feature/cms-document-links`, los bloques publicos pueden asociar `documentId` y exponer descarga solo via bloque publicado (`GET /api/content-blocks/{key}/{language}/document`), preparando `contact.cv` para dejar de depender de una URL hardcodeada.
 - En `feature/cms-document-ux`, `Actualizar` mejora el flujo documental: cada documento puede marcarse con `Usar en bloque`, el bloque CMS permite `Sacar documento`, y la UI aclara que asociar/quitar requiere guardar el bloque para publicar el cambio.
 - En `feature/mistral-admin-ai-backend`, el backend incorpora la base admin de IA con Mistral dentro del monolito: `POST /api/admin/ai/translate`, `POST /api/admin/ai/chat`, variables `PORTFOLIO_MISTRAL_*` y llamada server-side sin exponer API key al frontend.
+- En `feature/mistral-admin-ai-frontend`, `Actualizar` permite generar automaticamente la version inglesa de un bloque CMS desde su version espanola usando `POST /api/admin/ai/translate`.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
@@ -81,7 +82,7 @@ Estado al 2026-05-11.
 - Mantener `feature/messaging-inbox-client` como etapa ya absorbida en `develop`; los ajustes nuevos de inbox deben continuar desde ramas cortas nacidas en `develop`.
 - En deploy productivo, revalidar entrega real de email de `Mensajeria` con provider activo, secretos, `PORTFOLIO_ALLOWED_ORIGINS`, `PORTFOLIO_CONTACT_FROM` y dominio/remitente verificado.
 - Validar con entorno Java operativo la nueva base `GET/POST /api/admin/documents`, incluyendo `purpose`, validacion de tipos/tamano y uploader/listado admin en `Actualizar`.
-- Cerrar `feature/mistral-admin-ai-backend` con PR hacia `develop`; despues implementar el frontend de traduccion IA en rama separada y mantener el bot completo para cuando existan acciones CMS reales.
+- Cerrar `feature/mistral-admin-ai-frontend` con PR hacia `develop`; despues promover `develop` a `main` y configurar `PORTFOLIO_MISTRAL_ENABLED=true` + `PORTFOLIO_MISTRAL_API_KEY` en Render para activar traduccion real.
 - Cuando `develop` acumule una integracion estable, abrir PR de `develop` hacia `main` y esperar CI/CD verde antes de mergear.
 - Antes de mergear cualquier PR automatico de `release-please`, verificar que los changelogs sean `frontend/CHANGELOG.md` y `backend/CHANGELOG.md`, sin rutas duplicadas; despues devolver manifest/changelogs/versiones a `develop`.
 - Borrar ramas de backup, higiene o features absorbidas una vez que ya no agreguen valor.
