@@ -208,6 +208,40 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void adminAiTranslateRequiresAuthentication() throws Exception {
+        mockMvc.perform(post("/api/admin/ai/translate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "text": "Resumen profesional",
+                      "sourceLanguage": "es",
+                      "targetLanguage": "en"
+                    }
+                    """))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adminAiTranslateReportsMissingProviderConfiguration() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        mockMvc.perform(post("/api/admin/ai/translate")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "text": "Resumen profesional",
+                      "sourceLanguage": "es",
+                      "targetLanguage": "en",
+                      "context": "Portfolio CMS"
+                    }
+                    """))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.message").value("AI provider is not configured"));
+    }
+
+    @Test
     void adminCanLinkDocumentToPublicContentBlockAndPublicCanDownloadIt() throws Exception {
         String accessToken = loginAsAdmin();
         MockMultipartFile file = new MockMultipartFile(

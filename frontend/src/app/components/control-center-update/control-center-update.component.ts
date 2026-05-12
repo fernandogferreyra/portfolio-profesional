@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
+import { AdminAiService } from '../../services/admin-ai.service';
 import { DocumentAdminItem, DocumentAdminService } from '../../services/document-admin.service';
 import { LanguageService } from '../../services/language.service';
 import { ProjectAdminItem, ProjectAdminService } from '../../services/project-admin.service';
@@ -18,6 +19,7 @@ import { PublicContentAdminService } from '../../services/public-content-admin.s
 export class ControlCenterUpdateComponent {
   private readonly languageService = inject(LanguageService);
   private readonly documentAdminService = inject(DocumentAdminService);
+  private readonly adminAiService = inject(AdminAiService);
   private readonly projectAdminService = inject(ProjectAdminService);
   private readonly publicContentAdminService = inject(PublicContentAdminService);
   private readonly formBuilder = inject(FormBuilder);
@@ -26,6 +28,7 @@ export class ControlCenterUpdateComponent {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly uploadingDocument = signal(false);
+  readonly translatingContentBlock = signal(false);
   readonly error = signal<string | null>(null);
   readonly feedback = signal<string | null>(null);
   readonly documentFeedback = signal<string | null>(null);
@@ -112,6 +115,11 @@ export class ControlCenterUpdateComponent {
           contentBlockNoDocument: 'Sin documento',
           contentBlockDocumentHelp: 'Seleccionar o sacar un documento no se publica hasta guardar cambios del bloque CMS.',
           clearContentBlockDocument: 'Sacar documento',
+          translateToEnglish: 'Generar ingles con IA',
+          translatingToEnglish: 'Generando ingles...',
+          translateToEnglishHelp: 'Edita el bloque en espanol y usa Mistral para actualizar automaticamente su version inglesa.',
+          translateToEnglishSuccess: 'Bloque ingles actualizado con IA. Guarda el bloque espanol si tambien cambiaste el original.',
+          translateToEnglishUnavailable: 'Este bloque no tiene version inglesa asociada.',
           contentBlockSuccess: 'Bloque publico actualizado.',
           draft: 'Borrador',
           requiredError: 'Completa los campos obligatorios antes de guardar.',
@@ -161,6 +169,11 @@ export class ControlCenterUpdateComponent {
           contentBlockNoDocument: 'No document',
           contentBlockDocumentHelp: 'Selecting or removing a document is not published until you save the CMS block.',
           clearContentBlockDocument: 'Remove document',
+          translateToEnglish: 'Generate English with AI',
+          translatingToEnglish: 'Generating English...',
+          translateToEnglishHelp: 'Edit the Spanish block and use Mistral to automatically update its English version.',
+          translateToEnglishSuccess: 'English block updated with AI. Save the Spanish block if you also changed the source.',
+          translateToEnglishUnavailable: 'This block has no linked English version.',
           contentBlockSuccess: 'Public content block updated.',
           draft: 'Draft',
           requiredError: 'Complete the required fields before saving.',
@@ -255,6 +268,11 @@ export class ControlCenterUpdateComponent {
     return item.id;
   }
 
+  canTranslateSelectedContentBlock(): boolean {
+    const block = this.selectedContentBlock();
+    return Boolean(block && block.language === 'es' && this.findEnglishContentBlock(block));
+  }
+
   isDocumentSelectedForBlock(document: DocumentAdminItem): boolean {
     return this.contentBlockForm.controls.documentId.value === document.id;
   }
@@ -334,6 +352,60 @@ export class ControlCenterUpdateComponent {
       this.contentBlockFeedback.set(this.resolveErrorMessage(error));
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  async translateSelectedContentBlockToEnglish(): Promise<void> {
+    const block = this.selectedContentBlock();
+    const englishBlock = block ? this.findEnglishContentBlock(block) : null;
+    if (!block || block.language !== 'es' || !englishBlock || this.translatingContentBlock()) {
+      this.contentBlockFeedback.set(this.content().translateToEnglishUnavailable);
+      return;
+    }
+
+    if (this.contentBlockForm.invalid) {
+      this.contentBlockForm.markAllAsTouched();
+      this.contentBlockFeedback.set(this.content().requiredError);
+      return;
+    }
+
+    const value = this.contentBlockForm.getRawValue();
+    const sourceItems = this.parseContentBlockItems(value.items);
+
+    this.translatingContentBlock.set(true);
+    this.contentBlockFeedback.set(null);
+
+    try {
+      const translatedTitle = await this.translateText(value.title, `${block.key} title`);
+      const translatedBody = await this.translateText(value.body, `${block.key} body`);
+      const translatedItems = sourceItems.length
+        ? this.parseContentBlockItems(await this.translateText(sourceItems.join('\n'), `${block.key} items. Keep one item per line.`))
+        : [];
+
+      const response = await firstValueFrom(
+        this.publicContentAdminService.updateContentBlock(englishBlock.id, {
+          title: translatedTitle,
+          body: translatedBody,
+          items: translatedItems,
+          documentId: value.documentId || null,
+          displayOrder: englishBlock.displayOrder,
+          published: value.published,
+        }),
+      );
+
+      if (response?.data) {
+        this.contentBlocks.update((blocks) =>
+          blocks
+            .map((item) => (item.id === response.data.id ? response.data : item))
+            .sort((left, right) => left.displayOrder - right.displayOrder),
+        );
+      }
+
+      this.contentBlockFeedback.set(this.content().translateToEnglishSuccess);
+    } catch (error) {
+      this.contentBlockFeedback.set(this.resolveErrorMessage(error));
+    } finally {
+      this.translatingContentBlock.set(false);
     }
   }
 
@@ -418,6 +490,30 @@ export class ControlCenterUpdateComponent {
     } catch (error) {
       this.contentBlockFeedback.set(this.resolveErrorMessage(error));
     }
+  }
+
+  private findEnglishContentBlock(block: PublicContentBlock): PublicContentBlock | null {
+    return this.contentBlocks().find((item) => item.key === block.key && item.language === 'en') ?? null;
+  }
+
+  private parseContentBlockItems(items: string): string[] {
+    return items
+      .split('\n')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  private async translateText(text: string, context: string): Promise<string> {
+    const response = await firstValueFrom(
+      this.adminAiService.translate({
+        text: text.trim(),
+        sourceLanguage: 'es',
+        targetLanguage: 'en',
+        context,
+      }),
+    );
+
+    return response.data.translatedText.trim();
   }
 
   private resolveErrorMessage(error: unknown): string {

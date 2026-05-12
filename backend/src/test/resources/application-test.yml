@@ -36,6 +36,13 @@ app:
       - image/jpeg
       - image/png
       - image/webp
+  ai:
+    mistral:
+      enabled: false
+      url: https://api.mistral.ai/v1/chat/completions
+      api-key:
+      model: mistral-small-latest
+      timeout-seconds: 2
   security:
     jwt:
       secret: ${PORTFOLIO_TEST_JWT_SECRET:${PORTFOLIO_JWT_SECRET:test-jwt-secret-key-with-minimum-length-1234567890}}
