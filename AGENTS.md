@@ -16,6 +16,7 @@
 - Continuar desde el estado actual sin reiniciar el analisis.
 - Trabajar con SDD liviano: primero spec, despues implementacion. No operar por intuicion o "vibe" cuando haya cambios funcionales.
 - Si aparece feedback nuevo durante una tarea, actualizar la spec/checklist de esa tarea antes de seguir codificando.
+- Ante errores locales de build/IDE, seguir `docs/agents/local-build-troubleshooter.md` antes de tocar dependencias o codigo funcional.
 
 ## Arquitectura obligatoria
 

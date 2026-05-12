@@ -86,6 +86,12 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 ## Historial de cambios
 
 - Fecha: 2026-05-12
+  - Cambio: Se agrego un agente/protocolo local de troubleshooting para errores de build e IDE y un script PowerShell seguro para reparar bloqueos de Maven en `backend/target`. Tambien se limpio localmente `backend/target`, resolviendo el archivo generado bloqueado que provocaba `maven-resources-plugin:resources ... AccessDeniedException` sobre `V11__public_content_blocks.sql`. La verificacion Maven desde Windows quedo bloqueada porque `JAVA_HOME` no esta configurado en este entorno.
+  - Archivos: `docs/agents/local-build-troubleshooter.md`, `backend/scripts/repair-maven-target.ps1`, `AGENTS.md`, `DOCUMENTATION.md`
+  - Decision: Clasificar este problema como bloqueo local de artefactos generados, no como error de dependencias Maven. El fix estandar pasa a ser limpiar `backend/target` con script y verificar con `mvnw.cmd -DskipTests process-resources` cuando `JAVA_HOME` exista.
+  - Proximos pasos: Configurar `JAVA_HOME` en Windows si se quiere validar Maven localmente desde terminal/IDE; si Eclipse vuelve a bloquear `target`, cerrar IDE/procesos Java y ejecutar `backend\scripts\repair-maven-target.ps1 -Verify`.
+
+- Fecha: 2026-05-12
   - Cambio: Se incorporo un modelo operativo SDD liviano para los agentes sin traer OpenSpec completo. `AGENTS.md` ahora obliga a leer `docs/agent-operating-model.md`, se formalizo el flujo intake -> spec -> implementacion -> verificacion -> revision -> cierre, y se agregaron templates reutilizables para feature specs, reportes de verificacion y revision adversarial.
   - Archivos: `AGENTS.md`, `docs/agent-operating-model.md`, `docs/templates/feature-spec.md`, `docs/templates/verification-report.md`, `docs/templates/adversarial-review.md`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
   - Decision: Adoptar SDD pragmatica y no vibe coding, manteniendo OpenSpec como opcion futura para proyectos nuevos si se decide sostener sus artefactos completos.
