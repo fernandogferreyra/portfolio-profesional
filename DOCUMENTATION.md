@@ -92,6 +92,18 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
   - Proximos pasos: Si se aprueba, commitear y pushear estos cambios al PR `#55`; luego integrar a `develop`, promover a `main`, validar guardado CMS/IA en Vercel y recien despues retomar `#51` si el release sigue limpio.
 
 - Fecha: 2026-05-12
+  - Cambio: Se agrego un agente/protocolo local de troubleshooting para errores de build e IDE y un script PowerShell seguro para reparar bloqueos de Maven en `backend/target`. Tambien se limpio localmente `backend/target`, resolviendo el archivo generado bloqueado que provocaba `maven-resources-plugin:resources ... AccessDeniedException` sobre `V11__public_content_blocks.sql`. La verificacion Maven desde Windows paso con `JAVA_HOME=C:\Program Files\Java\jdk-17` y `mvnw.cmd -DskipTests process-resources`.
+  - Archivos: `docs/agents/local-build-troubleshooter.md`, `backend/scripts/repair-maven-target.ps1`, `AGENTS.md`, `DOCUMENTATION.md`
+  - Decision: Clasificar este problema como bloqueo local de artefactos generados, no como error de dependencias Maven. El fix estandar pasa a ser limpiar `backend/target` con script y verificar con `mvnw.cmd -DskipTests process-resources` cuando `JAVA_HOME` exista.
+  - Proximos pasos: Configurar `JAVA_HOME` en Windows/IDE para evitar marcadores m2e falsos; si Eclipse vuelve a bloquear `target`, cerrar IDE/procesos Java y ejecutar `backend\scripts\repair-maven-target.ps1 -Verify`.
+
+- Fecha: 2026-05-12
+  - Cambio: Se incorporo un modelo operativo SDD liviano para los agentes sin traer OpenSpec completo. `AGENTS.md` ahora obliga a leer `docs/agent-operating-model.md`, se formalizo el flujo intake -> spec -> implementacion -> verificacion -> revision -> cierre, y se agregaron templates reutilizables para feature specs, reportes de verificacion y revision adversarial.
+  - Archivos: `AGENTS.md`, `docs/agent-operating-model.md`, `docs/templates/feature-spec.md`, `docs/templates/verification-report.md`, `docs/templates/adversarial-review.md`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Adoptar SDD pragmatica y no vibe coding, manteniendo OpenSpec como opcion futura para proyectos nuevos si se decide sostener sus artefactos completos.
+  - Proximos pasos: Usar este flujo para `EditMode`, storage persistente del CV y cierre de CMS antes de promover a `main`.
+
+- Fecha: 2026-05-12
   - Cambio: Se abrio `feature/update-cms-loading-resilience` para corregir la UX observada en `actualizar2.jpg`: la pantalla no estaba mostrando frontend viejo sino que quedaba en `Cargando proyectos...`, y como Documentos/CMS estaban dentro del bloque condicionado por `selectedProject()`, tambien desaparecian `Usar en bloque` y `Generar ingles con IA`. El template ahora mantiene el panel derecho visible, muestra un estado propio para el editor de proyectos y deja Documentos/CMS disponibles aunque `/api/admin/projects` tarde o falle.
   - Archivos: `frontend/src/app/components/control-center-update/control-center-update.component.html`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
   - Decision: Resolver el bloqueo con un cambio minimo de template, sin tocar contratos backend ni mover logica critica al frontend.
