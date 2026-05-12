@@ -13,7 +13,18 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `Actualizar` permite editar bloques bilingues para hero/about/contact y referencia de CV sin tocar codigo.
 - `About` y `Contact` consumen esos bloques desde backend con fallback local para no romper la UI si la API no responde.
 - Los bloques publicos pueden asociarse a un documento existente mediante `documentId`; la descarga publica se expone solo por bloque publicado con `GET /api/content-blocks/{key}/{language}/document`.
+- `Contact` consume canales directos editables por bloque: `contact.email`, `contact.phone`, `contact.linkedin`, `contact.github` y `contact.cv`.
 - El detalle rico del portfolio publico todavia sigue viviendo en `frontend/src/app/data/portfolio.data.ts`.
+
+## Spec vigente para Contact/CMS/IA
+
+- El bloque `contact.cv` solo controla el canal CV y su documento asociado.
+- Email, telefono, LinkedIn y GitHub deben poder editarse sin tocar codigo mediante bloques propios.
+- La UI publica no debe mostrar textos de implementacion interna como endpoints, backend real o instrucciones tecnicas.
+- El login privado no debe exponer `FERCHUZ` como copy visible ni placeholder.
+- En `Actualizar`, Documentos y CMS deben seguir visibles aunque la carga de proyectos quede pendiente o falle.
+- La accion IA debe guardar el bloque que se esta editando y traducir el otro idioma asociado por la misma `content_key`.
+- `EditMode` visual sobre paginas publicas queda fuera de este bugfix y requiere spec/PR propio.
 
 ## Flujo funcional
 
@@ -76,6 +87,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - Los bloques publicos se identifican por `content_key` + `language` y se siembran por Flyway.
 - La API admin de bloques edita registros existentes; no crea ni elimina todavia.
 - `items_json` guarda listas simples para badges, parrafos, disponibilidad o URL de CV.
+- En canales de contacto, `items_json[0]` representa el valor visible y `items_json[1]` el enlace accionable cuando aplique.
 - `document_id` en `public_content_blocks` referencia a `documents(id)` y usa `ON DELETE SET NULL` para no romper bloques si se limpia metadata documental.
 - La descarga publica no expone `/api/documents/{id}` generico: se resuelve por bloque publicado para mantener control de superficie.
 
@@ -98,6 +110,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `featured`
 - `published`
 - bloques publicos: `title`, `body`, `items`, `documentId`, `displayOrder`, `published`
+- canales de contacto via bloques: email, telefono, LinkedIn, GitHub y CV
 
 ### Limitaciones actuales
 
@@ -121,6 +134,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `frontend/src/app/services/project-admin.service.ts`
 - `backend/src/main/resources/db/migration/V11__public_content_blocks.sql`
 - `backend/src/main/resources/db/migration/V12__public_content_blocks_document_link.sql`
+- `backend/src/main/resources/db/migration/V13__contact_channel_blocks.sql`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/documents/model/DocumentDownload.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/domain/publiccontent/entity/PublicContentBlockEntity.java`
 - `backend/src/main/java/com/fernandogferreyra/portfolio/backend/controller/PublicContentBlockController.java`
@@ -130,12 +144,16 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `frontend/src/app/services/public-content-admin.service.ts`
 - `frontend/src/app/components/about/about.component.ts`
 - `frontend/src/app/components/contact/contact.component.ts`
+- `frontend/src/app/components/contact/contact.component.spec.ts`
+- `frontend/src/app/components/control-center-update/control-center-update.component.spec.ts`
+- `frontend/src/app/components/admin-login-modal/admin-login-modal.component.spec.ts`
 
 ## Validacion
 
 - Frontend:
   - `tsc -p frontend/tsconfig.app.json --noEmit`
   - `tsc -p frontend/tsconfig.spec.json --noEmit`
+  - specs de regresion para canales CMS de Contact, login sin `FERCHUZ`, resiliencia de carga en `Actualizar` y guardado/traduccion IA.
   - `npm test -- --watch=false --browsers=ChromeHeadless` queda bloqueado en WSL si `node_modules` fue instalado desde Windows por binario `@esbuild/win32-x64`.
 - Backend:
   - se agrego cobertura en `ApiIntegrationTest` para `GET/PATCH /api/admin/projects`
@@ -158,6 +176,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - Alta y baja de proyectos.
 - Edicion de media, acciones, metricas y contenido rico.
 - Conectar `Skills`, credenciales y links directos restantes a la misma base si el patron queda estable.
+- Implementar `EditMode` visual en una rama separada: toggle protegido por login, estado verde/rojo y edicion contextual por seccion sin alterar la vista visitante cuando este desactivado.
 - Mejorar UX de seleccion de documentos con filtros por `purpose`.
 - Evaluar descarga controlada con token o auditoria si el contenido deja de ser publico.
 
