@@ -86,6 +86,12 @@ Ademas queda formalizado el workflow Git nuevo del repo: `develop` pasa a ser la
 ## Historial de cambios
 
 - Fecha: 2026-05-12
+  - Cambio: Se incorporo un modelo operativo SDD liviano para los agentes sin traer OpenSpec completo. `AGENTS.md` ahora obliga a leer `docs/agent-operating-model.md`, se formalizo el flujo intake -> spec -> implementacion -> verificacion -> revision -> cierre, y se agregaron templates reutilizables para feature specs, reportes de verificacion y revision adversarial.
+  - Archivos: `AGENTS.md`, `docs/agent-operating-model.md`, `docs/templates/feature-spec.md`, `docs/templates/verification-report.md`, `docs/templates/adversarial-review.md`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
+  - Decision: Adoptar SDD pragmatica y no vibe coding, manteniendo OpenSpec como opcion futura para proyectos nuevos si se decide sostener sus artefactos completos.
+  - Proximos pasos: Usar este flujo para `EditMode`, storage persistente del CV y cierre de CMS antes de promover a `main`.
+
+- Fecha: 2026-05-12
   - Cambio: Se abrio `feature/mistral-admin-ai-frontend` para conectar el editor CMS con la traduccion Mistral backend. Se agrego `AdminAiService` en Angular y un boton `Generar ingles con IA` visible en bloques `es`, que traduce titulo, cuerpo e items y guarda el bloque `en` correspondiente desde el mismo editor. Validacion ejecutada: `npx tsc -p tsconfig.app.json --noEmit` OK, `npx tsc -p tsconfig.spec.json --noEmit` OK y `git diff --check` OK.
   - Archivos: `frontend/src/app/services/admin-ai.service.ts`, `frontend/src/app/components/control-center-update/control-center-update.component.ts`, `frontend/src/app/components/control-center-update/control-center-update.component.html`, `frontend/src/app/components/control-center-update/control-center-update.component.scss`, `DOCUMENTATION.md`, `docs/handoff-control-center.md`
   - Decision: Automatizar primero ES -> EN en bloques CMS y no crear todavia el bot conversacional completo. La traduccion guarda solo el bloque ingles; el bloque espanol se guarda manualmente para conservar control editorial.

@@ -10,6 +10,7 @@ Estado al 2026-05-11.
 - Backend como source of truth para `Budget Builder`, estimador tecnico, `Mensajeria` y analytics.
 - CI vigente para frontend + backend.
 - Base de datos: PostgreSQL en local dev y en CI/test. Flyway activo.
+- Se adopto SDD liviano para agentes: `docs/agent-operating-model.md` y templates en `docs/templates/` pasan a guiar specs, verificaciones y revisiones adversariales sin traer OpenSpec completo todavia.
 - Si una base local vieja rechaza `SECTION_VIEW` u otros eventos nuevos en `event_logs`, reiniciar con la migracion `V6__align_event_logs_event_type_check.sql` aplicada por Flyway.
 - Si una base local vieja rechaza `SPAM` o `TRASH` en `contact_messages.status`, reiniciar con la migracion `V10__align_contact_messages_status_check.sql` aplicada por Flyway.
 - `develop` ya existe y fue publicada como rama integradora diaria.
@@ -75,6 +76,7 @@ Estado al 2026-05-11.
 ## 5. Proximos pasos recomendados
 
 - Trabajar desde `develop` con ramas cortas por alcance.
+- Antes de features o bugs no triviales, usar el modelo SDD de `docs/agent-operating-model.md` y dejar criterios de aceptacion verificables.
 - Mantener `docs/continuity-roadmap.md` como documento vivo de roadmap maestro.
 - Sincronizar la metadata de release `frontend 0.2.0` / `backend 0.4.0` de vuelta a `develop` antes de abrir la siguiente feature.
 - Mantener la nueva vista expandida de `Skills` como mejora frontend-only ya integrada, sin reintroducir logica en backend para esta etapa.
