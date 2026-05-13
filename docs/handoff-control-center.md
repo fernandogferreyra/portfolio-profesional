@@ -36,6 +36,7 @@ Estado al 2026-05-11.
 - En `feature/update-cms-loading-resilience`, `Actualizar` deja de esconder Documentos y CMS cuando la carga de proyectos queda pendiente; el editor de proyectos queda con estado propio y los controles CMS/documentales pueden mostrarse aunque `/api/admin/projects` tarde o falle.
 - En la misma linea local se preparo la extension de CMS para canales de contacto: bloques `contact.email`, `contact.phone`, `contact.linkedin`, `contact.github` y `contact.cv`; Contact consume esos bloques, se eliminaron textos publicos que no aportaban, el login ya no muestra FERCHUZ como copy visible del modal, y la accion IA del CMS pasa a guardar el bloque actual y traducir al otro idioma.
 - En `feature/document-cleanup-cv-resilience`, `Documentos internos` suma baja admin de documentos con `DELETE /api/admin/documents/{id}`. La baja desvincula bloques CMS asociados, borra el archivo fisico si existe y elimina la metadata, para limpiar casos donde `contact.cv` apuntaba a un documento cuyo archivo se perdio en storage.
+- En `feature/edit-mode-foundation`, `Actualizar` deja de ser la UX principal del contenido publico: se agrega toggle `EditMode` en navbar para admin autenticado, se alinea el ancho global del sitio con el navbar mediante `--site-shell-width`, y el `Control Center` ya no muestra el modulo `Actualizar`.
 - `document-storage-foundation` ya deja una base minima de persistencia documental: existen `GET/POST /api/admin/documents`, metadata persistida en PostgreSQL, storage local configurable, `purpose` minimo por documento, validacion explicita de tipos/tamano, `StorageService` dentro del monolito y uploader/listado minimo dentro de `Control Center > Actualizar`.
 - Ya existe una base reproducible de CD/deploy: Dockerfiles para frontend/backend, compose de despliegue, perfil `prod` backend y workflow `CD` para construir bundle de deploy sobre `main` o manualmente.
 - El `Budget Builder` ya quedo usable tambien a nivel funcional frontend: fallbacks de configuracion, modulos base, estimador visible, validacion minima para `save` y rail derecho sin superposiciones.
@@ -80,6 +81,7 @@ Estado al 2026-05-11.
 - La captura `actualizar2.jpg` no muestra frontend viejo sino `Actualizar` bloqueado en `Cargando proyectos...`; la causa de UX era que Documentos y CMS estaban anidados bajo `*ngIf="selectedProject()"`.
 - El modelo actual de proyectos sigue siendo monolingue en backend; para resolver bien ES/EN en proyectos se necesita una etapa dedicada de contenido bilingue de proyectos. Como mitigacion inmediata, se prepara una migracion que corrige los summaries semilla en espanol para no mostrar ingles en la vista ES.
 - El error `Linked document file not found` en `/api/content-blocks/contact.cv/es/document` significa metadata enlazada pero archivo fisico ausente. La correccion de UI/backend permite limpiar esa metadata, pero el fix operativo definitivo sigue requiriendo storage persistente en Render y re-subir/asociar el CV.
+- `EditMode` debe reemplazar gradualmente `Actualizar`; Skills no deberia ofrecer borrado definitivo como accion normal, sino ocultar/despublicar.
 
 ## 5. Proximos pasos recomendados
 

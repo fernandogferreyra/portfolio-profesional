@@ -16,7 +16,7 @@ export class ControlCenterComponent {
 
   readonly authService = inject(AuthService);
   readonly currentLanguage = this.languageService.language;
-  readonly activeWorkspace = signal<'budget' | 'update' | 'links' | 'messages'>('budget');
+  readonly activeWorkspace = signal<'budget' | 'links' | 'messages'>('budget');
   readonly content = computed(() =>
     this.languageService.language() === 'es'
       ? {
@@ -29,7 +29,7 @@ export class ControlCenterComponent {
           sessionRoleLabel: 'Rol',
           sessionStateLabel: 'Estado',
           sessionStateValue: 'Acceso operativo',
-          moduleCount: 4,
+          moduleCount: 3,
           modulesLabel: 'modulos privados',
           workspaceNavTitle: 'Centro operativo',
           workspaceNavLead: 'Elige una superficie de trabajo y mantene el foco sin salir del panel privado.',
@@ -40,11 +40,6 @@ export class ControlCenterComponent {
               id: 'budget',
               title: 'Presupuesto',
               description: 'Cotiza una propuesta completa y usa la estimacion tecnica como calculadora auxiliar.',
-            },
-            {
-              id: 'update',
-              title: 'Actualizar',
-              description: 'Editar contenido del portfolio publico: perfil, skills, proyectos, CV y media.',
             },
             {
               id: 'links',
@@ -63,9 +58,6 @@ export class ControlCenterComponent {
             'Completa datos del cliente, requerimientos, arquitectura y alcance para cotizar sin salir del mismo flujo.',
           estimatorNote:
             'La estimacion tecnica queda integrada como calculadora auxiliar para justificar horas, buffer y timeline.',
-          updateTitle: 'Actualizar portfolio',
-          updateLead:
-            'Seccion para editar foto, CV, skills, datos de contacto, proyectos, diplomas y media del sitio publico.',
           linksTitle: 'Paginas amigas',
           linksLead:
             'Biblioteca privada para guardar links utiles, documentacion, referencias y recursos de trabajo.',
@@ -84,7 +76,7 @@ export class ControlCenterComponent {
           sessionRoleLabel: 'Role',
           sessionStateLabel: 'State',
           sessionStateValue: 'Operational access',
-          moduleCount: 4,
+          moduleCount: 3,
           modulesLabel: 'private modules',
           workspaceNavTitle: 'Operations hub',
           workspaceNavLead: 'Choose a workspace and keep focus without leaving the private panel.',
@@ -95,11 +87,6 @@ export class ControlCenterComponent {
               id: 'budget',
               title: 'Budget',
               description: 'Quote a complete proposal and use technical estimation as an auxiliary calculator.',
-            },
-            {
-              id: 'update',
-              title: 'Update',
-              description: 'Edit public portfolio content: profile, skills, projects, CV, and media.',
             },
             {
               id: 'links',
@@ -118,9 +105,6 @@ export class ControlCenterComponent {
             'Complete client data, requirements, architecture, and scope to quote inside a single flow.',
           estimatorNote:
             'Technical estimation stays integrated as an auxiliary calculator to justify hours, risk buffer, and timeline.',
-          updateTitle: 'Update portfolio',
-          updateLead:
-            'Section to edit profile, CV, skills, contact details, projects, diplomas, and media from the public site.',
           linksTitle: 'Friendly pages',
           linksLead: 'Private library for useful links, documentation, references, and work resources.',
           messagesTitle: 'Messaging',
@@ -130,7 +114,7 @@ export class ControlCenterComponent {
   );
 
   setWorkspace(workspace: string): void {
-    if (workspace === 'budget' || workspace === 'update' || workspace === 'links' || workspace === 'messages') {
+    if (workspace === 'budget' || workspace === 'links' || workspace === 'messages') {
       this.activeWorkspace.set(workspace);
     }
   }

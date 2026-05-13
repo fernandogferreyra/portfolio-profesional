@@ -6,6 +6,7 @@ import { PORTFOLIO_THEMES } from '../../data/portfolio.data';
 import { ThemeId, localizeText } from '../../data/portfolio.models';
 import { translations } from '../../i18n/translations';
 import { AuthService } from '../../services/auth.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
 import { ThemeService } from '../../services/theme.service';
 
@@ -25,6 +26,7 @@ export class HeaderComponent {
   @Output() readonly privateAccessRequested = new EventEmitter<void>();
 
   readonly authService = inject(AuthService);
+  readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly activeTheme = this.themeService.activeTheme;
   readonly brandAvatarUrl = 'images/profile-photo.jpg';
@@ -62,6 +64,9 @@ export class HeaderComponent {
   );
   readonly controlCenterLabel = computed(() =>
     this.currentLanguage() === 'es' ? 'Privado' : 'Private',
+  );
+  readonly editModeLabel = computed(() =>
+    this.currentLanguage() === 'es' ? 'EditMode' : 'EditMode',
   );
   readonly adminStatusLabel = computed(() =>
     this.currentLanguage() === 'es' ? 'Privado activo' : 'Private active',
@@ -115,11 +120,17 @@ export class HeaderComponent {
   }
 
   logout(): void {
+    this.editModeService.disable();
     this.authService.logout();
 
     if (this.router.url.startsWith('/control-center')) {
       void this.router.navigate(['/'], { fragment: 'home-top' });
     }
+  }
+
+  toggleEditMode(): void {
+    this.closeThemeMenu();
+    this.editModeService.toggle();
   }
 
   goToHome(event?: Event): void {

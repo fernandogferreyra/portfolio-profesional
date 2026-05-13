@@ -46,18 +46,6 @@
         <app-control-center-budget-builder></app-control-center-budget-builder>
       </section>
 
-      <section *ngSwitchCase="'update'" class="control-center__workspace">
-        <header class="control-center__workspace-head">
-          <div>
-            <p class="control-center__section-label">{{ content().updateTitle }}</p>
-            <h2>{{ content().updateTitle }}</h2>
-          </div>
-          <p>{{ content().updateLead }}</p>
-        </header>
-
-        <app-control-center-update></app-control-center-update>
-      </section>
-
       <section *ngSwitchCase="'links'" class="control-center__workspace">
         <header class="control-center__workspace-head">
           <div>

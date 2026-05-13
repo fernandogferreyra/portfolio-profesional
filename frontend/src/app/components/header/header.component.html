@@ -79,6 +79,16 @@
 
         <button
           type="button"
+          class="edit-mode-toggle motion-control"
+          [class.is-active]="editModeService.isEnabled()"
+          [attr.aria-pressed]="editModeService.isEnabled()"
+          (click)="toggleEditMode()"
+        >
+          {{ editModeLabel() }}
+        </button>
+
+        <button
+          type="button"
           class="theme-menu__trigger motion-control"
           (click)="logout()"
         >

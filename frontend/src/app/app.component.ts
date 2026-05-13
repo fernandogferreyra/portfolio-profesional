@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 
+import { EditModeService } from './services/edit-mode.service';
 import { SiteActivityService } from './services/site-activity.service';
 
 @Component({
@@ -10,6 +11,7 @@ import { SiteActivityService } from './services/site-activity.service';
 })
 export class AppComponent {
   private readonly siteActivityService = inject(SiteActivityService);
+  readonly editModeService = inject(EditModeService);
 
   title = 'portfolio-ferchuz';
   readonly loginModalOpen = signal(false);
