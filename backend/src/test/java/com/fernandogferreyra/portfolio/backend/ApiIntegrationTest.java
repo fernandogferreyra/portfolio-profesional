@@ -15,6 +15,8 @@ import com.fernandogferreyra.portfolio.backend.domain.enums.EventType;
 import com.fernandogferreyra.portfolio.backend.repository.analytics.EventLogRepository;
 import com.fernandogferreyra.portfolio.backend.repository.contact.ContactMessageRepository;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
+import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,9 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private DocumentRepository documentRepository;
+
+    @Autowired
+    private PublicContentBlockRepository publicContentBlockRepository;
 
     @BeforeEach
     void cleanMutableTables() {
@@ -334,6 +339,67 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data", hasSize(1)))
             .andExpect(jsonPath("$.data[0].purpose").value("cv"))
             .andExpect(jsonPath("$.data[0].originalFilename").value("profile-cv.pdf"));
+    }
+
+    @Test
+    void adminCanDeleteDocumentAndUnlinkCmsBlocks() throws Exception {
+        String accessToken = loginAsAdmin();
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "old-cv.pdf",
+            "application/pdf",
+            "old-pdf-content".getBytes());
+
+        String uploadedDocumentBody = mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "cv")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String documentId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(uploadedDocumentBody)
+            .path("data")
+            .path("id")
+            .asText();
+
+        String cvBlockId = publicContentBlockRepository.findAllByOrderByDisplayOrderAscContentKeyAscLanguageAsc()
+            .stream()
+            .filter(block -> "contact.cv".equals(block.getContentKey()) && "es".equals(block.getLanguage()))
+            .findFirst()
+            .orElseThrow()
+            .getId()
+            .toString();
+
+        mockMvc.perform(patch("/api/admin/content-blocks/{id}", cvBlockId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "title": "CV",
+                      "body": "Resumen profesional actualizado.",
+                      "items": [],
+                      "documentId": "%s",
+                      "published": true,
+                      "displayOrder": 40
+                    }
+                    """.formatted(documentId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.documentId").value(documentId));
+
+        mockMvc.perform(delete("/api/admin/documents/{id}", documentId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("Document deleted"));
+
+        org.junit.jupiter.api.Assertions.assertFalse(documentRepository.existsById(UUID.fromString(documentId)));
+        org.junit.jupiter.api.Assertions.assertTrue(publicContentBlockRepository.findAllByDocumentId(UUID.fromString(documentId)).isEmpty());
+
+        mockMvc.perform(get("/api/content-blocks/contact.cv/es/document"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Public content block has no linked document"));
     }
 
     @Test

@@ -41,4 +41,16 @@ public class LocalStorageServiceImpl implements StorageService {
 
         return new UrlResource(targetPath.toUri());
     }
+
+    @Override
+    public void delete(String storagePath) throws IOException {
+        Path basePath = documentStorageProperties.getBasePath();
+        Path targetPath = basePath.resolve(storagePath).normalize();
+
+        if (!targetPath.startsWith(basePath.normalize())) {
+            throw new IOException("Stored document path is invalid");
+        }
+
+        Files.deleteIfExists(targetPath);
+    }
 }

@@ -3,9 +3,11 @@ package com.fernandogferreyra.portfolio.backend.service.impl;
 import com.fernandogferreyra.portfolio.backend.config.DocumentStorageProperties;
 import com.fernandogferreyra.portfolio.backend.domain.documents.entity.DocumentEntity;
 import com.fernandogferreyra.portfolio.backend.domain.documents.model.StoredDocumentFile;
+import com.fernandogferreyra.portfolio.backend.domain.publiccontent.entity.PublicContentBlockEntity;
 import com.fernandogferreyra.portfolio.backend.dto.documents.DocumentAdminResponse;
 import com.fernandogferreyra.portfolio.backend.mapper.documents.DocumentMapper;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
+import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
 import com.fernandogferreyra.portfolio.backend.service.DocumentService;
 import com.fernandogferreyra.portfolio.backend.service.StorageService;
 import java.io.IOException;
@@ -27,6 +29,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentMapper documentMapper;
     private final DocumentRepository documentRepository;
+    private final PublicContentBlockRepository publicContentBlockRepository;
     private final DocumentStorageProperties documentStorageProperties;
     private final StorageService storageService;
 
@@ -72,6 +75,25 @@ public class DocumentServiceImpl implements DocumentService {
         entity.setStoragePath(storedDocument.storagePath());
 
         return documentMapper.toAdminResponse(documentRepository.save(entity));
+    }
+
+    @Override
+    @Transactional
+    public void deleteDocument(UUID id) {
+        DocumentEntity document = documentRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found"));
+
+        List<PublicContentBlockEntity> linkedBlocks = publicContentBlockRepository.findAllByDocumentId(id);
+        linkedBlocks.forEach(block -> block.setDocumentId(null));
+        publicContentBlockRepository.saveAll(linkedBlocks);
+
+        try {
+            storageService.delete(document.getStoragePath());
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document could not be deleted");
+        }
+
+        documentRepository.delete(document);
     }
 
     private void validate(MultipartFile file) {
