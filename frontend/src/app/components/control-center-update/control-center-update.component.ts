@@ -28,6 +28,7 @@ export class ControlCenterUpdateComponent {
   readonly loading = signal(true);
   readonly saving = signal(false);
   readonly uploadingDocument = signal(false);
+  readonly deletingDocumentId = signal<string | null>(null);
   readonly translatingContentBlock = signal(false);
   readonly error = signal<string | null>(null);
   readonly feedback = signal<string | null>(null);
@@ -97,8 +98,12 @@ export class ControlCenterUpdateComponent {
           documentsLead: 'Base minima para subir y listar archivos reutilizables del CMS interno.',
           documentPurpose: 'Proposito',
           uploadDocument: 'Subir documento',
+          deleteDocument: 'Eliminar',
+          deletingDocument: 'Eliminando...',
+          deleteDocumentConfirm: 'Eliminar este documento interno? Si esta asociado a un bloque CMS, se va a desvincular.',
           documentsEmpty: 'Todavia no hay documentos cargados.',
           uploadSuccess: 'Documento subido.',
+          deleteSuccess: 'Documento eliminado. Si estaba asociado a un bloque CMS, quedo desvinculado.',
           uploadHint: 'Usa esta base para CVs, archivos de apoyo o futuras referencias del CMS. Tipos permitidos: PDF, JPG, PNG y WEBP.',
           useDocumentInBlock: 'Usar en bloque',
           selectedDocumentInBlock: 'Seleccionado',
@@ -151,8 +156,12 @@ export class ControlCenterUpdateComponent {
           documentsLead: 'Minimal foundation to upload and list reusable CMS files.',
           documentPurpose: 'Purpose',
           uploadDocument: 'Upload document',
+          deleteDocument: 'Delete',
+          deletingDocument: 'Deleting...',
+          deleteDocumentConfirm: 'Delete this internal document? If it is linked to a CMS block, it will be unlinked.',
           documentsEmpty: 'There are no uploaded documents yet.',
           uploadSuccess: 'Document uploaded.',
+          deleteSuccess: 'Document deleted. If it was linked to a CMS block, it is now unlinked.',
           uploadHint: 'Use this base for CVs, support files, or future CMS references. Allowed types: PDF, JPG, PNG, and WEBP.',
           useDocumentInBlock: 'Use in block',
           selectedDocumentInBlock: 'Selected',
@@ -453,6 +462,26 @@ export class ControlCenterUpdateComponent {
     }
   }
 
+  async deleteDocument(document: DocumentAdminItem): Promise<void> {
+    if (this.deletingDocumentId() || !window.confirm(this.content().deleteDocumentConfirm)) {
+      return;
+    }
+
+    this.deletingDocumentId.set(document.id);
+    this.documentFeedback.set(null);
+
+    try {
+      await firstValueFrom(this.documentAdminService.deleteDocument(document.id));
+      this.documents.update((documents) => documents.filter((item) => item.id !== document.id));
+      this.detachDeletedDocumentFromContentBlocks(document.id);
+      this.documentFeedback.set(this.content().deleteSuccess);
+    } catch (error) {
+      this.documentFeedback.set(this.resolveErrorMessage(error));
+    } finally {
+      this.deletingDocumentId.set(null);
+    }
+  }
+
   formatBytes(sizeBytes: number): string {
     if (sizeBytes < 1024) {
       return `${sizeBytes} B`;
@@ -507,6 +536,25 @@ export class ControlCenterUpdateComponent {
       }
     } catch (error) {
       this.contentBlockFeedback.set(this.resolveErrorMessage(error));
+    }
+  }
+
+  private detachDeletedDocumentFromContentBlocks(documentId: string): void {
+    this.contentBlocks.update((blocks) =>
+      blocks.map((block) =>
+        block.documentId === documentId
+          ? {
+              ...block,
+              documentId: null,
+              documentUrl: null,
+            }
+          : block,
+      ),
+    );
+
+    if (this.contentBlockForm.controls.documentId.value === documentId) {
+      this.contentBlockForm.controls.documentId.setValue('');
+      this.contentBlockForm.markAsPristine();
     }
   }
 

@@ -26,6 +26,17 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - La accion IA debe guardar el bloque que se esta editando y traducir el otro idioma asociado por la misma `content_key`.
 - `EditMode` visual sobre paginas publicas queda fuera de este bugfix y requiere spec/PR propio.
 
+## Spec vigente para limpieza documental y CV
+
+- Problema: el endpoint publico de CV falla con `Linked document file not found` cuando `contact.cv` referencia metadata de un documento cuyo archivo fisico ya no existe en storage.
+- Alcance: permitir que el admin limpie documentos internos obsoletos desde `Actualizar` y que esa baja no deje bloques CMS apuntando a metadata inexistente.
+- Alcance: mantener la descarga publica controlada por bloque publicado; no abrir endpoint publico generico de documentos.
+- No-goals: no resolver en esta rama el disco persistente de Render ni migrar documentos a almacenamiento externo.
+- Criterio de aceptacion: un documento interno puede eliminarse desde el listado admin con confirmacion.
+- Criterio de aceptacion: al eliminar un documento, cualquier bloque CMS que lo referencie queda sin `documentId`, por lo que el CV publico deja de apuntar al archivo perdido.
+- Criterio de aceptacion: despues de subir un CV nuevo, el admin puede asociarlo a `contact.cv`, guardar el bloque y la descarga publica usa el archivo nuevo.
+- Criterio de aceptacion: si una descarga publica encuentra metadata pero falta el archivo fisico, el error sigue siendo explicito y no publica otros documentos.
+
 ## Flujo funcional
 
 1. Admin autenticado entra a `Control Center`.
@@ -53,6 +64,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `GET /api/content-blocks/{key}/{language}/document`
 - `GET /api/admin/content-blocks`
 - `PATCH /api/admin/content-blocks/{id}`
+- `DELETE /api/admin/documents/{id}`
 
 ### DTOs nuevos
 
@@ -89,6 +101,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `items_json` guarda listas simples para badges, parrafos, disponibilidad o URL de CV.
 - En canales de contacto, `items_json[0]` representa el valor visible y `items_json[1]` el enlace accionable cuando aplique.
 - `document_id` en `public_content_blocks` referencia a `documents(id)` y usa `ON DELETE SET NULL` para no romper bloques si se limpia metadata documental.
+- La baja admin de documentos desvincula explicitamente los bloques CMS asociados, borra el archivo fisico si existe y luego elimina la metadata.
 - La descarga publica no expone `/api/documents/{id}` generico: se resuelve por bloque publicado para mantener control de superficie.
 
 ## Frontend
@@ -147,6 +160,7 @@ Abrir una primera superficie real de administracion para contenido publico sin i
 - `frontend/src/app/components/contact/contact.component.spec.ts`
 - `frontend/src/app/components/control-center-update/control-center-update.component.spec.ts`
 - `frontend/src/app/components/admin-login-modal/admin-login-modal.component.spec.ts`
+- `frontend/src/app/services/document-admin.service.ts`
 
 ## Validacion
 
@@ -159,7 +173,9 @@ Abrir una primera superficie real de administracion para contenido publico sin i
   - se agrego cobertura en `ApiIntegrationTest` para `GET/PATCH /api/admin/projects`
   - se agrego cobertura en `ApiIntegrationTest` para `GET /api/content-blocks` y `GET/PATCH /api/admin/content-blocks`
   - se agrego cobertura para asociar un documento al bloque `contact.cv` y descargarlo via `GET /api/content-blocks/contact.cv/es/document`
-  - en este entorno no se pudo ejecutar Maven por falta de `JAVA_HOME`; la validacion backend queda para CI o entorno Java 17 operativo.
+  - se agrego cobertura para eliminar un documento admin, desvincular bloques CMS asociados y evitar que el CV publico apunte a metadata sin archivo.
+  - `mvnw.cmd -DskipTests package` pasa con `JAVA_HOME=C:\Program Files\Java\jdk-17`.
+  - `mvnw.cmd test` compila hasta `testCompile`, pero queda bloqueado localmente porque Docker/Testcontainers no esta disponible.
 
 ## Decisiones tecnicas
 

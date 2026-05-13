@@ -5,9 +5,12 @@ import com.fernandogferreyra.portfolio.backend.dto.documents.DocumentAdminRespon
 import com.fernandogferreyra.portfolio.backend.service.DocumentService;
 import com.fernandogferreyra.portfolio.backend.util.ApiPaths;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -33,5 +36,11 @@ public class DocumentAdminController {
         @RequestParam String purpose
     ) {
         return ApiResponse.success("Document uploaded", documentService.uploadDocument(file, purpose));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteDocument(@PathVariable UUID id) {
+        documentService.deleteDocument(id);
+        return ApiResponse.success("Document deleted", null);
     }
 }

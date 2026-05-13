@@ -13,4 +13,6 @@ public interface PublicContentBlockRepository extends JpaRepository<PublicConten
     List<PublicContentBlockEntity> findByPublishedTrueOrderByDisplayOrderAscContentKeyAscLanguageAsc();
 
     Optional<PublicContentBlockEntity> findByContentKeyAndLanguageAndPublishedTrue(String contentKey, String language);
+
+    List<PublicContentBlockEntity> findAllByDocumentId(UUID documentId);
 }
