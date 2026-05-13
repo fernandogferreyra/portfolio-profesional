@@ -10,4 +10,6 @@ public interface StorageService {
     StoredDocumentFile store(String storedFilename, InputStream inputStream) throws IOException;
 
     Resource load(String storagePath) throws IOException;
+
+    void delete(String storagePath) throws IOException;
 }

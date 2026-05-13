@@ -36,4 +36,8 @@ export class DocumentAdminService {
     formData.append('purpose', purpose);
     return this.http.post<ApiResponse<DocumentAdminItem>>('/api/admin/documents', formData);
   }
+
+  deleteDocument(id: string): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`/api/admin/documents/${id}`);
+  }
 }

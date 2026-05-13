@@ -177,6 +177,11 @@
   opacity: 0.72;
 }
 
+.update-workspace__secondary--danger {
+  border-color: color-mix(in srgb, #fca5a5 55%, var(--theme-button-border));
+  color: #fecaca;
+}
+
 .update-workspace__action-hint {
   flex: 1 1 100%;
 }
