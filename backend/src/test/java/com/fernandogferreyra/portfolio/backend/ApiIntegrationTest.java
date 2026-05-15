@@ -120,7 +120,9 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     void projectsEndpointReturnsMockData() throws Exception {
         mockMvc.perform(get("/api/projects"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data[0].slug").value("obrasmart"));
+            .andExpect(jsonPath("$.data[0].slug").value("obrasmart"))
+            .andExpect(jsonPath("$.data[0].demoUrl").value("https://www.youtube.com/watch?v=8qTf_oowQiY"))
+            .andExpect(jsonPath("$.data[0].monographUrl").value("/docs/MonografiaObraSmart.pdf"));
     }
 
     @Test
@@ -153,7 +155,15 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
                       "category": "distributed_platform",
                       "summary": "Operational suite for project maintenance and internal field coordination.",
                       "repositoryUrl": "https://github.com/example/obrasmart-suite",
+                      "demoUrl": "https://www.youtube.com/watch?v=8qTf_oowQiY",
+                      "monographUrl": "/docs/MonografiaObraSmart.pdf",
+                      "iconDocumentId": null,
                       "stack": ["Java 17", "Spring Boot", "PostgreSQL", "Angular"],
+                      "metrics": [{"value": "12", "label": "servicios"}],
+                      "sections": [{"title": "Objetivo", "items": ["Centralizar operacion"]}],
+                      "features": ["Repositorio actualizado"],
+                      "documentationDocumentIds": [],
+                      "screenshotDocumentIds": [],
                       "featured": true,
                       "published": true,
                       "displayOrder": 1
@@ -164,7 +174,9 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.year").value("2026"))
             .andExpect(jsonPath("$.data.summary").value("Operational suite for project maintenance and internal field coordination."))
             .andExpect(jsonPath("$.data.stack", hasSize(4)))
-            .andExpect(jsonPath("$.data.repositoryUrl").value("https://github.com/example/obrasmart-suite"));
+            .andExpect(jsonPath("$.data.repositoryUrl").value("https://github.com/example/obrasmart-suite"))
+            .andExpect(jsonPath("$.data.demoUrl").value("https://www.youtube.com/watch?v=8qTf_oowQiY"))
+            .andExpect(jsonPath("$.data.monographUrl").value("/docs/MonografiaObraSmart.pdf"));
     }
 
     @Test
@@ -173,6 +185,14 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data[0].key").value("about.hero"))
             .andExpect(jsonPath("$.data[0].language").value("es"));
+    }
+
+    @Test
+    void credentialsEndpointReturnsPublishedCredentials() throws Exception {
+        mockMvc.perform(get("/api/credentials"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data[*].title", hasItems("Tecnicatura Universitaria en Programacion")))
+            .andExpect(jsonPath("$.data[*].institution", hasItems("UTN FRC")));
     }
 
     @Test
@@ -311,6 +331,76 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/pdf"))
             .andExpect(content().string("fake-pdf-content"));
+    }
+
+    @Test
+    void adminCanCreateCredentialLinkDocumentAndPublicCanDownloadIt() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        String createdCredentialBody = mockMvc.perform(post("/api/admin/credentials")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "language": "es"
+                    }
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.published").value(false))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String credentialId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(createdCredentialBody)
+            .path("data")
+            .path("id")
+            .asText();
+
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "utn-diploma.pdf",
+            "application/pdf",
+            "credential-pdf-content".getBytes());
+
+        String uploadedDocumentBody = mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "credential")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String documentId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(uploadedDocumentBody)
+            .path("data")
+            .path("id")
+            .asText();
+
+        mockMvc.perform(patch("/api/admin/credentials/{id}", credentialId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "language": "es",
+                      "type": "Formacion",
+                      "title": "Diplomatura Backend",
+                      "institution": "UTN FRC",
+                      "description": "Documento academico cargado desde EditMode.",
+                      "documentId": "%s",
+                      "published": true,
+                      "displayOrder": 5
+                    }
+                    """.formatted(documentId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.documentId").value(documentId))
+            .andExpect(jsonPath("$.data.documentUrl").value("/api/credentials/" + credentialId + "/document"));
+
+        mockMvc.perform(get("/api/credentials/{id}/document", credentialId))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/pdf"))
+            .andExpect(content().string("credential-pdf-content"));
     }
 
     @Test

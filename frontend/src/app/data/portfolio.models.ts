@@ -1,4 +1,5 @@
 import { Language } from '../i18n/translations';
+import { ProjectAssetResponse } from '../models/projects.models';
 
 export type LocalizedText = Record<Language, string>;
 
@@ -123,6 +124,7 @@ export interface ProjectMedia {
 
 export interface PortfolioProject {
   id: string;
+  iconUrl?: string | null;
   name: string;
   year: string;
   category: LocalizedText;
@@ -132,6 +134,8 @@ export interface PortfolioProject {
   metrics: ProjectMetric[];
   sections: ProjectSection[];
   features: LocalizedText[];
+  documentation?: ProjectAssetResponse[];
+  screenshots?: ProjectAssetResponse[];
   actions: ProjectAction[];
   media?: ProjectMedia;
 }

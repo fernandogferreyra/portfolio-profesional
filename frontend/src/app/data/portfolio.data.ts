@@ -942,9 +942,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     ],
     features: [{ es: 'Arquitectura modular', en: 'Modular architecture' }, { es: 'i18n y theming', en: 'i18n and theming' }, { es: 'Contenido centralizado', en: 'Centralized content' }, { es: 'CI con GitHub Actions', en: 'CI with GitHub Actions' }],
     actions: [
-      { id: 'home', type: 'internal', primary: true, label: { es: 'Ver inicio', en: 'View home' }, routerLink: '/' },
-      { id: 'skills', type: 'internal', label: { es: 'Ver skills', en: 'View skills' }, routerLink: '/skills' },
-      { id: 'contact', type: 'internal', label: { es: 'Ir a contacto', en: 'Go to contact' }, routerLink: '/contact' },
+      { id: 'repo', type: 'external', primary: true, label: { es: 'Código', en: 'Code' }, url: 'https://github.com/fernandogferreyra/portfolio-profesional.git' },
     ],
   },
 ];

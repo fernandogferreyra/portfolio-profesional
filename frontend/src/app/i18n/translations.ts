@@ -54,6 +54,7 @@ interface HeaderTranslations {
   aboutLabel: string;
   projectsLabel: string;
   skillsLabel: string;
+  credentialsLabel: string;
   contactLabel: string;
   socialAriaLabel: string;
   languageToggleAriaLabel: string;
@@ -164,6 +165,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       aboutLabel: 'Sobre mi',
       projectsLabel: 'Proyectos',
       skillsLabel: 'Skills',
+      credentialsLabel: 'Formacion y certificaciones',
       contactLabel: 'Contacto',
       socialAriaLabel: 'Perfiles profesionales',
       languageToggleAriaLabel: 'Cambiar idioma a ingles',
@@ -491,6 +493,7 @@ export const translations: Record<Language, TranslationDictionary> = {
       aboutLabel: 'About',
       projectsLabel: 'Projects',
       skillsLabel: 'Skills',
+      credentialsLabel: 'Education & certifications',
       contactLabel: 'Contact',
       socialAriaLabel: 'Professional profiles',
       languageToggleAriaLabel: 'Switch language to Spanish',

@@ -18,7 +18,7 @@
 
   <nav class="site-nav" [attr.aria-label]="content().navigationAriaLabel">
     <a
-      class="site-nav__home motion-control"
+      class="site-nav__link motion-control"
       routerLink="/"
       fragment="home-top"
       [routerLinkActiveOptions]="{ exact: true }"
@@ -26,21 +26,15 @@
       [attr.aria-label]="homeShortcutLabel()"
       (click)="goToHome($event)"
     >
-      <span class="site-nav__home-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3.5 10.5 12 3l8.5 7.5"></path>
-          <path d="M6.5 9.5v10.5h11V9.5"></path>
-          <path d="M10 20v-5.5h4V20"></path>
-        </svg>
-      </span>
-      <span class="site-nav__home-label">{{ content().homeLabel }}</span>
+      {{ content().homeLabel }}
     </a>
-    <a class="motion-control" routerLink="/projects" routerLinkActive="active">{{ content().projectsLabel }}</a>
-    <a class="motion-control" routerLink="/skills" routerLinkActive="active">{{ content().skillsLabel }}</a>
-    <a class="motion-control" routerLink="/contact" routerLinkActive="active">{{ content().contactLabel }}</a>
+    <a class="site-nav__link motion-control" routerLink="/projects" routerLinkActive="active">{{ content().projectsLabel }}</a>
+    <a class="site-nav__link motion-control" routerLink="/skills" routerLinkActive="active">{{ content().skillsLabel }}</a>
+    <a class="site-nav__link motion-control" routerLink="/credentials" routerLinkActive="active">{{ content().credentialsLabel }}</a>
+    <a class="site-nav__link motion-control" routerLink="/contact" routerLinkActive="active">{{ content().contactLabel }}</a>
     <a
       *ngIf="authService.isAdmin()"
-      class="motion-control"
+      class="site-nav__link site-nav__link--control motion-control"
       routerLink="/control-center"
       routerLinkActive="active"
     >
@@ -63,7 +57,7 @@
 
       <div
         *ngIf="authService.isAuthenticated()"
-        style="display: inline-flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;"
+        class="header-admin-actions"
       >
         <span class="header-status" [class.is-online]="authService.isAuthenticated()" [class.is-offline]="!authService.isAuthenticated()">
           {{ onlineStatusLabel() }}
@@ -75,6 +69,17 @@
           (click)="goToControlCenter()"
         >
           {{ controlCenterLabel() }}
+        </button>
+
+        <button
+          type="button"
+          class="edit-mode-toggle motion-control"
+          [class.is-active]="editModeService.isEnabled()"
+          [class.is-disabled-state]="!editModeService.isEnabled()"
+          [attr.aria-pressed]="editModeService.isEnabled()"
+          (click)="toggleEditMode()"
+        >
+          {{ editModeLabel() }}
         </button>
 
         <button
