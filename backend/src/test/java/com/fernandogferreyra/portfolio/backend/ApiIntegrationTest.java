@@ -155,8 +155,8 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
                       "category": "distributed_platform",
                       "summary": "Operational suite for project maintenance and internal field coordination.",
                       "repositoryUrl": "https://github.com/example/obrasmart-suite",
-                      "demoUrl": "https://www.youtube.com/watch?v=updated-demo",
-                      "monographUrl": "/docs/obrasmart-suite.pdf",
+                      "demoUrl": "https://www.youtube.com/watch?v=8qTf_oowQiY",
+                      "monographUrl": "/docs/MonografiaObraSmart.pdf",
                       "iconDocumentId": null,
                       "stack": ["Java 17", "Spring Boot", "PostgreSQL", "Angular"],
                       "metrics": [{"value": "12", "label": "servicios"}],
@@ -175,8 +175,8 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.data.summary").value("Operational suite for project maintenance and internal field coordination."))
             .andExpect(jsonPath("$.data.stack", hasSize(4)))
             .andExpect(jsonPath("$.data.repositoryUrl").value("https://github.com/example/obrasmart-suite"))
-            .andExpect(jsonPath("$.data.demoUrl").value("https://www.youtube.com/watch?v=updated-demo"))
-            .andExpect(jsonPath("$.data.monographUrl").value("/docs/obrasmart-suite.pdf"));
+            .andExpect(jsonPath("$.data.demoUrl").value("https://www.youtube.com/watch?v=8qTf_oowQiY"))
+            .andExpect(jsonPath("$.data.monographUrl").value("/docs/MonografiaObraSmart.pdf"));
     }
 
     @Test
