@@ -1,4 +1,5 @@
 import { DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   ElementRef,
@@ -137,6 +138,11 @@ export class ProjectsComponent implements OnInit {
           demoEyebrow: 'Demo del proyecto',
           editProjectsTitle: 'Editar proyecto seleccionado',
           editProjectsDescription: 'Estos campos actualizan la base publica de proyectos en backend.',
+          editNewProjectLabel: 'Nuevo proyecto',
+          editDeleteProjectLabel: 'Eliminar proyecto',
+          editDeleteProjectConfirm: '¿Eliminar este proyecto? Esta accion no borra documentos subidos.',
+          editDeletedLabel: 'Proyecto eliminado.',
+          editCreatedLabel: 'Proyecto creado como borrador.',
           editSlugLabel: 'Slug',
           editNameLabel: 'Nombre',
           editYearLabel: 'Año',
@@ -187,6 +193,11 @@ export class ProjectsComponent implements OnInit {
           demoEyebrow: 'Project demo',
           editProjectsTitle: 'Edit selected project',
           editProjectsDescription: 'These fields update the public projects source in the backend.',
+          editNewProjectLabel: 'New project',
+          editDeleteProjectLabel: 'Delete project',
+          editDeleteProjectConfirm: 'Delete this project? Uploaded documents will not be deleted.',
+          editDeletedLabel: 'Project deleted.',
+          editCreatedLabel: 'Project created as draft.',
           editSlugLabel: 'Slug',
           editNameLabel: 'Name',
           editYearLabel: 'Year',
@@ -427,6 +438,62 @@ export class ProjectsComponent implements OnInit {
       ...project,
       [field]: this.isOptionalUrlField(field) ? value.trim() || null : value,
     });
+  }
+
+  async createProject(): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingProjectId()) {
+      return;
+    }
+
+    this.savingProjectId.set('new');
+    this.projectEditFeedback.set(null);
+    this.projectEditError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.projectAdminService.createProject());
+      if (response?.data) {
+        const projects = [...this.adminProjects(), response.data];
+        this.adminProjects.set(projects);
+        this.applyAdminProjectsToCatalog(projects);
+        this.selectedAdminProjectId.set(response.data.id);
+        this.selectedProjectId.set(response.data.slug);
+      }
+      this.projectEditFeedback.set(this.ui().editCreatedLabel);
+    } catch (error) {
+      this.projectEditError.set(this.resolveProjectEditErrorMessage(error));
+    } finally {
+      this.savingProjectId.set(null);
+    }
+  }
+
+  async deleteActiveProject(): Promise<void> {
+    const project = this.activeAdminProject();
+    if (!project || !this.editModeService.isEnabled() || this.savingProjectId()) {
+      return;
+    }
+
+    if (!window.confirm(this.ui().editDeleteProjectConfirm)) {
+      return;
+    }
+
+    this.savingProjectId.set(project.id);
+    this.projectEditFeedback.set(null);
+    this.projectEditError.set(null);
+
+    try {
+      await firstValueFrom(this.projectAdminService.deleteProject(project.id));
+      const remainingProjects = this.adminProjects().filter((item) => item.id !== project.id);
+      this.adminProjects.set(remainingProjects);
+      this.applyAdminProjectsToCatalog(remainingProjects);
+      const nextProject = remainingProjects[0] ?? null;
+      this.selectedAdminProjectId.set(nextProject?.id ?? null);
+      this.selectedProjectId.set(nextProject?.slug ?? PORTFOLIO_PROJECTS[0].id);
+      this.projectEditFeedback.set(this.ui().editDeletedLabel);
+    } catch (error) {
+      this.projectEditError.set(this.resolveProjectEditErrorMessage(error));
+    } finally {
+      this.savingProjectId.set(null);
+    }
   }
 
   async onProjectIconSelected(event: Event): Promise<void> {
@@ -699,7 +766,7 @@ export class ProjectsComponent implements OnInit {
   private applyAdminProjectsToCatalog(projects: ProjectAdminItem[]): void {
     const visibleProjects = this.editModeService.isEnabled() ? projects : projects.filter((project) => project.published);
     const mergedProjects = this.mergeProjects(visibleProjects);
-    this.projectCatalog.set(mergedProjects.length ? mergedProjects : PORTFOLIO_PROJECTS);
+    this.projectCatalog.set(this.editModeService.isEnabled() ? mergedProjects : mergedProjects.length ? mergedProjects : PORTFOLIO_PROJECTS);
   }
 
   private updateAdminProject(id: string, updated: ProjectAdminItem): void {
@@ -789,6 +856,10 @@ export class ProjectsComponent implements OnInit {
   }
 
   private resolveProjectEditErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string' && error.error.message.trim()) {
+      return error.error.message;
+    }
+
     if (error instanceof Error && error.message.trim()) {
       return error.message;
     }

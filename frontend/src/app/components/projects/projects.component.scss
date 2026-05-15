@@ -14,6 +14,11 @@
   padding: 2rem;
 }
 
+.projects-hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
 .projects-hero__copy {
   display: grid;
   gap: 0.85rem;
@@ -403,7 +408,9 @@ button.project-action {
 
 .project-editor__header {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.45rem;
+  align-items: start;
 }
 
 .project-editor__header h3,
@@ -422,6 +429,7 @@ button.project-action {
 }
 
 .project-editor__feedback {
+  grid-column: 1 / -1;
   color: var(--color-primary);
   font-size: 0.86rem;
   font-weight: 700;
@@ -562,7 +570,9 @@ button.project-action {
   background: var(--color-surface);
 }
 
-.project-editor__save {
+.project-editor__save,
+.project-editor__new,
+.project-editor__delete {
   justify-self: start;
   display: inline-flex;
   align-items: center;
@@ -579,7 +589,20 @@ button.project-action {
   cursor: pointer;
 }
 
-.project-editor__save:disabled {
+.project-editor__new {
+  justify-self: end;
+  align-self: start;
+}
+
+.project-editor__delete {
+  border-color: color-mix(in srgb, #fca5a5 48%, var(--glass-border));
+  background: color-mix(in srgb, #ef4444 16%, transparent);
+  color: #fecaca;
+}
+
+.project-editor__save:disabled,
+.project-editor__new:disabled,
+.project-editor__delete:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
@@ -743,6 +766,15 @@ button.project-action {
 }
 
 @media (max-width: 768px) {
+  .projects-hero,
+  .project-editor__header {
+    grid-template-columns: 1fr;
+  }
+
+  .project-editor__new {
+    justify-self: start;
+  }
+
   .projects-hero,
   .project-detail {
     padding: 1.3rem;

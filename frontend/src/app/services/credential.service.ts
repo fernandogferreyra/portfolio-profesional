@@ -55,4 +55,9 @@ export class CredentialService {
   updateCredential(id: string, payload: CredentialUpdatePayload): Observable<ApiResponse<CredentialItem>> {
     return this.http.patch<ApiResponse<CredentialItem>>(`/api/admin/credentials/${id}`, payload);
   }
+
+  downloadCredentialDocument(entry: CredentialItem, admin: boolean): Observable<Blob> {
+    const url = admin ? `/api/admin/credentials/${entry.id}/document` : entry.documentUrl;
+    return this.http.get(url as string, { responseType: 'blob' });
+  }
 }

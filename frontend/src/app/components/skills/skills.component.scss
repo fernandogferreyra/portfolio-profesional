@@ -87,6 +87,114 @@
   view-transition-name: skills-results;
 }
 
+.skills-edit-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border-color: color-mix(in srgb, var(--color-primary) 34%, var(--glass-border));
+}
+
+.skills-edit-panel__heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.skills-edit-panel__heading p,
+.skills-edit-panel__feedback,
+.skills-edit-panel__error {
+  margin: 0;
+}
+
+.skills-edit-panel__heading p {
+  color: var(--color-text-muted);
+}
+
+.skills-edit-panel__feedback {
+  color: var(--color-success, #22c55e);
+  font-weight: 700;
+}
+
+.skills-edit-panel__error {
+  color: var(--color-danger, #ef4444);
+  font-weight: 700;
+}
+
+.skills-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.skills-edit-card {
+  display: grid;
+  gap: 0.72rem;
+  padding: 0.95rem;
+  border-color: color-mix(in srgb, var(--color-primary) 34%, var(--glass-border));
+}
+
+.skills-edit-card__key {
+  color: var(--color-primary);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.skills-edit-card label {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.skills-edit-card__checkbox {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+
+.skills-edit-card input,
+.skills-edit-card textarea,
+.skills-edit-card select {
+  width: 100%;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  font: inherit;
+  padding: 0.58rem 0.65rem;
+}
+
+.skills-edit-card__checkbox input {
+  width: auto;
+}
+
+.skills-edit-card button {
+  justify-self: start;
+}
+
+.skills-edit-card__items {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.skills-edit-card__item-row,
+.skills-edit-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.skills-edit-card__item-row input {
+  flex: 1 1 180px;
+}
+
+.skills-edit-card__item-row button {
+  min-height: 2.25rem;
+  padding: 0.45rem 0.72rem;
+}
+
 .skills-lanes,
 .skills-lanes__heading {
   display: grid;
@@ -182,6 +290,15 @@
     var(--color-surface-elevated);
 }
 
+.skill-card .skills-edit-card {
+  margin-top: 0.2rem;
+  min-width: 0;
+}
+
+.skills-page--editing .skills-lane__track {
+  animation: none;
+}
+
 .skills-groups {
   display: grid;
   gap: 1rem;
@@ -271,6 +388,26 @@
   inset: 0 auto 0 0;
   width: 3px;
   background: linear-gradient(180deg, var(--skill-accent, var(--color-primary)), transparent);
+}
+
+.skill-card--draft {
+  opacity: 0.58;
+}
+
+.skill-card--draft::after {
+  content: attr(data-draft-label);
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.22rem 0.48rem;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--color-text);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .skill-card__top {
@@ -455,6 +592,10 @@
   }
 
   .skills-lanes__heading {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-edit-grid {
     grid-template-columns: 1fr;
   }
 

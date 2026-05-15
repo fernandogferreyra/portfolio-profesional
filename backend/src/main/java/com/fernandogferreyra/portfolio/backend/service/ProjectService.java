@@ -13,7 +13,11 @@ public interface ProjectService {
 
     List<ProjectAdminResponse> getAdminProjects();
 
+    ProjectAdminResponse createProject();
+
     ProjectAdminResponse updateProject(UUID id, ProjectAdminUpdateRequest request);
+
+    void deleteProject(UUID id);
 
     DocumentDownload downloadPublishedProjectIcon(String slug);
 

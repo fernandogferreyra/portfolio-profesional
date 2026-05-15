@@ -1,9 +1,13 @@
-<section class="skills-page">
+<section class="skills-page" [class.skills-page--editing]="editModeService.isEnabled()">
   <section class="surface-card skills-hero" aria-labelledby="skills-title" appRevealOnScroll>
     <div class="skills-hero__copy">
       <p class="section-eyebrow">{{ ui().eyebrow }}</p>
       <h1 id="skills-title" class="skills-hero__title portfolio-page-title">{{ ui().title }}</h1>
       <p class="skills-hero__lead">{{ ui().intro }}</p>
+
+      <ng-container *ngIf="editModeService.isEnabled() && heroBlock() as block">
+        <ng-container *ngTemplateOutlet="skillsBlockEditor; context: { block: block }"></ng-container>
+      </ng-container>
     </div>
 
     <aside class="skills-focus-panel motion-panel portfolio-subcard" appRevealOnScroll="right" [revealDelay]="140">
@@ -60,9 +64,11 @@
                 class="skill-card motion-panel portfolio-subcard"
                 *ngFor="let skill of lane.skills; trackBy: trackBySkillId"
                 [class.skill-card--no-level]="!skill.showLevel"
+                [class.skill-card--draft]="!skill.published"
                 [style.--skill-accent]="skill.icon.accent"
                 [style.--skill-surface]="skill.icon.surface"
                 [style.--skill-border]="skill.icon.border"
+                [attr.data-draft-label]="ui().editDraftLabel"
               >
                 <div class="skill-card__top">
                   <span class="skill-card__icon" aria-hidden="true">
@@ -103,6 +109,10 @@
                 <div class="skill-card__tags" *ngIf="skill.tags.length">
                   <span class="skill-card__tag motion-chip" *ngFor="let tag of skill.tags">{{ tag }}</span>
                 </div>
+
+                <ng-container *ngIf="editModeService.isEnabled() && copy === 0 && skillBlock(skill.id) as block">
+                  <ng-container *ngTemplateOutlet="skillsBlockEditor; context: { block: block }"></ng-container>
+                </ng-container>
               </article>
             </div>
           </div>
@@ -123,9 +133,11 @@
               class="skill-card skill-card--compact motion-panel portfolio-subcard"
               *ngFor="let skill of category.skills; trackBy: trackBySkillId"
               [class.skill-card--no-level]="!skill.showLevel"
+              [class.skill-card--draft]="!skill.published"
               [style.--skill-accent]="skill.icon.accent"
               [style.--skill-surface]="skill.icon.surface"
               [style.--skill-border]="skill.icon.border"
+              [attr.data-draft-label]="ui().editDraftLabel"
             >
               <div class="skill-card__top">
                 <span class="skill-card__icon" aria-hidden="true">
@@ -166,10 +178,63 @@
               <div class="skill-card__tags" *ngIf="skill.tags.length">
                 <span class="skill-card__tag motion-chip" *ngFor="let tag of skill.tags">{{ tag }}</span>
               </div>
+
+              <ng-container *ngIf="editModeService.isEnabled() && skillBlock(skill.id) as block">
+                <ng-container *ngTemplateOutlet="skillsBlockEditor; context: { block: block }"></ng-container>
+              </ng-container>
             </article>
           </div>
         </article>
       </section>
     </ng-template>
   </section>
+
+  <ng-template #skillsBlockEditor let-block="block">
+    <article class="skills-edit-card portfolio-subcard">
+      <span class="skills-edit-card__key">{{ ui().editModeLabel }} · {{ block.key }}</span>
+
+      <p class="skills-edit-panel__feedback" *ngIf="editFeedback() && savingBlockId() !== block.id">{{ editFeedback() }}</p>
+      <p class="skills-edit-panel__error" *ngIf="editError() && savingBlockId() !== block.id">{{ editError() }}</p>
+
+      <label>
+        {{ isSkillBlock(block) ? ui().editNameLabel : ui().editTitleLabel }}
+        <input [value]="block.title" (input)="updateBlockTitle(block.id, $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ ui().editBodyLabel }}
+        <textarea rows="3" [value]="block.body" (input)="updateBlockBody(block.id, $any($event.target).value)"></textarea>
+      </label>
+
+      <div class="skills-edit-card__items">
+        <label *ngFor="let item of block.items; let itemIndex = index">
+          <span>{{ isSkillBlock(block) ? ui().editTagLabel : ui().editItemLabel }} {{ itemIndex + 1 }}</span>
+          <span class="skills-edit-card__item-row">
+            <input [value]="item" (input)="updateBlockItem(block.id, itemIndex, $any($event.target).value)" />
+            <button type="button" class="motion-control" (click)="removeBlockItem(block.id, itemIndex)">
+              {{ ui().editRemoveLabel }}
+            </button>
+          </span>
+        </label>
+      </div>
+
+      <label class="skills-edit-card__checkbox" *ngIf="isSkillBlock(block)">
+        <input type="checkbox" [checked]="block.published" (change)="updateBlockPublished(block.id, $any($event.target).checked)" />
+        {{ block.published ? ui().editPublishedLabel : ui().editDraftLabel }}
+      </label>
+
+      <div class="skills-edit-card__actions">
+        <button
+          type="button"
+          class="motion-control"
+          (click)="addBlockItem(block.id, isSkillBlock(block) ? ui().editNewTagLabel : ui().editNewItemLabel)"
+        >
+          {{ isSkillBlock(block) ? ui().editAddTagLabel : ui().editAddItemLabel }}
+        </button>
+        <button type="button" class="motion-control" (click)="saveSkillBlock(block)" [disabled]="savingBlockId() === block.id">
+          {{ savingBlockId() === block.id ? ui().editSavingLabel : ui().editSaveLabel }}
+        </button>
+      </div>
+    </article>
+  </ng-template>
 </section>

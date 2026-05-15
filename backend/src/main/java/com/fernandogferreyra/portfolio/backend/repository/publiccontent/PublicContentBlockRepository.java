@@ -14,5 +14,7 @@ public interface PublicContentBlockRepository extends JpaRepository<PublicConten
 
     Optional<PublicContentBlockEntity> findByContentKeyAndLanguageAndPublishedTrue(String contentKey, String language);
 
+    boolean existsByContentKeyAndLanguage(String contentKey, String language);
+
     List<PublicContentBlockEntity> findAllByDocumentId(UUID documentId);
 }

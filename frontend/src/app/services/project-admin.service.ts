@@ -66,7 +66,15 @@ export class ProjectAdminService {
     return this.http.get<ApiResponse<ProjectAdminItem[]>>('/api/admin/projects');
   }
 
+  createProject(): Observable<ApiResponse<ProjectAdminItem>> {
+    return this.http.post<ApiResponse<ProjectAdminItem>>('/api/admin/projects', {});
+  }
+
   updateProject(id: string, payload: ProjectAdminUpdatePayload): Observable<ApiResponse<ProjectAdminItem>> {
     return this.http.patch<ApiResponse<ProjectAdminItem>>(`/api/admin/projects/${id}`, payload);
+  }
+
+  deleteProject(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`/api/admin/projects/${id}`);
   }
 }
