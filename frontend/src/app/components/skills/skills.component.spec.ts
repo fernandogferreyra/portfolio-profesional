@@ -5,6 +5,8 @@ import { of } from 'rxjs';
 import { EditModeService } from '../../services/edit-mode.service';
 import { PublicContentAdminService } from '../../services/public-content-admin.service';
 import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
+import { SkillAdminService } from '../../services/skill-admin.service';
+import { SkillService } from '../../services/skill.service';
 import { SkillsComponent } from './skills.component';
 
 describe('SkillsComponent', () => {
@@ -37,6 +39,23 @@ describe('SkillsComponent', () => {
             updateContentBlock: (_id: string, payload: unknown) => of({ data: payload }),
           },
         },
+        {
+          provide: SkillService,
+          useValue: {
+            listSkills: () => of({ data: skillCatalog() }),
+          },
+        },
+        {
+          provide: SkillAdminService,
+          useValue: {
+            listSkills: () => of({ data: skillCatalog() }),
+            createSkill: () => of({ data: skillCatalog()[0].skills[0] }),
+            updateSkill: (_id: string, payload: unknown) => of({ data: payload }),
+            createCategory: () => of({ data: skillCatalog()[0] }),
+            updateCategory: (_id: string, payload: unknown) => of({ data: payload }),
+            deleteCategory: () => of({ data: null }),
+          },
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -50,29 +69,80 @@ describe('SkillsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('uses CMS skill copy when blocks are available', () => {
-    component.contentBlocks.set([
-      contentBlock('skill.java', 'Java CMS', 'Backend desde CMS', ['API'], true),
-      contentBlock('skill.angular', 'Angular CMS', 'Frontend desde CMS', ['UI'], true),
-    ]);
+  it('uses backend skill catalog as source of truth', () => {
+    component.skillCatalog.set(skillCatalog());
 
     const skills = component.categories().flatMap((category) => category.skills);
 
-    expect(skills.map((skill) => skill.name)).toContain('Java CMS');
-    expect(skills.find((skill) => skill.id === 'java')?.description).toBe('Backend desde CMS');
+    expect(skills.map((skill) => skill.name)).toContain('Java');
+    expect(skills.find((skill) => skill.slug === 'java')?.description).toBe('Backend real');
   });
 
-  it('hides unpublished CMS skills outside edit mode', () => {
-    component.contentBlocks.set([
-      contentBlock('skill.java', 'Java CMS', 'Backend desde CMS', ['API'], false),
-      contentBlock('skill.angular', 'Angular CMS', 'Frontend desde CMS', ['UI'], true),
-    ]);
+  it('includes soft skills in technical focus when published by backend', () => {
+    component.skillCatalog.set(skillCatalog());
 
-    const skills = component.categories().flatMap((category) => category.skills);
+    const focusLabels = component.focusAreas().map((area) => area.label);
 
-    expect(skills.map((skill) => skill.id)).not.toContain('java');
-    expect(skills.map((skill) => skill.id)).toContain('angular');
+    expect(focusLabels).toContain('Backend');
+    expect(focusLabels).toContain('Soft skills');
   });
+
+  function skillCatalog() {
+    return [
+      {
+        id: 'backend-category',
+        language: 'es',
+        slug: 'backend',
+        label: 'Backend',
+        description: 'Servicios',
+        published: true,
+        displayOrder: 10,
+        skills: [
+          {
+            id: 'java-id',
+            language: 'es',
+            slug: 'java',
+            name: 'Java',
+            description: 'Backend real',
+            categoryId: 'backend-category',
+            categorySlug: 'backend',
+            icon: 'java',
+            level: 'advanced',
+            tags: ['Spring'],
+            showLevel: true,
+            published: true,
+            displayOrder: 10,
+          },
+        ],
+      },
+      {
+        id: 'soft-category',
+        language: 'es',
+        slug: 'soft',
+        label: 'Soft skills',
+        description: 'Colaboracion',
+        published: true,
+        displayOrder: 20,
+        skills: [
+          {
+            id: 'teamwork-id',
+            language: 'es',
+            slug: 'teamwork',
+            name: 'Trabajo en equipo',
+            description: 'Colaboracion real',
+            categoryId: 'soft-category',
+            categorySlug: 'soft',
+            icon: 'teamwork',
+            level: 'basic',
+            tags: [],
+            showLevel: false,
+            published: true,
+            displayOrder: 20,
+          },
+        ],
+      },
+    ];
+  }
 
   function contentBlock(
     key: string,

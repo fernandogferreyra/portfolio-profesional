@@ -221,6 +221,20 @@
   text-transform: uppercase;
 }
 
+.skills-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.skills-admin-actions .motion-control {
+  min-height: 2.3rem;
+  padding: 0.5rem 0.78rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
 .skills-lane {
   display: grid;
   gap: 0.58rem;

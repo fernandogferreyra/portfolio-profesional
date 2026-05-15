@@ -44,6 +44,8 @@ public class SecurityConfiguration {
                     "/api/content-blocks/**",
                     "/api/projects",
                     "/api/projects/**",
+                    "/api/skills",
+                    "/api/skills/**",
                     "/api/events",
                     "/api/quote",
                     "/api/auth/login",

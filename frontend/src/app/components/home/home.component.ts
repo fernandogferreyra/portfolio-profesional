@@ -2,8 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
-import { PORTFOLIO_SKILLS, SKILL_CATEGORIES } from '../../data/portfolio.data';
-import { SkillCategoryId, localizeText } from '../../data/portfolio.models';
+import { SkillCategoryResponse } from '../../models/skills.models';
 import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
 import { MotionService } from '../../services/motion.service';
@@ -14,6 +13,7 @@ import {
   PublicContentService,
 } from '../../services/public-content.service';
 import { PublicContentAdminService } from '../../services/public-content-admin.service';
+import { SkillService } from '../../services/skill.service';
 
 type TechnicalBaseCategoryId = string;
 
@@ -43,6 +43,7 @@ export class HomeComponent {
   private readonly motionService = inject(MotionService);
   private readonly publicContentService = inject(PublicContentService);
   private readonly publicContentAdminService = inject(PublicContentAdminService);
+  private readonly skillService = inject(SkillService);
 
   readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
@@ -50,6 +51,7 @@ export class HomeComponent {
   readonly profileImageAvailable = signal(true);
   readonly profileImageUrl = 'images/profile-photo.jpg';
   readonly contentBlocks = signal<PublicContentBlock[]>([]);
+  readonly skillCatalog = signal<SkillCategoryResponse[]>([]);
   readonly savingBlockId = signal<string | null>(null);
   readonly editFeedback = signal<string | null>(null);
   readonly editError = signal<string | null>(null);
@@ -271,8 +273,9 @@ export class HomeComponent {
   constructor() {
     effect(() => {
       const editModeEnabled = this.editModeService.isEnabled();
-      this.currentLanguage();
+      const language = this.currentLanguage();
       void this.loadContentBlocks(editModeEnabled);
+      void this.loadSkillCatalog(language);
     });
   }
 
@@ -387,6 +390,15 @@ export class HomeComponent {
     }
   }
 
+  private async loadSkillCatalog(language: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.skillService.listSkills(language));
+      this.skillCatalog.set(response?.data ?? []);
+    } catch {
+      this.skillCatalog.set([]);
+    }
+  }
+
   private contentBlock(key: string): PublicContentBlock | null {
     const language = this.currentLanguage();
     return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
@@ -425,47 +437,21 @@ export class HomeComponent {
   }
 
   private skillDerivedWorkAreas(): WorkArea[] {
-    const language = this.currentLanguage();
-    const skillBlocks = new Map(
-      this.contentBlocks()
-        .filter((block) => block.language === language && block.key.startsWith('skill.') && block.published)
-        .map((block) => [block.key.replace('skill.', ''), block]),
-    );
-    const hasCmsSkills = skillBlocks.size > 0;
-
-    return SKILL_CATEGORIES.filter((category) => category.id !== 'soft')
-      .map((category) => {
-        const skills = PORTFOLIO_SKILLS.filter((skill) => skill.category === category.id)
-          .map((skill) => ({ skill, block: skillBlocks.get(skill.id) ?? null }))
-          .filter((entry) => !hasCmsSkills || entry.block);
-
-        if (!skills.length) {
-          return null;
-        }
-
-        return {
-          label: localizeText(category.label, language),
-          level: this.skillCategoryLevel(category.id, skills.length),
-          description: skills
-            .slice(0, 4)
-            .map((entry) => entry.block?.title ?? entry.skill.name)
-            .join(' · '),
-        };
-      })
-      .filter((area): area is WorkArea => Boolean(area));
+    return this.skillCatalog()
+      .filter((category) => category.skills.length > 0)
+      .map((category, index) => ({
+        label: category.label,
+        level: this.skillCategoryLevel(index, category.skills.length),
+        description: category.skills
+          .slice(0, 4)
+          .map((skill) => skill.name)
+          .join(' · '),
+      }));
   }
 
-  private skillCategoryLevel(categoryId: SkillCategoryId, skillCount: number): number {
-    const baseLevels: Record<SkillCategoryId, number> = {
-      backend: 88,
-      frontend: 74,
-      data: 70,
-      tools: 76,
-      ai: 68,
-      soft: 60,
-    };
-
-    return Math.min(96, Math.max(48, baseLevels[categoryId] + Math.min(skillCount, 4)));
+  private skillCategoryLevel(index: number, skillCount: number): number {
+    const baseLevel = Math.max(56, 88 - index * 6);
+    return Math.min(96, Math.max(48, baseLevel + Math.min(skillCount, 4)));
   }
 
   private technicalIdFromKey(key: string): string {
