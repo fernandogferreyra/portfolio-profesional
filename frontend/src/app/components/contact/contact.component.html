@@ -75,6 +75,61 @@
         </article>
       </div>
 
+      <section class="contact-channel-editor" *ngIf="editModeService.isEnabled()" aria-label="Editar canales directos">
+        <div class="contact-channel-editor__header">
+          <div>
+            <h3>{{ ui().editChannelsTitle }}</h3>
+            <p>{{ ui().editChannelsDescription }}</p>
+          </div>
+          <p class="contact-channel-editor__feedback" *ngIf="editFeedback()">{{ editFeedback() }}</p>
+          <p class="contact-channel-editor__feedback is-error" *ngIf="editError()">{{ editError() }}</p>
+        </div>
+
+        <article class="contact-channel-editor__card" *ngFor="let block of editableChannelBlocks()">
+          <h4>{{ channelEditorLabel(block) }}</h4>
+
+          <label class="contact-channel-editor__field">
+            <span>{{ ui().editTitleLabel }}</span>
+            <input type="text" [value]="block.title" (input)="updateBlockTitle(block.id, $any($event.target).value)" />
+          </label>
+
+          <label class="contact-channel-editor__field" *ngIf="block.key !== 'contact.cv'">
+            <span>{{ ui().editValueLabel }}</span>
+            <input type="text" [value]="blockValue(block)" (input)="updateBlockItem(block.id, 0, $any($event.target).value)" />
+          </label>
+
+          <label class="contact-channel-editor__field">
+            <span>{{ ui().editHrefLabel }}</span>
+            <input
+              type="text"
+              [value]="blockEditableHref(block)"
+              (input)="updateBlockItem(block.id, block.key === 'contact.cv' ? 0 : 1, $any($event.target).value)"
+            />
+          </label>
+
+          <label class="contact-channel-editor__field contact-channel-editor__field--full">
+            <span>{{ ui().editNoteLabel }}</span>
+            <textarea rows="3" [value]="block.body" (input)="updateBlockBody(block.id, $any($event.target).value)"></textarea>
+          </label>
+
+          <div class="contact-channel-editor__actions contact-channel-editor__field--full">
+            <label class="contact-channel-editor__upload motion-control" *ngIf="block.key === 'contact.cv'">
+              <input type="file" [disabled]="uploadingCv()" (change)="onCvSelected(block, $event)" />
+              <span>{{ uploadingCv() ? ui().editUploadingCvLabel : ui().editUploadCvLabel }}</span>
+            </label>
+
+            <button
+              type="button"
+              class="contact-channel-editor__save motion-control"
+              [disabled]="savingBlockId() === block.id"
+              (click)="saveContactBlock(block)"
+            >
+              {{ savingBlockId() === block.id ? ui().editSavingLabel : ui().editSaveLabel }}
+            </button>
+          </div>
+        </article>
+      </section>
+
       <ng-template #channelIcon let-channel>
         <svg
           [attr.viewBox]="channelIconViewBox(channel.icon)"

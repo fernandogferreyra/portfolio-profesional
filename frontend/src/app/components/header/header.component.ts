@@ -55,18 +55,18 @@ export class HeaderComponent {
     this.currentLanguage() === 'es' ? 'Ir al inicio' : 'Go home',
   );
   readonly privateAccessLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Acceso privado' : 'Private access',
+    this.currentLanguage() === 'es' ? 'Panel de control' : 'Control panel',
   );
   readonly privateAccessAriaLabel = computed(() =>
     this.currentLanguage() === 'es'
-      ? 'Abrir acceso privado para administrador'
-      : 'Open private admin access',
+      ? 'Abrir panel de control para administrador'
+      : 'Open admin control panel',
   );
   readonly controlCenterLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Privado' : 'Private',
+    this.currentLanguage() === 'es' ? 'Panel de control' : 'Control panel',
   );
   readonly editModeLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'EditMode' : 'EditMode',
+    this.editModeService.isEnabled() ? 'EditMode Enabled' : 'EditMode Disabled',
   );
   readonly adminStatusLabel = computed(() =>
     this.currentLanguage() === 'es' ? 'Privado activo' : 'Private active',

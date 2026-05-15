@@ -25,6 +25,8 @@
         class="project-card motion-panel portfolio-subcard"
         [class.is-active]="project.id === selectedProjectId()"
         [attr.aria-expanded]="project.id === selectedProjectId()"
+        [attr.aria-label]="project.name"
+        [title]="project.name"
         aria-controls="project-detail-panel"
         (click)="selectProject(project.id)"
       >
@@ -36,42 +38,16 @@
             [style.--project-surface]="skillIcons[project.icon].surface"
             [style.--project-border]="skillIcons[project.icon].border"
           >
-            <svg
-              [attr.viewBox]="skillIcons[project.icon].viewBox"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path *ngFor="let path of skillIcons[project.icon].paths" [attr.d]="path"></path>
-            </svg>
-          </span>
-
-          <div class="project-card__copy">
-            <p class="project-card__meta">{{ project.category }} | {{ project.year }}</p>
-            <h2 class="portfolio-card-title">{{ project.name }}</h2>
-          </div>
-        </div>
-
-        <p class="project-card__summary">{{ project.summary }}</p>
-
-        <div class="project-card__stack" aria-hidden="true">
-          <span class="project-tech project-tech--compact" *ngFor="let tech of project.stack | slice: 0 : 4">
-            <span class="project-tech__icon">
-              <svg
-                [attr.viewBox]="skillIcons[tech.icon].viewBox"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.65"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path *ngFor="let path of skillIcons[tech.icon].paths" [attr.d]="path"></path>
+            <img *ngIf="hasProjectIcon(project); else projectCardWordmark" [src]="project.iconUrl || ''" [alt]="" (error)="onProjectIconError(project.id)" />
+            <ng-template #projectCardWordmark>
+              <svg class="project-card__default-icon" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+                <path d="M18 44V22L32 14L46 22V44L32 52L18 44Z" />
+                <path d="M24 40V26L32 21L40 26V40L32 45L24 40Z" />
+                <path d="M32 21V45" />
               </svg>
-            </span>
-            <span>{{ tech.name }}</span>
+            </ng-template>
           </span>
+          <span class="project-card__name">{{ project.name }}</span>
         </div>
       </button>
     </div>
@@ -94,7 +70,7 @@
         <div class="project-actions">
           <ng-container *ngFor="let action of project.actions">
             <button
-              *ngIf="isActionType(action, 'modal')"
+              *ngIf="isActionType(action, 'modal') && !project.media?.embedUrl"
               type="button"
               class="project-action motion-control"
               [class.project-action--primary]="action.primary"
@@ -124,47 +100,183 @@
             </a>
           </ng-container>
         </div>
+
+        <section class="project-editor" *ngIf="editModeService.isEnabled() && activeAdminProject() as adminProject">
+          <div class="project-editor__header">
+            <div>
+              <h3>{{ ui().editProjectsTitle }}</h3>
+              <p>{{ ui().editProjectsDescription }}</p>
+            </div>
+            <p class="project-editor__feedback" *ngIf="projectEditFeedback()">{{ projectEditFeedback() }}</p>
+            <p class="project-editor__feedback is-error" *ngIf="projectEditError()">{{ projectEditError() }}</p>
+          </div>
+
+          <div class="project-editor__grid">
+            <label class="project-editor__field">
+              <span>{{ ui().editSlugLabel }}</span>
+              <input type="text" [value]="adminProject.slug" (input)="updateProjectField('slug', $any($event.target).value)" />
+            </label>
+
+            <label class="project-editor__field">
+              <span>{{ ui().editNameLabel }}</span>
+              <input type="text" [value]="adminProject.name" (input)="updateProjectField('name', $any($event.target).value)" />
+            </label>
+
+            <label class="project-editor__field">
+              <span>{{ ui().editYearLabel }}</span>
+              <input type="text" [value]="adminProject.year" (input)="updateProjectField('year', $any($event.target).value)" />
+            </label>
+
+            <label class="project-editor__field">
+              <span>{{ ui().editCategoryLabel }}</span>
+              <input type="text" [value]="adminProject.category" (input)="updateProjectField('category', $any($event.target).value)" />
+            </label>
+
+            <label class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editSummaryLabel }}</span>
+              <textarea rows="3" [value]="adminProject.summary" (input)="updateProjectField('summary', $any($event.target).value)"></textarea>
+            </label>
+
+            <label class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editStackLabel }}</span>
+              <textarea rows="3" [value]="adminProject.stack.join(', ')" (input)="updateProjectStack($any($event.target).value)"></textarea>
+            </label>
+
+            <label class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editFeaturesLabel }}</span>
+              <textarea rows="4" [value]="formatProjectFeatures(adminProject.features)" (input)="updateProjectFeatures($any($event.target).value)"></textarea>
+              <small>{{ ui().editFeaturesHelp }}</small>
+            </label>
+
+            <div class="project-editor__field project-editor__field--full" *ngIf="adminProject.sections.length">
+              <span>{{ ui().editSectionsLabel }}</span>
+              <small>{{ ui().editSectionsHelp }}</small>
+              <div class="project-editor__sections">
+                <article class="project-editor__section" *ngFor="let section of adminProject.sections; let sectionIndex = index">
+                  <label class="project-editor__field">
+                    <span>{{ ui().editSectionsLabel }} {{ sectionIndex + 1 }}</span>
+                    <input type="text" [value]="section.title" (input)="updateProjectSectionTitle(sectionIndex, $any($event.target).value)" />
+                  </label>
+                  <label class="project-editor__field">
+                    <span>{{ ui().editSectionItemsHelp }}</span>
+                    <textarea rows="3" [value]="section.items.join('\n')" (input)="updateProjectSectionItems(sectionIndex, $any($event.target).value)"></textarea>
+                  </label>
+                </article>
+              </div>
+            </div>
+
+            <label class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editRepoLabel }}</span>
+              <input type="text" [value]="adminProject.repositoryUrl || ''" (input)="updateProjectField('repositoryUrl', $any($event.target).value)" />
+            </label>
+
+            <label class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editDemoLabel }}</span>
+              <input type="text" [value]="adminProject.demoUrl || ''" (input)="updateProjectField('demoUrl', $any($event.target).value)" />
+            </label>
+
+            <label class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editMonographLabel }}</span>
+              <input type="text" [value]="adminProject.monographUrl || ''" (input)="updateProjectField('monographUrl', $any($event.target).value)" />
+            </label>
+
+            <div class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editIconLabel }}</span>
+              <div class="project-editor__icon-row">
+                <img *ngIf="adminProject.iconUrl" [src]="adminProject.iconUrl" [alt]="ui().editIconAlt" />
+                <label class="project-editor__upload motion-control" [class.is-disabled]="uploadingProjectIconId() === adminProject.id">
+                  <input
+                    type="file"
+                    accept=".png,.ico,image/png,image/x-icon,image/vnd.microsoft.icon"
+                    [disabled]="uploadingProjectIconId() === adminProject.id"
+                    (change)="onProjectIconSelected($event)"
+                  />
+                  <span>{{ uploadingProjectIconId() === adminProject.id ? ui().editIconUploadingLabel : ui().editIconUploadLabel }}</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editDocsLabel }}</span>
+              <div class="project-editor__asset-list" *ngIf="adminProject.documentation.length">
+                <a *ngFor="let document of adminProject.documentation" [href]="document.url" target="_blank" rel="noopener">{{ document.filename }}</a>
+              </div>
+              <label class="project-editor__upload motion-control" [class.is-disabled]="uploadingProjectAssetsId() === adminProject.id">
+                <input type="file" multiple [disabled]="uploadingProjectAssetsId() === adminProject.id" (change)="onProjectAssetsSelected('documentation', $event)" />
+                <span>{{ uploadingProjectAssetsId() === adminProject.id ? ui().editAssetsUploadingLabel : ui().editDocsUploadLabel }}</span>
+              </label>
+            </div>
+
+            <div class="project-editor__field project-editor__field--full">
+              <span>{{ ui().editScreenshotsLabel }}</span>
+              <div class="project-editor__asset-list project-editor__asset-list--images" *ngIf="adminProject.screenshots.length">
+                <a *ngFor="let screenshot of adminProject.screenshots" [href]="screenshot.url" target="_blank" rel="noopener">
+                  <img [src]="screenshot.url" [alt]="screenshot.filename" />
+                </a>
+              </div>
+              <label class="project-editor__upload motion-control" [class.is-disabled]="uploadingProjectAssetsId() === adminProject.id">
+                <input type="file" multiple accept="image/*" [disabled]="uploadingProjectAssetsId() === adminProject.id" (change)="onProjectAssetsSelected('screenshots', $event)" />
+                <span>{{ uploadingProjectAssetsId() === adminProject.id ? ui().editAssetsUploadingLabel : ui().editScreenshotsUploadLabel }}</span>
+              </label>
+            </div>
+
+            <label class="project-editor__field">
+              <span>{{ ui().editOrderLabel }}</span>
+              <input type="number" [value]="adminProject.displayOrder" (input)="updateProjectDisplayOrder($any($event.target).valueAsNumber)" />
+            </label>
+
+            <label class="project-editor__toggle">
+              <input type="checkbox" [checked]="adminProject.featured" (change)="updateProjectFlag('featured', $any($event.target).checked)" />
+              <span>{{ ui().editFeaturedLabel }}</span>
+            </label>
+
+            <label class="project-editor__toggle">
+              <input type="checkbox" [checked]="adminProject.published" (change)="updateProjectFlag('published', $any($event.target).checked)" />
+              <span>{{ ui().editPublishedLabel }}</span>
+            </label>
+          </div>
+
+          <button
+            type="button"
+            class="project-editor__save motion-control"
+            [disabled]="savingProjectId() === adminProject.id"
+            (click)="saveActiveProject()"
+          >
+            {{ savingProjectId() === adminProject.id ? ui().editSavingLabel : ui().editSaveLabel }}
+          </button>
+        </section>
       </div>
 
       <div class="project-preview motion-drift-shell motion-drift-shell--reverse motion-drift-shell--soft">
-        <p class="project-preview__label">{{ ui().previewLabel }}</p>
+        <p class="project-preview__label">{{ ui().previewLabel }} {{ project.name }}</p>
 
-        <div class="project-preview__media" *ngIf="project.media?.thumbnailUrl; else projectPreviewFallback">
-          <img [src]="project.media?.thumbnailUrl" [alt]="project.media?.alt || project.name" loading="lazy" />
+        <div class="project-preview__media" *ngIf="activeProjectEmbedUrl() as embedUrl; else projectIconPreview">
+          <iframe
+            [src]="embedUrl"
+            [title]="project.media?.iframeTitle || project.name"
+            loading="lazy"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen
+          >
+          </iframe>
         </div>
 
-        <ng-template #projectPreviewFallback>
-          <div class="project-preview__fallback">
-            <span class="project-tech" *ngFor="let tech of project.stack | slice: 0 : 6; trackBy: trackByTechnologyName">
-              <span class="project-tech__icon">
-                <svg
-                  [attr.viewBox]="skillIcons[tech.icon].viewBox"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.65"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path *ngFor="let path of skillIcons[tech.icon].paths" [attr.d]="path"></path>
-                </svg>
-              </span>
-              <span>{{ tech.name }}</span>
-            </span>
-          </div>
+        <ng-template #projectIconPreview>
+          <span class="project-preview__icon-stage" aria-hidden="true">
+            <img *ngIf="hasProjectIcon(project); else projectPreviewInitials" [src]="project.iconUrl || ''" [alt]="" (error)="onProjectIconError(project.id)" />
+            <ng-template #projectPreviewInitials>
+              <span class="project-preview__initials">{{ projectInitials(project.name) }}</span>
+            </ng-template>
+          </span>
         </ng-template>
-      </div>
-    </div>
 
-    <div class="project-metrics">
-      <article
-        class="project-metric motion-panel portfolio-subcard"
-        *ngFor="let metric of project.metrics; let i = index"
-        appRevealOnScroll
-        [revealDelay]="80 + i * 40"
-      >
-        <strong>{{ metric.value }}</strong>
-        <span>{{ metric.label }}</span>
-      </article>
+        <div class="project-screenshots" *ngIf="project.screenshots.length">
+          <a *ngFor="let screenshot of project.screenshots" [href]="screenshot.url" target="_blank" rel="noopener">
+            <img [src]="screenshot.url" [alt]="screenshot.filename" loading="lazy" />
+          </a>
+        </div>
+      </div>
     </div>
 
     <div class="project-details-grid">
@@ -186,7 +298,7 @@
         [revealDelay]="120 + project.sections.length * 45"
       >
         <h3 class="portfolio-card-title">{{ ui().stackTitle }}</h3>
-        <div class="project-stack">
+        <div class="project-stack project-stack--tiles">
           <span class="project-tech" *ngFor="let tech of project.stack; trackBy: trackByTechnologyName">
             <span class="project-tech__icon">
               <svg
@@ -214,6 +326,13 @@
         <ul class="project-list">
           <li *ngFor="let feature of project.features">{{ feature }}</li>
         </ul>
+      </article>
+
+      <article class="project-detail-card motion-panel portfolio-subcard" *ngIf="project.documentation.length">
+        <h3 class="portfolio-card-title">{{ ui().editDocsLabel }}</h3>
+        <div class="project-documents">
+          <a *ngFor="let document of project.documentation" [href]="document.url" target="_blank" rel="noopener">{{ document.filename }}</a>
+        </div>
       </article>
     </div>
   </section>

@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
+import { CredentialItem, CredentialService } from '../../services/credential.service';
 import { LanguageService } from '../../services/language.service';
 import { MotionService } from '../../services/motion.service';
 
@@ -20,11 +22,13 @@ interface WorkArea {
 export class HomeComponent {
   private readonly languageService = inject(LanguageService);
   private readonly motionService = inject(MotionService);
+  private readonly credentialService = inject(CredentialService);
 
   readonly currentLanguage = this.languageService.language;
   readonly activeBaseCategoryId = signal<TechnicalBaseCategoryId>('electronics');
   readonly profileImageAvailable = signal(true);
   readonly profileImageUrl = 'images/profile-photo.jpg';
+  readonly credentialEntries = signal<CredentialItem[]>([]);
 
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
@@ -186,32 +190,14 @@ export class HomeComponent {
           eyebrow: 'Formación y credenciales',
           title: 'Base académica y credenciales técnicas',
           description: '',
-          highlights: [
-            {
-              label: 'Formación profesional',
-              value: 'Técnico Universitario en Programación - UTN FRC',
-            },
-            {
-              label: 'Perfil actual',
-              value: 'Desarrollo de software, APIs y arquitectura backend.',
-            },
-          ],
+          highlights: this.credentialHighlights('Perfil actual', 'Desarrollo de software, APIs y arquitectura backend.'),
           actionLabel: 'Ver formación y credenciales',
         }
       : {
           eyebrow: 'Education and certifications',
           title: 'Academic foundation and technical credentials',
           description: '',
-          highlights: [
-            {
-              label: 'Professional training',
-              value: 'University Programming Technician - UTN FRC',
-            },
-            {
-              label: 'Current profile',
-              value: 'Software development, APIs, and backend architecture.',
-            },
-          ],
+          highlights: this.credentialHighlights('Current profile', 'Software development, APIs, and backend architecture.'),
           actionLabel: 'View education and certifications',
         },
   );
@@ -296,6 +282,10 @@ export class HomeComponent {
     );
   });
 
+  constructor() {
+    void this.loadCredentials();
+  }
+
   setBaseCategory(categoryId: TechnicalBaseCategoryId): void {
     if (categoryId === this.activeBaseCategoryId()) {
       return;
@@ -312,5 +302,30 @@ export class HomeComponent {
 
   onProfileImageError(): void {
     this.profileImageAvailable.set(false);
+  }
+
+  private credentialHighlights(fallbackLabel: string, fallbackValue: string): { label: string; value: string }[] {
+    const language = this.currentLanguage();
+    const entries = this.credentialEntries()
+      .filter((entry) => entry.language === language)
+      .sort((left, right) => left.displayOrder - right.displayOrder || left.title.localeCompare(right.title));
+
+    if (!entries.length) {
+      return [{ label: fallbackLabel, value: fallbackValue }];
+    }
+
+    return entries.slice(0, 4).map((entry) => ({
+      label: entry.type,
+      value: entry.title,
+    }));
+  }
+
+  private async loadCredentials(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.credentialService.listCredentials());
+      this.credentialEntries.set(response?.data ?? []);
+    } catch {
+      this.credentialEntries.set([]);
+    }
   }
 }

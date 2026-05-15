@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 
@@ -8,10 +8,18 @@ import {
   ContactRequestPayload,
   ContactService,
 } from '../../services/contact.service';
+import { DocumentAdminService } from '../../services/document-admin.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
-import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
+import {
+  PublicContentBlock,
+  PublicContentBlockUpdatePayload,
+  PublicContentService,
+} from '../../services/public-content.service';
+import { PublicContentAdminService } from '../../services/public-content-admin.service';
 
 type ContactChannelIconId = 'email' | 'phone' | 'linkedin' | 'github' | 'document';
+type ContactChannelBlockKey = 'contact.email' | 'contact.phone' | 'contact.linkedin' | 'contact.github' | 'contact.cv';
 type ContactFormControlName = 'name' | 'email' | 'context' | 'subject' | 'message';
 type ContactFormState = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -42,10 +50,24 @@ export class ContactComponent {
   private readonly languageService = inject(LanguageService);
   private readonly contactService = inject(ContactService);
   private readonly publicContentService = inject(PublicContentService);
+  private readonly publicContentAdminService = inject(PublicContentAdminService);
+  private readonly documentAdminService = inject(DocumentAdminService);
 
   readonly contactRecipient = 'fernandogabrielf@gmail.com';
+  readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly contentBlocks = signal<PublicContentBlock[]>([]);
+  readonly savingBlockId = signal<string | null>(null);
+  readonly uploadingCv = signal(false);
+  readonly editFeedback = signal<string | null>(null);
+  readonly editError = signal<string | null>(null);
+  readonly channelBlockKeys: ContactChannelBlockKey[] = [
+    'contact.email',
+    'contact.phone',
+    'contact.linkedin',
+    'contact.github',
+    'contact.cv',
+  ];
   readonly formState = signal<ContactFormState>('idle');
   readonly serverMessage = signal('');
   readonly contactForm = this.formBuilder.nonNullable.group({
@@ -108,6 +130,19 @@ export class ContactComponent {
           validationEmail: 'Ingresa un email valido.',
           validationTooLong: 'El contenido supera el maximo permitido.',
           availabilityTitle: 'Disponibilidad',
+          editChannelsTitle: 'Editar canales directos',
+          editChannelsDescription: 'Estos campos actualizan los bloques CMS del idioma activo.',
+          editTitleLabel: 'Titulo visible',
+          editValueLabel: 'Valor visible',
+          editHrefLabel: 'URL o accion',
+          editNoteLabel: 'Descripcion',
+          editSaveLabel: 'Guardar canal',
+          editSavingLabel: 'Guardando...',
+          editUploadCvLabel: 'Subir o reemplazar CV',
+          editUploadingCvLabel: 'Subiendo CV...',
+          editSavedLabel: 'Canal actualizado.',
+          editCvSavedLabel: 'CV actualizado y asociado al canal.',
+          editGenericError: 'No se pudo guardar el cambio.',
         }
       : {
           eyebrow: 'Contact',
@@ -138,6 +173,19 @@ export class ContactComponent {
           validationEmail: 'Enter a valid email address.',
           validationTooLong: 'The content exceeds the maximum allowed length.',
           availabilityTitle: 'Availability',
+          editChannelsTitle: 'Edit direct channels',
+          editChannelsDescription: 'These fields update the CMS blocks for the active language.',
+          editTitleLabel: 'Visible title',
+          editValueLabel: 'Visible value',
+          editHrefLabel: 'URL or action',
+          editNoteLabel: 'Description',
+          editSaveLabel: 'Save channel',
+          editSavingLabel: 'Saving...',
+          editUploadCvLabel: 'Upload or replace resume',
+          editUploadingCvLabel: 'Uploading resume...',
+          editSavedLabel: 'Channel updated.',
+          editCvSavedLabel: 'Resume updated and linked to the channel.',
+          editGenericError: 'The change could not be saved.',
         },
   );
   readonly isSubmitting = computed(() => this.formState() === 'submitting');
@@ -251,9 +299,19 @@ export class ContactComponent {
         : ['Professional opportunities', 'Technical collaboration', 'Freelance projects'],
     ),
   );
+  readonly editableChannelBlocks = computed(() => {
+    const language = this.currentLanguage();
+    return this.channelBlockKeys
+      .map((key) => this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null)
+      .filter((block): block is PublicContentBlock => Boolean(block));
+  });
 
   constructor() {
-    void this.loadContentBlocks();
+    effect(() => {
+      const editModeEnabled = this.editModeService.isEnabled();
+      this.currentLanguage();
+      void this.loadContentBlocks(editModeEnabled);
+    });
   }
 
   hasHref(channel: ContactChannel): boolean {
@@ -266,6 +324,99 @@ export class ContactComponent {
 
   channelIconPaths(icon: ContactChannelIconId): string[] {
     return this.channelIcons[icon].paths;
+  }
+
+  channelEditorLabel(block: PublicContentBlock): string {
+    const channelId = block.key.replace('contact.', '');
+    const channel = this.channels().find((item) => item.id === channelId);
+    return channel?.label ?? block.title;
+  }
+
+  blockValue(block: PublicContentBlock): string {
+    return block.items[0] ?? '';
+  }
+
+  blockHref(block: PublicContentBlock): string {
+    if (block.key === 'contact.cv') {
+      return block.documentUrl ?? block.items[0] ?? '';
+    }
+
+    return block.items[1] ?? '';
+  }
+
+  blockEditableHref(block: PublicContentBlock): string {
+    return block.key === 'contact.cv' ? block.items[0] ?? '' : block.items[1] ?? '';
+  }
+
+  updateBlockTitle(id: string, value: string): void {
+    this.updateBlock(id, (block) => ({ ...block, title: value }));
+  }
+
+  updateBlockBody(id: string, value: string): void {
+    this.updateBlock(id, (block) => ({ ...block, body: value }));
+  }
+
+  updateBlockItem(id: string, index: number, value: string): void {
+    this.updateBlock(id, (block) => {
+      const items = [...block.items];
+      items[index] = value;
+      return { ...block, items };
+    });
+  }
+
+  async saveContactBlock(block: PublicContentBlock): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingBlockId()) {
+      return;
+    }
+
+    this.savingBlockId.set(block.id);
+    this.editFeedback.set(null);
+    this.editError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.publicContentAdminService.updateContentBlock(block.id, this.toBlockPayload(block)));
+      if (response?.data) {
+        this.replaceContentBlock(response.data);
+      }
+      this.editFeedback.set(this.ui().editSavedLabel);
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingBlockId.set(null);
+    }
+  }
+
+  async onCvSelected(block: PublicContentBlock, event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    if (!file || !this.editModeService.isEnabled() || this.uploadingCv()) {
+      return;
+    }
+
+    this.uploadingCv.set(true);
+    this.editFeedback.set(null);
+    this.editError.set(null);
+
+    try {
+      const uploadResponse = await firstValueFrom(this.documentAdminService.uploadDocument(file, 'cv'));
+      const response = await firstValueFrom(
+        this.publicContentAdminService.updateContentBlock(block.id, {
+          ...this.toBlockPayload(block),
+          documentId: uploadResponse.data.id,
+        }),
+      );
+      if (response?.data) {
+        this.replaceContentBlock(response.data);
+      }
+      this.editFeedback.set(this.ui().editCvSavedLabel);
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.uploadingCv.set(false);
+      if (input) {
+        input.value = '';
+      }
+    }
   }
 
   controlError(controlName: ContactFormControlName): string | null {
@@ -357,9 +508,11 @@ export class ContactComponent {
     return this.ui().formErrorLabel;
   }
 
-  private async loadContentBlocks(): Promise<void> {
+  private async loadContentBlocks(includeDrafts = false): Promise<void> {
     try {
-      const response = await firstValueFrom(this.publicContentService.listPublicContentBlocks());
+      const response = await firstValueFrom(
+        includeDrafts ? this.publicContentAdminService.listContentBlocks() : this.publicContentService.listPublicContentBlocks(),
+      );
       this.contentBlocks.set(response?.data ?? []);
     } catch {
       this.contentBlocks.set([]);
@@ -388,5 +541,32 @@ export class ContactComponent {
 
   private blockItems(block: PublicContentBlock | null, fallback: string[]): string[] {
     return block?.items?.length ? block.items : fallback;
+  }
+
+  private updateBlock(id: string, updater: (block: PublicContentBlock) => PublicContentBlock): void {
+    this.contentBlocks.update((blocks) => blocks.map((block) => (block.id === id ? updater(block) : block)));
+  }
+
+  private replaceContentBlock(updated: PublicContentBlock): void {
+    this.contentBlocks.update((blocks) => blocks.map((block) => (block.id === updated.id ? updated : block)));
+  }
+
+  private toBlockPayload(block: PublicContentBlock): PublicContentBlockUpdatePayload {
+    return {
+      title: block.title.trim(),
+      body: block.body.trim(),
+      items: block.items.map((item) => item.trim()).filter((item) => item.length > 0),
+      documentId: block.documentId,
+      published: block.published,
+      displayOrder: block.displayOrder,
+    };
+  }
+
+  private resolveEditErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string' && error.error.message.trim()) {
+      return error.error.message;
+    }
+
+    return this.ui().editGenericError;
   }
 }

@@ -20,9 +20,9 @@ export class ControlCenterComponent {
   readonly content = computed(() =>
     this.languageService.language() === 'es'
       ? {
-          eyebrow: 'Modo privado',
-          title: 'Backoffice privado FERCHUZ',
-          lead: 'Espacio privado para cotizar, actualizar el portfolio y gestionar recursos utiles sin tocar codigo.',
+          eyebrow: 'Panel de control',
+          title: 'Panel de control',
+          lead: 'Espacio operativo para cotizar, revisar mensajes y gestionar recursos utiles sin tocar codigo.',
           statusLabel: 'Sesion activa',
           sessionLiveLabel: 'Online',
           sessionUserLabel: 'Usuario',
@@ -30,9 +30,9 @@ export class ControlCenterComponent {
           sessionStateLabel: 'Estado',
           sessionStateValue: 'Acceso operativo',
           moduleCount: 3,
-          modulesLabel: 'modulos privados',
-          workspaceNavTitle: 'Centro operativo',
-          workspaceNavLead: 'Elige una superficie de trabajo y mantene el foco sin salir del panel privado.',
+          modulesLabel: 'modulos activos',
+          workspaceNavTitle: 'Menu de trabajo',
+          workspaceNavLead: 'Elige una herramienta y mantene el foco sin que el panel cambie de forma al scrollear.',
           workspaceCta: 'Abrir',
           accessLabel: 'backend seguro',
           workspaces: [
@@ -67,9 +67,9 @@ export class ControlCenterComponent {
           placeholderReady: 'Se prepara en la siguiente etapa.',
         }
       : {
-          eyebrow: 'Private mode',
-          title: 'FERCHUZ private backoffice',
-          lead: 'Private space to quote, update the portfolio, and manage useful resources without touching code.',
+          eyebrow: 'Control panel',
+          title: 'Control panel',
+          lead: 'Operations space to quote, review messages, and manage useful resources without touching code.',
           statusLabel: 'Active session',
           sessionLiveLabel: 'Online',
           sessionUserLabel: 'User',
@@ -77,9 +77,9 @@ export class ControlCenterComponent {
           sessionStateLabel: 'State',
           sessionStateValue: 'Operational access',
           moduleCount: 3,
-          modulesLabel: 'private modules',
-          workspaceNavTitle: 'Operations hub',
-          workspaceNavLead: 'Choose a workspace and keep focus without leaving the private panel.',
+          modulesLabel: 'active modules',
+          workspaceNavTitle: 'Work menu',
+          workspaceNavLead: 'Choose a tool and keep focus without the panel reshaping while you scroll.',
           workspaceCta: 'Open',
           accessLabel: 'secure backend',
           workspaces: [

@@ -16,6 +16,15 @@ public record ProjectAdminResponse(
     boolean published,
     int displayOrder,
     String repositoryUrl,
+    String demoUrl,
+    String monographUrl,
+    UUID iconDocumentId,
+    String iconUrl,
+    List<ProjectMetricResponse> metrics,
+    List<ProjectSectionResponse> sections,
+    List<String> features,
+    List<ProjectAssetResponse> documentation,
+    List<ProjectAssetResponse> screenshots,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt
 ) {

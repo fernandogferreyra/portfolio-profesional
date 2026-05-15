@@ -359,6 +359,123 @@
   transform: translate(-50%, 0) scale(1);
 }
 
+.contact-channel-editor {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.2rem;
+  padding: 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--color-bg-elevated) 86%, transparent);
+}
+
+.contact-channel-editor__header {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.contact-channel-editor__header h3,
+.contact-channel-editor__card h4,
+.contact-channel-editor__header p,
+.contact-channel-editor__feedback {
+  margin: 0;
+}
+
+.contact-channel-editor__header h3,
+.contact-channel-editor__card h4 {
+  color: var(--color-text);
+}
+
+.contact-channel-editor__header p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.contact-channel-editor__feedback {
+  color: var(--color-primary);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.contact-channel-editor__feedback.is-error {
+  color: #fca5a5;
+}
+
+.contact-channel-editor__card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, var(--glass-border));
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-surface) 84%, transparent);
+}
+
+.contact-channel-editor__card h4,
+.contact-channel-editor__field--full,
+.contact-channel-editor__actions {
+  grid-column: 1 / -1;
+}
+
+.contact-channel-editor__field {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.contact-channel-editor__field span {
+  color: var(--color-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.contact-channel-editor__field input,
+.contact-channel-editor__field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.66rem 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 0.8rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.contact-channel-editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.contact-channel-editor__upload,
+.contact-channel-editor__save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.55rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 999px;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.contact-channel-editor__upload input {
+  display: none;
+}
+
+.contact-channel-editor__save:disabled,
+.contact-channel-editor__upload:has(input:disabled) {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 @keyframes contact-orbit-spin {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
@@ -633,6 +750,15 @@
   .contact-social-node:nth-of-type(2) .contact-social-node__bubble,
   .contact-social-node:nth-of-type(5) .contact-social-node__bubble {
     transform: none;
+  }
+
+  .contact-channel-editor__card {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-channel-editor__upload,
+  .contact-channel-editor__save {
+    width: 100%;
   }
 
   .contact-form__field--full {
