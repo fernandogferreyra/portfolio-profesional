@@ -26,6 +26,11 @@ export interface PublicContentBlockUpdatePayload {
   displayOrder: number;
 }
 
+export interface PublicContentBlockCreatePayload extends PublicContentBlockUpdatePayload {
+  key: string;
+  language: string;
+}
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;

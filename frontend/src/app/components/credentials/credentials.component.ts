@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 
@@ -10,13 +10,22 @@ import { LanguageService } from '../../services/language.service';
 
 type CredentialTextField = 'type' | 'title' | 'institution' | 'description';
 
+interface CredentialDocumentPreview {
+  documentId: string;
+  url: string;
+  frameUrl: SafeResourceUrl;
+  contentType: string;
+}
+
+type PdfFrameView = 'FitH' | 'FitV';
+
 @Component({
   selector: 'app-credentials',
   standalone: false,
   templateUrl: './credentials.component.html',
   styleUrl: './credentials.component.scss',
 })
-export class CredentialsComponent {
+export class CredentialsComponent implements OnDestroy {
   private readonly languageService = inject(LanguageService);
   private readonly credentialService = inject(CredentialService);
   private readonly documentAdminService = inject(DocumentAdminService);
@@ -30,19 +39,13 @@ export class CredentialsComponent {
   readonly uploadingId = signal<string | null>(null);
   readonly feedback = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  readonly documentPreviews = signal<Map<string, CredentialDocumentPreview>>(new Map());
+  readonly framePreviewIds = signal<ReadonlySet<string>>(new Set());
   readonly visibleEntries = computed(() =>
     this.credentials()
       .filter((entry) => entry.language === this.currentLanguage())
       .sort((left, right) => left.displayOrder - right.displayOrder || left.title.localeCompare(right.title)),
   );
-  readonly documentPreviewUrls = computed(() =>
-    new Map(
-      this.credentials()
-        .filter((entry) => Boolean(entry.documentUrl))
-        .map((entry) => [entry.id, this.sanitizer.bypassSecurityTrustResourceUrl(entry.documentUrl as string)]),
-    ),
-  );
-
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
       ? {
@@ -113,8 +116,29 @@ export class CredentialsComponent {
     return entry.id;
   }
 
-  documentPreviewUrl(entry: CredentialItem): SafeResourceUrl | null {
-    return this.documentPreviewUrls().get(entry.id) ?? null;
+  ngOnDestroy(): void {
+    this.clearDocumentPreviews();
+  }
+
+  documentPreview(entry: CredentialItem): CredentialDocumentPreview | null {
+    return this.documentPreviews().get(entry.id) ?? null;
+  }
+
+  credentialDocumentUrl(entry: CredentialItem): string | null {
+    if (!entry.documentId) {
+      return null;
+    }
+
+    return this.editModeService.isEnabled() ? `/api/admin/credentials/${entry.id}/document` : entry.documentUrl;
+  }
+
+  shouldUseFramePreview(entry: CredentialItem): boolean {
+    const preview = this.documentPreview(entry);
+    return this.framePreviewIds().has(entry.id) || preview?.contentType.toLowerCase().includes('pdf') === true;
+  }
+
+  onPreviewImageError(entryId: string): void {
+    this.framePreviewIds.update((ids) => new Set(ids).add(entryId));
   }
 
   async createCredential(): Promise<void> {
@@ -170,6 +194,7 @@ export class CredentialsComponent {
       const response = await firstValueFrom(this.credentialService.updateCredential(entry.id, this.toPayload(entry)));
       if (response?.data) {
         this.replaceCredential(response.data);
+        void this.loadDocumentPreview(response.data);
       }
       this.feedback.set(this.ui().saveSuccess);
     } catch (error) {
@@ -198,6 +223,7 @@ export class CredentialsComponent {
       );
       if (response?.data) {
         this.replaceCredential(response.data);
+        void this.loadDocumentPreview(response.data, true);
       }
       this.feedback.set(this.ui().uploadSuccess);
     } catch (error) {
@@ -218,7 +244,9 @@ export class CredentialsComponent {
       const response = await firstValueFrom(
         includeDrafts ? this.credentialService.listAdminCredentials() : this.credentialService.listCredentials(),
       );
-      this.credentials.set(response?.data ?? []);
+      const entries = response?.data ?? [];
+      this.credentials.set(entries);
+      void this.loadDocumentPreviews(entries);
     } catch (error) {
       this.error.set(this.resolveErrorMessage(error));
       this.credentials.set([]);
@@ -233,6 +261,108 @@ export class CredentialsComponent {
         .map((entry) => (entry.id === updated.id ? updated : entry))
         .sort((left, right) => left.displayOrder - right.displayOrder || left.title.localeCompare(right.title)),
     );
+  }
+
+  private async loadDocumentPreviews(entries: CredentialItem[]): Promise<void> {
+    const previewableIds = new Set(entries.filter((entry) => Boolean(entry.documentId)).map((entry) => entry.id));
+    this.documentPreviews.update((previews) => {
+      const next = new Map(previews);
+      for (const [id, preview] of next) {
+        if (!previewableIds.has(id)) {
+          URL.revokeObjectURL(preview.url);
+          next.delete(id);
+        }
+      }
+      return next;
+    });
+
+    await Promise.all(entries.map((entry) => this.loadDocumentPreview(entry)));
+  }
+
+  private async loadDocumentPreview(entry: CredentialItem, force = false): Promise<void> {
+    if (!entry.documentId) {
+      this.removeDocumentPreview(entry.id);
+      return;
+    }
+
+    const currentPreview = this.documentPreviews().get(entry.id);
+    if (!force && currentPreview?.documentId === entry.documentId) {
+      return;
+    }
+
+    try {
+      const blob = await firstValueFrom(this.credentialService.downloadCredentialDocument(entry, this.editModeService.isEnabled()));
+      const objectUrl = URL.createObjectURL(blob);
+      const frameView = await this.resolvePdfFrameView(blob);
+      const frameUrl = `${objectUrl}#toolbar=0&navpanes=0&view=${frameView}`;
+      this.documentPreviews.update((previews) => {
+        const next = new Map(previews);
+        const previous = next.get(entry.id);
+        if (previous) {
+          URL.revokeObjectURL(previous.url);
+        }
+        next.set(entry.id, {
+          documentId: entry.documentId as string,
+          url: objectUrl,
+          frameUrl: this.sanitizer.bypassSecurityTrustResourceUrl(frameUrl),
+          contentType: blob.type || 'application/octet-stream',
+        });
+        return next;
+      });
+      this.framePreviewIds.update((ids) => {
+        const next = new Set(ids);
+        next.delete(entry.id);
+        return next;
+      });
+    } catch {
+      this.removeDocumentPreview(entry.id);
+    }
+  }
+
+  private removeDocumentPreview(id: string): void {
+    this.documentPreviews.update((previews) => {
+      const next = new Map(previews);
+      const previous = next.get(id);
+      if (previous) {
+        URL.revokeObjectURL(previous.url);
+      }
+      next.delete(id);
+      return next;
+    });
+    this.framePreviewIds.update((ids) => {
+      const next = new Set(ids);
+      next.delete(id);
+      return next;
+    });
+  }
+
+  private clearDocumentPreviews(): void {
+    for (const preview of this.documentPreviews().values()) {
+      URL.revokeObjectURL(preview.url);
+    }
+    this.documentPreviews.set(new Map());
+  }
+
+  private async resolvePdfFrameView(blob: Blob): Promise<PdfFrameView> {
+    if (!blob.type.toLowerCase().includes('pdf')) {
+      return 'FitH';
+    }
+
+    try {
+      const header = await blob.slice(0, Math.min(blob.size, 262_144)).text();
+      const mediaBox = header.match(
+        /\/MediaBox\s*\[\s*(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/,
+      );
+      if (!mediaBox) {
+        return 'FitH';
+      }
+
+      const width = Math.abs(Number(mediaBox[3]) - Number(mediaBox[1]));
+      const height = Math.abs(Number(mediaBox[4]) - Number(mediaBox[2]));
+      return width > height ? 'FitV' : 'FitH';
+    } catch {
+      return 'FitH';
+    }
   }
 
   private toPayload(entry: CredentialItem): CredentialUpdatePayload {

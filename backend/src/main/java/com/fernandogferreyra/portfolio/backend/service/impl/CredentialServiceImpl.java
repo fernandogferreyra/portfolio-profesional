@@ -84,11 +84,24 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     @Transactional(readOnly = true)
+    public DocumentDownload downloadAdminCredentialDocument(UUID id) {
+        CredentialEntity credential = credentialRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential not found"));
+
+        return downloadCredentialDocument(credential);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public DocumentDownload downloadPublishedCredentialDocument(UUID id) {
         CredentialEntity credential = credentialRepository.findById(id)
             .filter(CredentialEntity::isPublished)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential not found"));
 
+        return downloadCredentialDocument(credential);
+    }
+
+    private DocumentDownload downloadCredentialDocument(CredentialEntity credential) {
         if (credential.getDocumentId() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Credential has no linked document");
         }

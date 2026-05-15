@@ -233,6 +233,57 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void adminCanCreatePublicContentBlock() throws Exception {
+        String accessToken = loginAsAdmin();
+        String contentKey = "home.technical.test-" + UUID.randomUUID();
+
+        mockMvc.perform(post("/api/admin/content-blocks")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "key": "%s",
+                      "language": "es",
+                      "title": "Nueva experiencia tecnica",
+                      "body": "Bloque creado desde EditMode.",
+                      "items": ["Diagnostico", "Implementacion"],
+                      "documentId": null,
+                      "published": true,
+                      "displayOrder": 240
+                    }
+                    """.formatted(contentKey)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.key").value(contentKey))
+            .andExpect(jsonPath("$.data.items", hasSize(2)))
+            .andExpect(jsonPath("$.data.published").value(true));
+    }
+
+    @Test
+    void adminCanCreateAndDeleteProject() throws Exception {
+        String accessToken = loginAsAdmin();
+
+        String createdProjectBody = mockMvc.perform(post("/api/admin/projects")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.slug").value("nuevo-proyecto"))
+            .andExpect(jsonPath("$.data.published").value(false))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        String projectId = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(createdProjectBody)
+            .path("data")
+            .path("id")
+            .asText();
+
+        mockMvc.perform(delete("/api/admin/projects/{id}", projectId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("Project deleted"));
+    }
+
+    @Test
     void adminAiTranslateRequiresAuthentication() throws Exception {
         mockMvc.perform(post("/api/admin/ai/translate")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -377,6 +428,30 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .path("data")
             .path("id")
             .asText();
+
+        mockMvc.perform(patch("/api/admin/credentials/{id}", credentialId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "language": "es",
+                      "type": "Formacion",
+                      "title": "Diplomatura Backend",
+                      "institution": "UTN FRC",
+                      "description": "Documento academico cargado desde EditMode.",
+                      "documentId": "%s",
+                      "published": false,
+                      "displayOrder": 5
+                    }
+                    """.formatted(documentId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.documentId").value(documentId));
+
+        mockMvc.perform(get("/api/admin/credentials/{id}/document", credentialId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/pdf"))
+            .andExpect(content().string("credential-pdf-content"));
 
         mockMvc.perform(patch("/api/admin/credentials/{id}", credentialId)
                 .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)

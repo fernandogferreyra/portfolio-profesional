@@ -1,24 +1,42 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
-import { CredentialService } from '../../services/credential.service';
+import { EditModeService } from '../../services/edit-mode.service';
+import { PublicContentAdminService } from '../../services/public-content-admin.service';
+import { PublicContentService } from '../../services/public-content.service';
 import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
   let fixture: ComponentFixture<HomeComponent>;
+  const editModeEnabled = signal(false);
 
   beforeEach(async () => {
+    editModeEnabled.set(false);
+
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
       declarations: [HomeComponent],
       providers: [
         {
-          provide: CredentialService,
+          provide: EditModeService,
           useValue: {
-            listCredentials: () => of({ data: [] }),
+            isEnabled: editModeEnabled,
+          },
+        },
+        {
+          provide: PublicContentService,
+          useValue: {
+            listPublicContentBlocks: () => of({ data: [] }),
+          },
+        },
+        {
+          provide: PublicContentAdminService,
+          useValue: {
+            listContentBlocks: () => of({ data: [] }),
+            updateContentBlock: (_id: string, payload: unknown) => of({ data: payload }),
           },
         },
       ],

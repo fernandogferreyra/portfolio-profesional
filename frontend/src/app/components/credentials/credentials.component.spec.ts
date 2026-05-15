@@ -11,8 +11,11 @@ import { EditModeService } from '../../services/edit-mode.service';
 describe('CredentialsComponent', () => {
   let fixture: ComponentFixture<CredentialsComponent>;
   let component: CredentialsComponent;
+  let documentBlob: Blob;
 
   beforeEach(async () => {
+    documentBlob = new Blob(['credential-pdf-content'], { type: 'application/pdf' });
+
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
       declarations: [CredentialsComponent],
@@ -25,6 +28,7 @@ describe('CredentialsComponent', () => {
             createCredential: () => of({ success: true, message: 'ok', data: credential('new-id') }),
             updateCredential: (_: string, payload: Partial<CredentialItem>) =>
               of({ success: true, message: 'ok', data: { ...credential(), ...payload } }),
+            downloadCredentialDocument: () => of(documentBlob),
           },
         },
         {
@@ -59,8 +63,11 @@ describe('CredentialsComponent', () => {
     expect(textContent).not.toContain('En preparacion');
   });
 
-  it('renders a document preview and keeps the open document link', () => {
-    component.credentials.set([credential('cred-1', '/api/credentials/cred-1/document')]);
+  it('renders a document preview and keeps the open document link', async () => {
+    await (component as unknown as { loadDocumentPreview: (entry: CredentialItem, force: boolean) => Promise<void> }).loadDocumentPreview(
+      component.visibleEntries()[0],
+      true,
+    );
     fixture.detectChanges();
 
     const iframe = fixture.nativeElement.querySelector('.credential-card__document-preview') as HTMLIFrameElement | null;
@@ -68,12 +75,27 @@ describe('CredentialsComponent', () => {
 
     expect(iframe).not.toBeNull();
     expect(iframe?.title).toContain('Vista previa de documentacion');
-    expect(link?.getAttribute('href')).toBe('/api/credentials/cred-1/document');
+    expect(iframe?.getAttribute('src')).toContain('view=FitH');
+    expect(link?.getAttribute('href')).toContain('blob:');
     expect(link?.textContent).toContain('Abrir documentacion');
+  });
+
+  it('uses height fitting for landscape PDF previews', async () => {
+    documentBlob = new Blob(['%PDF-1.7\n/Page /MediaBox [0 0 842 595]\n'], { type: 'application/pdf' });
+
+    await (component as unknown as { loadDocumentPreview: (entry: CredentialItem, force: boolean) => Promise<void> }).loadDocumentPreview(
+      component.visibleEntries()[0],
+      true,
+    );
+    fixture.detectChanges();
+
+    const iframe = fixture.nativeElement.querySelector('.credential-card__document-preview') as HTMLIFrameElement | null;
+
+    expect(iframe?.getAttribute('src')).toContain('view=FitV');
   });
 });
 
-function credential(id = 'cred-1', documentUrl: string | null = null): CredentialItem {
+function credential(id = 'cred-1', documentUrl: string | null = '/api/credentials/cred-1/document'): CredentialItem {
   return {
     id,
     language: 'es',

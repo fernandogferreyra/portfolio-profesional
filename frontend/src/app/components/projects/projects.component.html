@@ -6,6 +6,16 @@
       <p class="projects-hero__lead">{{ ui().intro }}</p>
       <p class="projects-hero__lead">{{ ui().supportingIntro }}</p>
     </div>
+
+    <button
+      *ngIf="editModeService.isEnabled()"
+      type="button"
+      class="project-editor__new motion-control"
+      [disabled]="savingProjectId() === 'new'"
+      (click)="createProject()"
+    >
+      {{ savingProjectId() === 'new' ? ui().editSavingLabel : ui().editNewProjectLabel }}
+    </button>
   </section>
 
   <section class="projects-grid" [attr.aria-label]="ui().cardsAriaLabel">
@@ -107,6 +117,14 @@
               <h3>{{ ui().editProjectsTitle }}</h3>
               <p>{{ ui().editProjectsDescription }}</p>
             </div>
+            <button
+              type="button"
+              class="project-editor__delete motion-control"
+              [disabled]="savingProjectId() === adminProject.id"
+              (click)="deleteActiveProject()"
+            >
+              {{ ui().editDeleteProjectLabel }}
+            </button>
             <p class="project-editor__feedback" *ngIf="projectEditFeedback()">{{ projectEditFeedback() }}</p>
             <p class="project-editor__feedback is-error" *ngIf="projectEditError()">{{ projectEditError() }}</p>
           </div>

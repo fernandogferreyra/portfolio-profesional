@@ -17,5 +17,7 @@ public interface CredentialService {
 
     CredentialResponse updateCredential(UUID id, CredentialUpdateRequest request);
 
+    DocumentDownload downloadAdminCredentialDocument(UUID id);
+
     DocumentDownload downloadPublishedCredentialDocument(UUID id);
 }

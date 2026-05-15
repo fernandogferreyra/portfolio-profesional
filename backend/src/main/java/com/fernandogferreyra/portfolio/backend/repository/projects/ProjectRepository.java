@@ -14,5 +14,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
 
     Optional<ProjectEntity> findBySlugAndPublishedTrue(String slug);
 
+    boolean existsBySlug(String slug);
+
     List<ProjectEntity> findAllByIconDocumentId(UUID iconDocumentId);
 }
