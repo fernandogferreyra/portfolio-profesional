@@ -62,7 +62,7 @@ public class PublicContentBlockMapper {
             return null;
         }
 
-        return "/api/content-blocks/" + entity.getContentKey() + "/" + entity.getLanguage() + "/document";
+        return "/api/content-blocks/" + entity.getContentKey() + "/" + entity.getLanguage() + "/document?v=" + entity.getDocumentId();
     }
 
     private List<String> readItems(String itemsJson) {

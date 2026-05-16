@@ -3,9 +3,11 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { SkillCategoryResponse } from '../../models/skills.models';
+import { DocumentAdminService } from '../../services/document-admin.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
 import { MotionService } from '../../services/motion.service';
+import { ProfilePhotoService } from '../../services/profile-photo.service';
 import {
   PublicContentBlock,
   PublicContentBlockCreatePayload,
@@ -40,7 +42,9 @@ interface WorkArea {
 })
 export class HomeComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly documentAdminService = inject(DocumentAdminService);
   private readonly motionService = inject(MotionService);
+  private readonly profilePhotoService = inject(ProfilePhotoService);
   private readonly publicContentService = inject(PublicContentService);
   private readonly publicContentAdminService = inject(PublicContentAdminService);
   private readonly skillService = inject(SkillService);
@@ -48,15 +52,18 @@ export class HomeComponent {
   readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly activeBaseCategoryId = signal<TechnicalBaseCategoryId>('electronics');
-  readonly profileImageAvailable = signal(true);
-  readonly profileImageUrl = 'images/profile-photo.jpg';
+  readonly profileImageUrl = this.profilePhotoService.profilePhotoUrl;
+  readonly failedProfileImageUrl = signal<string | null>(null);
+  readonly profileImageAvailable = computed(() => this.failedProfileImageUrl() !== this.profileImageUrl());
   readonly contentBlocks = signal<PublicContentBlock[]>([]);
   readonly skillCatalog = signal<SkillCategoryResponse[]>([]);
   readonly savingBlockId = signal<string | null>(null);
+  readonly uploadingProfilePhoto = signal(false);
   readonly editFeedback = signal<string | null>(null);
   readonly editError = signal<string | null>(null);
   readonly heroBlock = computed(() => this.contentBlock('home.hero'));
   readonly aboutBlock = computed(() => this.contentBlock('home.about'));
+  readonly profilePhotoBlocks = computed(() => this.contentBlocks().filter((block) => block.key === 'site.profile-photo'));
   readonly editLabels = computed(() =>
     this.currentLanguage() === 'es'
       ? {
@@ -69,6 +76,9 @@ export class HomeComponent {
           removeItemLabel: 'Quitar',
           saveLabel: 'Guardar bloque',
           savingLabel: 'Guardando...',
+          uploadProfilePhotoLabel: 'Actualizar foto',
+          uploadingProfilePhotoLabel: 'Subiendo foto...',
+          profilePhotoSavedLabel: 'Foto actualizada.',
           addTechnicalLabel: 'Nueva experiencia tecnica',
         }
       : {
@@ -81,6 +91,9 @@ export class HomeComponent {
           removeItemLabel: 'Remove',
           saveLabel: 'Save block',
           savingLabel: 'Saving...',
+          uploadProfilePhotoLabel: 'Update photo',
+          uploadingProfilePhotoLabel: 'Uploading photo...',
+          profilePhotoSavedLabel: 'Photo updated.',
           addTechnicalLabel: 'New technical experience',
         },
   );
@@ -294,7 +307,47 @@ export class HomeComponent {
   }
 
   onProfileImageError(): void {
-    this.profileImageAvailable.set(false);
+    this.failedProfileImageUrl.set(this.profileImageUrl());
+  }
+
+  async onProfilePhotoSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    const photoBlocks = this.profilePhotoBlocks();
+    if (!file || !this.editModeService.isEnabled() || this.uploadingProfilePhoto() || photoBlocks.length === 0) {
+      return;
+    }
+
+    this.uploadingProfilePhoto.set(true);
+    this.editFeedback.set(null);
+    this.editError.set(null);
+
+    try {
+      const uploadResponse = await firstValueFrom(this.documentAdminService.uploadDocument(file, 'profile-photo'));
+
+      for (const block of photoBlocks) {
+        const response = await firstValueFrom(
+          this.publicContentAdminService.updateContentBlock(block.id, {
+            ...this.toBlockPayload(block),
+            documentId: uploadResponse.data.id,
+          }),
+        );
+
+        if (response?.data) {
+          this.replaceContentBlock(response.data);
+        }
+      }
+
+      this.profilePhotoService.setDocumentUrl(this.profilePhotoBlockUrl());
+      this.editFeedback.set(this.editLabels().profilePhotoSavedLabel);
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.uploadingProfilePhoto.set(false);
+      if (input) {
+        input.value = '';
+      }
+    }
   }
 
   updateBlockTitle(id: string, value: string): void {
@@ -384,9 +437,12 @@ export class HomeComponent {
       const response = await firstValueFrom(
         includeDrafts ? this.publicContentAdminService.listContentBlocks() : this.publicContentService.listPublicContentBlocks(),
       );
-      this.contentBlocks.set(response?.data ?? []);
+      const blocks = response?.data ?? [];
+      this.contentBlocks.set(blocks);
+      this.profilePhotoService.setFromBlocks(blocks, this.currentLanguage());
     } catch {
       this.contentBlocks.set([]);
+      this.profilePhotoService.setFromBlocks([], this.currentLanguage());
     }
   }
 
@@ -402,6 +458,15 @@ export class HomeComponent {
   private contentBlock(key: string): PublicContentBlock | null {
     const language = this.currentLanguage();
     return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
+  }
+
+  private profilePhotoBlockUrl(): string | null {
+    const language = this.currentLanguage();
+    return (
+      this.contentBlocks().find((block) => block.key === 'site.profile-photo' && block.language === language)?.documentUrl ??
+      this.contentBlocks().find((block) => block.key === 'site.profile-photo' && block.documentUrl)?.documentUrl ??
+      null
+    );
   }
 
   private blockItems(block: PublicContentBlock | null, fallback: string[]): string[] {

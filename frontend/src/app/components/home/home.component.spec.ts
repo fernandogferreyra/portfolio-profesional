@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 
+import { DocumentAdminService } from '../../services/document-admin.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { PublicContentAdminService } from '../../services/public-content-admin.service';
 import { PublicContentService } from '../../services/public-content.service';
@@ -25,6 +26,12 @@ describe('HomeComponent', () => {
           provide: EditModeService,
           useValue: {
             isEnabled: editModeEnabled,
+          },
+        },
+        {
+          provide: DocumentAdminService,
+          useValue: {
+            uploadDocument: () => of({ data: { id: 'profile-doc-id' } }),
           },
         },
         {

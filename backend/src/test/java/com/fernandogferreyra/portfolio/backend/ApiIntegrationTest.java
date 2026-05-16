@@ -386,7 +386,7 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
                     """.formatted(documentId)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.documentId").value(documentId))
-            .andExpect(jsonPath("$.data.documentUrl").value("/api/content-blocks/contact.cv/es/document"));
+            .andExpect(jsonPath("$.data.documentUrl").value("/api/content-blocks/contact.cv/es/document?v=" + documentId));
 
         var document = documentRepository.findById(UUID.fromString(documentId)).orElseThrow();
         Files.deleteIfExists(documentStorageProperties.getBasePath().resolve(document.getStoragePath()));
@@ -395,6 +395,61 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(content().contentType("application/pdf"))
             .andExpect(content().string("fake-pdf-content"));
+    }
+
+    @Test
+    void replacingContactCvDeletesPreviousDocumentAndVersionsPublicUrl() throws Exception {
+        String accessToken = loginAsAdmin();
+        String cvBlockId = publicContentBlockRepository.findAllByOrderByDisplayOrderAscContentKeyAscLanguageAsc()
+            .stream()
+            .filter(block -> "contact.cv".equals(block.getContentKey()) && "es".equals(block.getLanguage()))
+            .findFirst()
+            .orElseThrow()
+            .getId()
+            .toString();
+
+        String oldDocumentId = uploadDocument(accessToken, "old-cv.pdf", "old-pdf-content");
+        mockMvc.perform(patch("/api/admin/content-blocks/{id}", cvBlockId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "title": "CV",
+                      "body": "Resumen profesional actualizado.",
+                      "items": [],
+                      "documentId": "%s",
+                      "published": true,
+                      "displayOrder": 40
+                    }
+                    """.formatted(oldDocumentId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.documentUrl").value("/api/content-blocks/contact.cv/es/document?v=" + oldDocumentId));
+
+        String newDocumentId = uploadDocument(accessToken, "new-cv.pdf", "new-pdf-content");
+        mockMvc.perform(patch("/api/admin/content-blocks/{id}", cvBlockId)
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                      "title": "CV",
+                      "body": "Resumen profesional actualizado.",
+                      "items": [],
+                      "documentId": "%s",
+                      "published": true,
+                      "displayOrder": 40
+                    }
+                    """.formatted(newDocumentId)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.documentId").value(newDocumentId))
+            .andExpect(jsonPath("$.data.documentUrl").value("/api/content-blocks/contact.cv/es/document?v=" + newDocumentId));
+
+        org.junit.jupiter.api.Assertions.assertFalse(documentRepository.existsById(UUID.fromString(oldDocumentId)));
+        org.junit.jupiter.api.Assertions.assertFalse(documentContentRepository.existsById(UUID.fromString(oldDocumentId)));
+
+        mockMvc.perform(get("/api/content-blocks/contact.cv/es/document"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType("application/pdf"))
+            .andExpect(content().string("new-pdf-content"));
     }
 
     @Test
@@ -582,6 +637,29 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/content-blocks/contact.cv/es/document"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("Public content block has no linked document"));
+    }
+
+    private String uploadDocument(String accessToken, String filename, String content) throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            filename,
+            "application/pdf",
+            content.getBytes());
+
+        String uploadedDocumentBody = mockMvc.perform(multipart("/api/admin/documents")
+                .file(file)
+                .param("purpose", "cv")
+                .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(uploadedDocumentBody)
+            .path("data")
+            .path("id")
+            .asText();
     }
 
     @Test
