@@ -12,8 +12,10 @@ import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepo
 import com.fernandogferreyra.portfolio.backend.repository.projects.ProjectRepository;
 import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
 import com.fernandogferreyra.portfolio.backend.repository.skills.SkillRepository;
+import com.fernandogferreyra.portfolio.backend.service.DocumentFileService;
 import com.fernandogferreyra.portfolio.backend.service.DocumentService;
 import com.fernandogferreyra.portfolio.backend.service.StorageService;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -38,6 +40,7 @@ public class DocumentServiceImpl implements DocumentService {
     private final PublicContentBlockRepository publicContentBlockRepository;
     private final SkillRepository skillRepository;
     private final DocumentStorageProperties documentStorageProperties;
+    private final DocumentFileService documentFileService;
     private final StorageService storageService;
 
     @Override
@@ -66,14 +69,17 @@ public class DocumentServiceImpl implements DocumentService {
         String originalFilename = Path.of(file.getOriginalFilename()).getFileName().toString().trim();
         String storedFilename = buildStoredFilename(originalFilename);
         StoredDocumentFile storedDocument;
+        byte[] content;
 
         try {
-            storedDocument = storageService.store(storedFilename, file.getInputStream());
+            content = file.getBytes();
+            storedDocument = storageService.store(storedFilename, new ByteArrayInputStream(content));
         } catch (IOException exception) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document could not be stored");
         }
 
         DocumentEntity entity = new DocumentEntity();
+        entity.setId(UUID.randomUUID());
         entity.setPurpose(normalizedPurpose);
         entity.setOriginalFilename(originalFilename);
         entity.setStoredFilename(storedDocument.storedFilename());
@@ -81,7 +87,10 @@ public class DocumentServiceImpl implements DocumentService {
         entity.setSizeBytes(file.getSize());
         entity.setStoragePath(storedDocument.storagePath());
 
-        return documentMapper.toAdminResponse(documentRepository.save(entity));
+        DocumentEntity saved = documentRepository.save(entity);
+        documentFileService.saveDurableContent(saved, content);
+
+        return documentMapper.toAdminResponse(saved);
     }
 
     @Override
@@ -106,10 +115,12 @@ public class DocumentServiceImpl implements DocumentService {
         linkedSkills.forEach(skill -> skill.setIconDocumentId(null));
         skillRepository.saveAll(linkedSkills);
 
+        documentFileService.deleteDurableContent(id);
+
         try {
             storageService.delete(document.getStoragePath());
         } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Document could not be deleted");
+            // Missing filesystem cache must not block DB cleanup.
         }
 
         documentRepository.delete(document);

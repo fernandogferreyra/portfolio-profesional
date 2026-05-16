@@ -1,0 +1,6 @@
+CREATE TABLE document_contents (
+    id UUID PRIMARY KEY REFERENCES documents(id) ON DELETE CASCADE,
+    content BYTEA NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
