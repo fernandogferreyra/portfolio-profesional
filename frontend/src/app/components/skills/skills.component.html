@@ -1,4 +1,4 @@
-<section class="skills-page">
+<section class="skills-page" [class.skills-page--editing]="editModeService.isEnabled()">
   <section class="surface-card skills-hero" aria-labelledby="skills-title" appRevealOnScroll>
     <div class="skills-hero__copy">
       <p class="section-eyebrow">{{ ui().eyebrow }}</p>
@@ -26,16 +26,25 @@
   <section class="surface-card skills-shell" appRevealOnScroll [revealDelay]="80">
     <div class="skills-lanes__heading">
       <div>
-        <h2 class="portfolio-section-title">{{ showAllSkills() ? ui().expandedTitle : ui().lanesTitle }}</h2>
+        <h2 class="portfolio-section-title">{{ showAllSkills() || editModeService.isEnabled() ? ui().expandedTitle : ui().lanesTitle }}</h2>
         <p>{{ ui().lanesDescription }}</p>
       </div>
 
-      <button type="button" class="skills-toggle motion-control" (click)="toggleSkillPresentation()">
+      <button type="button" class="skills-toggle motion-control" *ngIf="!editModeService.isEnabled()" (click)="toggleSkillPresentation()">
         {{ showAllSkills() ? ui().toggleShowAnimated : ui().toggleShowAll }}
       </button>
+
+      <div class="skills-admin-actions" *ngIf="editModeService.isEnabled()">
+        <button type="button" class="motion-control" (click)="createSkill()" [disabled]="savingSkillId() === 'new'">
+          {{ ui().newSkillLabel }}
+        </button>
+        <button type="button" class="motion-control" (click)="createCategory()" [disabled]="savingCategoryId() === 'new'">
+          {{ ui().newCategoryLabel }}
+        </button>
+      </div>
     </div>
 
-    <section class="skills-lanes" *ngIf="!showAllSkills(); else allSkillsView">
+    <section class="skills-lanes" *ngIf="!showAllSkills() && !editModeService.isEnabled(); else allSkillsView">
       <article
         class="skills-lane motion-swap"
         *ngFor="let lane of showcaseLanes(); trackBy: trackByLaneId; let laneIndex = index"
@@ -60,22 +69,27 @@
                 class="skill-card motion-panel portfolio-subcard"
                 *ngFor="let skill of lane.skills; trackBy: trackBySkillId"
                 [class.skill-card--no-level]="!skill.showLevel"
-                [style.--skill-accent]="skill.icon.accent"
-                [style.--skill-surface]="skill.icon.surface"
-                [style.--skill-border]="skill.icon.border"
+                [class.skill-card--draft]="!skill.published"
+                [style.--skill-accent]="skill.iconDefinition.accent"
+                [style.--skill-surface]="skill.iconDefinition.surface"
+                [style.--skill-border]="skill.iconDefinition.border"
+                [attr.data-draft-label]="ui().editDraftLabel"
               >
                 <div class="skill-card__top">
                   <span class="skill-card__icon" aria-hidden="true">
-                    <svg
-                      [attr.viewBox]="skill.icon.viewBox"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path *ngFor="let path of skill.icon.paths" [attr.d]="path"></path>
-                    </svg>
+                    <img *ngIf="skill.iconUrl; else laneBuiltinSkillIcon" [src]="skill.iconUrl" [alt]="skill.name" />
+                    <ng-template #laneBuiltinSkillIcon>
+                      <svg
+                        [attr.viewBox]="skill.iconDefinition.viewBox"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path *ngFor="let path of skill.iconDefinition.paths" [attr.d]="path"></path>
+                      </svg>
+                    </ng-template>
                   </span>
 
                   <span
@@ -116,6 +130,17 @@
           <div class="skills-group__header">
             <span class="skills-group__label">{{ category.label }}</span>
             <p>{{ category.description }}</p>
+
+            <div class="skills-admin-actions" *ngIf="editModeService.isEnabled()">
+              <button type="button" class="motion-control" (click)="selectCategory(category.id)">{{ ui().editCategoryLabel }}</button>
+              <button type="button" class="motion-control" (click)="requestDeleteCategory(category)" [disabled]="savingCategoryId() === category.id">
+                {{ ui().deleteCategoryLabel }}
+              </button>
+            </div>
+
+            <ng-container *ngIf="editModeService.isEnabled() && selectedCategoryId() === category.id">
+              <ng-container *ngTemplateOutlet="categoryEditor; context: { category: category }"></ng-container>
+            </ng-container>
           </div>
 
           <div class="skills-group__grid">
@@ -123,22 +148,27 @@
               class="skill-card skill-card--compact motion-panel portfolio-subcard"
               *ngFor="let skill of category.skills; trackBy: trackBySkillId"
               [class.skill-card--no-level]="!skill.showLevel"
-              [style.--skill-accent]="skill.icon.accent"
-              [style.--skill-surface]="skill.icon.surface"
-              [style.--skill-border]="skill.icon.border"
+              [class.skill-card--draft]="!skill.published"
+              [style.--skill-accent]="skill.iconDefinition.accent"
+              [style.--skill-surface]="skill.iconDefinition.surface"
+              [style.--skill-border]="skill.iconDefinition.border"
+              [attr.data-draft-label]="ui().editDraftLabel"
             >
               <div class="skill-card__top">
                 <span class="skill-card__icon" aria-hidden="true">
-                  <svg
-                    [attr.viewBox]="skill.icon.viewBox"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path *ngFor="let path of skill.icon.paths" [attr.d]="path"></path>
-                  </svg>
+                  <img *ngIf="skill.iconUrl; else builtinSkillIcon" [src]="skill.iconUrl" [alt]="skill.name" />
+                  <ng-template #builtinSkillIcon>
+                    <svg
+                      [attr.viewBox]="skill.iconDefinition.viewBox"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path *ngFor="let path of skill.iconDefinition.paths" [attr.d]="path"></path>
+                    </svg>
+                  </ng-template>
                 </span>
 
                 <span
@@ -166,10 +196,163 @@
               <div class="skill-card__tags" *ngIf="skill.tags.length">
                 <span class="skill-card__tag motion-chip" *ngFor="let tag of skill.tags">{{ tag }}</span>
               </div>
+
+              <div class="skills-edit-card__actions" *ngIf="editModeService.isEnabled()">
+                <button type="button" class="motion-control" (click)="selectSkill(skill.id)">{{ ui().editActionLabel }}</button>
+                <button type="button" class="motion-control skills-action-danger" (click)="requestDeleteSkill(skill)" [disabled]="savingSkillId() === skill.id">
+                  {{ ui().deleteSkillLabel }}
+                </button>
+              </div>
+
+              <ng-container *ngIf="editModeService.isEnabled() && selectedSkillId() === skill.id">
+                <ng-container *ngTemplateOutlet="skillEditor; context: { skill: skill }"></ng-container>
+              </ng-container>
             </article>
           </div>
         </article>
       </section>
     </ng-template>
+  </section>
+
+  <ng-template #skillEditor let-skill="skill">
+    <article class="skills-edit-card portfolio-subcard">
+      <span class="skills-edit-card__key">{{ ui().editModeLabel }} · {{ skill.slug }}</span>
+
+      <p class="skills-edit-panel__feedback" *ngIf="editFeedback() && savingSkillId() !== skill.id">{{ editFeedback() }}</p>
+      <p class="skills-edit-panel__error" *ngIf="editError() && savingSkillId() !== skill.id">{{ editError() }}</p>
+
+      <label>
+        {{ ui().slugLabel }}
+        <input [value]="skill.slug" (input)="updateSkillField(skill.id, 'slug', $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ ui().nameLabel }}
+        <input [value]="skill.name" (input)="updateSkillField(skill.id, 'name', $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ ui().editBodyLabel }}
+        <textarea rows="3" [value]="skill.description" (input)="updateSkillField(skill.id, 'description', $any($event.target).value)"></textarea>
+      </label>
+
+      <label>
+        {{ ui().categoryLabel }}
+        <select [value]="skill.categoryId" (change)="updateSkillField(skill.id, 'categoryId', $any($event.target).value || null)">
+          <option *ngFor="let category of categoryOptions()" [value]="category.id">{{ category.label }}</option>
+        </select>
+      </label>
+
+      <label>
+        {{ ui().iconLabel }}
+        <select [value]="skill.icon" (change)="updateSkillField(skill.id, 'icon', $any($event.target).value)">
+          <option *ngFor="let icon of iconOptions; trackBy: trackByIcon" [value]="icon">{{ icon }}</option>
+        </select>
+      </label>
+
+      <label>
+        {{ ui().uploadIconLabel }}
+        <input type="file" accept="image/*" (change)="onSkillIconSelected(skill, $event)" [disabled]="uploadingSkillId() === skill.id" />
+      </label>
+
+      <label>
+        {{ ui().colorLabel }}
+        <input type="color" [value]="skill.accentColor" (input)="updateSkillField(skill.id, 'accentColor', $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ ui().levelLabel }}
+        <select [value]="skill.level" (change)="updateSkillField(skill.id, 'level', $any($event.target).value)">
+          <option value="basic">{{ ui().basicLabel }}</option>
+          <option value="intermediate">{{ ui().intermediateLabel }}</option>
+          <option value="advanced">{{ ui().advancedLabel }}</option>
+        </select>
+      </label>
+
+      <label>
+        {{ ui().orderLabel }}
+        <input type="number" [value]="skill.displayOrder" (input)="updateSkillField(skill.id, 'displayOrder', +$any($event.target).value)" />
+      </label>
+
+      <div class="skills-edit-card__items">
+        <label *ngFor="let tag of skill.tags; let tagIndex = index">
+          <span>{{ ui().tagsLabel }} {{ tagIndex + 1 }}</span>
+          <span class="skills-edit-card__item-row">
+            <input [value]="tag" (input)="updateSkillTag(skill.id, tagIndex, $any($event.target).value)" />
+            <button type="button" class="motion-control" (click)="removeSkillTag(skill.id, tagIndex)">{{ ui().editRemoveLabel }}</button>
+          </span>
+        </label>
+      </div>
+
+      <label class="skills-edit-card__checkbox">
+        <input type="checkbox" [checked]="skill.showLevel" (change)="updateSkillField(skill.id, 'showLevel', $any($event.target).checked)" />
+        {{ ui().showLevelLabel }}
+      </label>
+
+      <label class="skills-edit-card__checkbox">
+        <input type="checkbox" [checked]="skill.published" (change)="updateSkillField(skill.id, 'published', $any($event.target).checked)" />
+        {{ ui().publishedLabel }}
+      </label>
+
+      <div class="skills-edit-card__actions">
+        <button type="button" class="motion-control" (click)="addSkillTag(skill.id)">{{ ui().editAddItemLabel }}</button>
+        <button type="button" class="motion-control" (click)="saveSkill(skill)" [disabled]="savingSkillId() === skill.id">
+          {{ savingSkillId() === skill.id || uploadingSkillId() === skill.id ? ui().editSavingLabel : ui().saveSkillLabel }}
+        </button>
+      </div>
+    </article>
+  </ng-template>
+
+  <ng-template #categoryEditor let-category="category">
+    <article class="skills-edit-card portfolio-subcard">
+      <span class="skills-edit-card__key">{{ ui().editCategoryLabel }} · {{ category.slug }}</span>
+
+      <label>
+        {{ ui().slugLabel }}
+        <input [value]="category.slug" (input)="updateCategoryField(category.id, 'slug', $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ ui().nameLabel }}
+        <input [value]="category.label" (input)="updateCategoryField(category.id, 'label', $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ ui().editBodyLabel }}
+        <textarea rows="3" [value]="category.description" (input)="updateCategoryField(category.id, 'description', $any($event.target).value)"></textarea>
+      </label>
+
+      <label>
+        {{ ui().orderLabel }}
+        <input type="number" [value]="category.displayOrder" (input)="updateCategoryField(category.id, 'displayOrder', +$any($event.target).value)" />
+      </label>
+
+      <label class="skills-edit-card__checkbox">
+        <input type="checkbox" [checked]="category.published" (change)="updateCategoryField(category.id, 'published', $any($event.target).checked)" />
+        {{ ui().publishedLabel }}
+      </label>
+
+      <div class="skills-edit-card__actions">
+        <button type="button" class="motion-control" (click)="saveCategory(category)" [disabled]="savingCategoryId() === category.id">
+          {{ savingCategoryId() === category.id ? ui().editSavingLabel : ui().saveCategoryLabel }}
+        </button>
+      </div>
+    </article>
+  </ng-template>
+
+  <section class="skills-confirm-backdrop" *ngIf="deleteTarget() as target" role="presentation" (click)="cancelDelete()">
+    <article class="skills-confirm motion-panel portfolio-subcard" role="dialog" aria-modal="true" [attr.aria-label]="ui().confirmTitle" (click)="$event.stopPropagation()">
+      <span class="skills-confirm__orb" aria-hidden="true"></span>
+      <p class="section-eyebrow">{{ ui().confirmTitle }}</p>
+      <h2 class="portfolio-section-title">{{ target.label }}</h2>
+      <p>{{ target.type === 'skill' ? ui().confirmSkillMessage : ui().confirmCategoryMessage }}</p>
+
+      <div class="skills-confirm__actions">
+        <button type="button" class="motion-control" (click)="cancelDelete()">{{ ui().cancelDeleteLabel }}</button>
+        <button type="button" class="motion-control skills-confirm__danger" (click)="confirmDelete()">
+          {{ ui().confirmDeleteLabel }}
+        </button>
+      </div>
+    </article>
   </section>
 </section>

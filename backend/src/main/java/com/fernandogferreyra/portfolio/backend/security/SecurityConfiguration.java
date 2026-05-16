@@ -28,6 +28,8 @@ public class SecurityConfiguration {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            .headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.sameOrigin()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .exceptionHandling(exception -> exception
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -36,9 +38,14 @@ public class SecurityConfiguration {
                 .requestMatchers(
                     "/api/health",
                     "/api/contact",
+                    "/api/credentials",
+                    "/api/credentials/**",
                     "/api/content-blocks",
                     "/api/content-blocks/**",
                     "/api/projects",
+                    "/api/projects/**",
+                    "/api/skills",
+                    "/api/skills/**",
                     "/api/events",
                     "/api/quote",
                     "/api/auth/login",

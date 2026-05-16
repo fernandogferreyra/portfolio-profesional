@@ -17,8 +17,10 @@
   background-image:
     linear-gradient(var(--ambient-grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--ambient-grid-line) 1px, transparent 1px);
-  background-size: 80px 80px;
+  background-size: var(--ambient-grid-size, 80px) var(--ambient-grid-size, 80px);
   mask-image: var(--ambient-grid-mask);
+  opacity: var(--ambient-grid-opacity, 0.72);
+  animation: ambient-grid-drift var(--ambient-grid-speed, 28s) linear infinite;
 }
 
 .app-ambient-orb {
@@ -72,6 +74,27 @@
 .app-main {
   flex: 1;
   min-width: 0;
-  width: min(1140px, 92%);
+  width: var(--site-shell-width);
   margin: 0.95rem auto 0;
+}
+
+.app-shell.is-edit-mode .app-main {
+  outline: 1px solid color-mix(in srgb, #22c55e 18%, transparent);
+  outline-offset: 0.35rem;
+}
+
+@keyframes ambient-grid-drift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: var(--ambient-grid-size, 80px) var(--ambient-grid-size, 80px), var(--ambient-grid-size, 80px) var(--ambient-grid-size, 80px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-ambient-grid {
+    animation: none;
+  }
 }

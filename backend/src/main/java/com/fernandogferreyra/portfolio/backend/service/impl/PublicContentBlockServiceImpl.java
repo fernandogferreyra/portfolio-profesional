@@ -3,6 +3,7 @@ package com.fernandogferreyra.portfolio.backend.service.impl;
 import com.fernandogferreyra.portfolio.backend.domain.documents.entity.DocumentEntity;
 import com.fernandogferreyra.portfolio.backend.domain.documents.model.DocumentDownload;
 import com.fernandogferreyra.portfolio.backend.domain.publiccontent.entity.PublicContentBlockEntity;
+import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockCreateRequest;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockResponse;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockUpdateRequest;
 import com.fernandogferreyra.portfolio.backend.mapper.publiccontent.PublicContentBlockMapper;
@@ -44,6 +45,21 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
             .stream()
             .map(publicContentBlockMapper::toResponse)
             .toList();
+    }
+
+    @Override
+    @Transactional
+    public PublicContentBlockResponse createBlock(PublicContentBlockCreateRequest request) {
+        if (publicContentBlockRepository.existsByContentKeyAndLanguage(request.key().trim(), request.language().trim())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Public content block already exists");
+        }
+
+        if (request.documentId() != null && !documentRepository.existsById(request.documentId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Linked document not found");
+        }
+
+        PublicContentBlockEntity entity = publicContentBlockMapper.toEntity(request);
+        return publicContentBlockMapper.toResponse(publicContentBlockRepository.save(entity));
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.fernandogferreyra.portfolio.backend.mapper.publiccontent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fernandogferreyra.portfolio.backend.domain.publiccontent.entity.PublicContentBlockEntity;
+import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockCreateRequest;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockResponse;
 import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBlockUpdateRequest;
 import java.util.List;
@@ -41,6 +42,19 @@ public class PublicContentBlockMapper {
         entity.setDocumentId(request.documentId());
         entity.setPublished(request.published());
         entity.setDisplayOrder(request.displayOrder());
+    }
+
+    public PublicContentBlockEntity toEntity(PublicContentBlockCreateRequest request) {
+        PublicContentBlockEntity entity = new PublicContentBlockEntity();
+        entity.setContentKey(request.key().trim());
+        entity.setLanguage(request.language().trim());
+        entity.setTitle(request.title().trim());
+        entity.setBody(request.body().trim());
+        entity.setItemsJson(writeItems(request.items()));
+        entity.setDocumentId(request.documentId());
+        entity.setPublished(request.published());
+        entity.setDisplayOrder(request.displayOrder());
+        return entity;
     }
 
     private String buildDocumentUrl(PublicContentBlockEntity entity) {

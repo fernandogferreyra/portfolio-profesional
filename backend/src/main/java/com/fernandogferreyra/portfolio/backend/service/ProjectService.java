@@ -1,5 +1,6 @@
 package com.fernandogferreyra.portfolio.backend.service;
 
+import com.fernandogferreyra.portfolio.backend.domain.documents.model.DocumentDownload;
 import com.fernandogferreyra.portfolio.backend.dto.projects.ProjectAdminResponse;
 import com.fernandogferreyra.portfolio.backend.dto.projects.ProjectAdminUpdateRequest;
 import com.fernandogferreyra.portfolio.backend.dto.projects.ProjectSummaryResponse;
@@ -12,5 +13,13 @@ public interface ProjectService {
 
     List<ProjectAdminResponse> getAdminProjects();
 
+    ProjectAdminResponse createProject();
+
     ProjectAdminResponse updateProject(UUID id, ProjectAdminUpdateRequest request);
+
+    void deleteProject(UUID id);
+
+    DocumentDownload downloadPublishedProjectIcon(String slug);
+
+    DocumentDownload downloadPublishedProjectDocument(String slug, UUID documentId);
 }

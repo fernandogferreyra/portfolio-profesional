@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { ProjectAssetResponse, ProjectMetricResponse, ProjectSectionResponse } from '../models/projects.models';
+
 export interface ProjectAdminItem {
   id: string;
   slug: string;
@@ -14,6 +16,15 @@ export interface ProjectAdminItem {
   published: boolean;
   displayOrder: number;
   repositoryUrl: string | null;
+  demoUrl: string | null;
+  monographUrl: string | null;
+  iconDocumentId: string | null;
+  iconUrl: string | null;
+  metrics: ProjectMetricResponse[];
+  sections: ProjectSectionResponse[];
+  features: string[];
+  documentation: ProjectAssetResponse[];
+  screenshots: ProjectAssetResponse[];
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +37,14 @@ export interface ProjectAdminUpdatePayload {
   summary: string;
   stack: string[];
   repositoryUrl: string | null;
+  demoUrl: string | null;
+  monographUrl: string | null;
+  iconDocumentId: string | null;
+  metrics: ProjectMetricResponse[];
+  sections: ProjectSectionResponse[];
+  features: string[];
+  documentationDocumentIds: string[];
+  screenshotDocumentIds: string[];
   featured: boolean;
   published: boolean;
   displayOrder: number;
@@ -47,7 +66,15 @@ export class ProjectAdminService {
     return this.http.get<ApiResponse<ProjectAdminItem[]>>('/api/admin/projects');
   }
 
+  createProject(): Observable<ApiResponse<ProjectAdminItem>> {
+    return this.http.post<ApiResponse<ProjectAdminItem>>('/api/admin/projects', {});
+  }
+
   updateProject(id: string, payload: ProjectAdminUpdatePayload): Observable<ApiResponse<ProjectAdminItem>> {
     return this.http.patch<ApiResponse<ProjectAdminItem>>(`/api/admin/projects/${id}`, payload);
+  }
+
+  deleteProject(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`/api/admin/projects/${id}`);
   }
 }

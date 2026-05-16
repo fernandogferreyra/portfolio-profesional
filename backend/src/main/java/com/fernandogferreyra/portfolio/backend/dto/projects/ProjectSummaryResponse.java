@@ -10,7 +10,14 @@ public record ProjectSummaryResponse(
     String summary,
     List<String> stack,
     boolean featured,
-    String repositoryUrl
+    String repositoryUrl,
+    String demoUrl,
+    String monographUrl,
+    String iconUrl,
+    List<ProjectMetricResponse> metrics,
+    List<ProjectSectionResponse> sections,
+    List<String> features,
+    List<ProjectAssetResponse> documentation,
+    List<ProjectAssetResponse> screenshots
 ) {
 }
-

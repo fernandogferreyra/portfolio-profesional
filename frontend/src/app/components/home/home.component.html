@@ -13,6 +13,10 @@
       </h1>
       <p class="home-hero__subtitle" appRevealOnScroll [revealDelay]="300" [revealDistance]="34">{{ ui().subtitle }}</p>
       <p class="home-hero__lead" appRevealOnScroll [revealDelay]="430" [revealDistance]="38">{{ ui().lead }}</p>
+
+      <ng-container *ngIf="editModeService.isEnabled() && heroBlock() as block">
+        <ng-container *ngTemplateOutlet="homeBlockEditor; context: { block: block }"></ng-container>
+      </ng-container>
     </div>
 
     <aside
@@ -53,6 +57,10 @@
           <h2 id="home-about-title" class="home-section-title portfolio-section-title">{{ about().title }}</h2>
           <p class="home-section-intro">{{ about().lead }}</p>
         </div>
+
+        <ng-container *ngIf="editModeService.isEnabled() && aboutBlock() as block">
+          <ng-container *ngTemplateOutlet="homeBlockEditor; context: { block: block }"></ng-container>
+        </ng-container>
 
         <div class="home-about__content">
           <p *ngFor="let paragraph of about().paragraphs">{{ paragraph }}</p>
@@ -95,6 +103,14 @@
                 {{ category.label }}
               </button>
             </div>
+
+            <div class="home-edit-actions" *ngIf="editModeService.isEnabled()">
+              <button type="button" class="motion-control" (click)="createTechnicalBlock()" [disabled]="savingBlockId() === 'new-technical'">
+                {{ savingBlockId() === 'new-technical' ? editLabels().savingLabel : editLabels().addTechnicalLabel }}
+              </button>
+              <p class="home-edit-card__feedback" *ngIf="editFeedback()">{{ editFeedback() }}</p>
+              <p class="home-edit-card__error" *ngIf="editError()">{{ editError() }}</p>
+            </div>
           </div>
 
           <article
@@ -112,6 +128,10 @@
             <ul class="base-category-detail__list">
               <li *ngFor="let item of category.items">{{ item }}</li>
             </ul>
+
+            <ng-container *ngIf="editModeService.isEnabled() && category.block as block">
+              <ng-container *ngTemplateOutlet="homeBlockEditor; context: { block: block }"></ng-container>
+            </ng-container>
           </article>
         </section>
       </div>
@@ -156,39 +176,43 @@
         </aside>
       </div>
 
-      <div class="home-side-block">
-        <section
-          class="surface-card home-credentials motion-panel"
-          aria-labelledby="home-credentials-title"
-          appRevealOnScroll="right"
-          [revealDelay]="140"
-          [revealDistance]="34"
-        >
-          <div class="home-section-heading">
-            <p class="section-eyebrow">{{ credentials().eyebrow }}</p>
-            <h2 id="home-credentials-title" class="home-section-title portfolio-section-title">
-              {{ credentials().title }}
-            </h2>
-            <p class="home-section-intro" *ngIf="credentials().description">{{ credentials().description }}</p>
-          </div>
-
-          <div class="home-credentials__list">
-            <article
-              class="home-credentials__item motion-panel"
-              *ngFor="let item of credentials().highlights; let i = index"
-              appRevealOnScroll="right"
-              [revealDelay]="130 + i * 40"
-            >
-              <span>{{ item.label }}</span>
-              <p>{{ item.value }}</p>
-            </article>
-          </div>
-
-          <a class="home-credentials__link motion-control" routerLink="/credentials" appRevealOnScroll [revealDelay]="240">
-            {{ credentials().actionLabel }}
-          </a>
-        </section>
-      </div>
     </div>
   </section>
+
+  <ng-template #homeBlockEditor let-block="block">
+    <article class="home-edit-card portfolio-subcard">
+      <span class="home-edit-card__key">{{ editLabels().mode }} · {{ block.key }}</span>
+
+      <label>
+        {{ editLabels().titleLabel }}
+        <input [value]="block.title" (input)="updateBlockTitle(block.id, $any($event.target).value)" />
+      </label>
+
+      <label>
+        {{ editLabels().bodyLabel }}
+        <textarea rows="3" [value]="block.body" (input)="updateBlockBody(block.id, $any($event.target).value)"></textarea>
+      </label>
+
+      <div class="home-edit-card__items">
+        <label *ngFor="let item of block.items; let itemIndex = index">
+          <span>{{ editLabels().itemLabel }} {{ itemIndex + 1 }}</span>
+          <span class="home-edit-card__item-row">
+            <input [value]="item" (input)="updateBlockItem(block.id, itemIndex, $any($event.target).value)" />
+            <button type="button" class="motion-control" (click)="removeBlockItem(block.id, itemIndex)">
+              {{ editLabels().removeItemLabel }}
+            </button>
+          </span>
+        </label>
+      </div>
+
+      <div class="home-edit-card__actions">
+        <button type="button" class="motion-control" (click)="addBlockItem(block.id)">
+          {{ editLabels().addItemLabel }}
+        </button>
+        <button type="button" class="motion-control" (click)="saveHomeBlock(block)" [disabled]="savingBlockId() === block.id">
+          {{ savingBlockId() === block.id ? editLabels().savingLabel : editLabels().saveLabel }}
+        </button>
+      </div>
+    </article>
+  </ng-template>
 </section>

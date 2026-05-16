@@ -24,6 +24,20 @@ export const PORTFOLIO_THEMES: ThemeDefinition[] = [
     },
   },
   {
+    id: 'themeBlueGrid',
+    shortLabel: 'GRID',
+    label: { es: 'blueGrid', en: 'blueGrid' },
+    description: {
+      es: 'Azul nocturno con rejilla luminosa y links tipo glass tile.',
+      en: 'Night blue with luminous grid and glass-tile links.',
+    },
+    preview: {
+      accent: '#3b82f6',
+      accentSoft: 'rgba(59, 130, 246, 0.18)',
+      surface: '#020817',
+    },
+  },
+  {
     id: 'themeEX',
     shortLabel: 'EX',
     label: { es: 'themeEX', en: 'themeEX' },
@@ -32,23 +46,23 @@ export const PORTFOLIO_THEMES: ThemeDefinition[] = [
       en: 'Graphite and vivid red, inspired by high-contrast gaming interfaces.',
     },
     preview: {
-      accent: '#ff355e',
-      accentSoft: 'rgba(255, 53, 94, 0.14)',
-      surface: '#171014',
+      accent: '#ff0000',
+      accentSoft: 'rgba(255, 0, 0, 0.16)',
+      surface: '#000000',
     },
   },
   {
     id: 'themeLightWorkbench',
-    shortLabel: 'WB',
-    label: { es: 'lightWorkbench', en: 'lightWorkbench' },
+    shortLabel: 'GREY',
+    label: { es: 'grey', en: 'grey' },
     description: {
-      es: 'Claro profesional, inspirado en modo imprimir/PDF y optimizado para workbench.',
-      en: 'Professional light theme inspired by print/PDF mode and optimized for workbench use.',
+      es: 'Escala de grises comoda para lectura y trabajo prolongado.',
+      en: 'Comfortable grayscale for reading and long work sessions.',
     },
     preview: {
-      accent: '#334155',
-      accentSoft: 'rgba(51, 65, 85, 0.12)',
-      surface: '#f7f3eb',
+      accent: '#4b5563',
+      accentSoft: 'rgba(75, 85, 99, 0.12)',
+      surface: '#f4f4f5',
     },
   },
   {
@@ -88,9 +102,9 @@ export const PORTFOLIO_THEMES: ThemeDefinition[] = [
       en: 'Classic CMD console: sober, dark, and stricter than Linux Terminal.',
     },
     preview: {
-      accent: '#d6d6d6',
-      accentSoft: 'rgba(214, 214, 214, 0.12)',
-      surface: '#05070c',
+      accent: '#ffffff',
+      accentSoft: 'rgba(255, 255, 255, 0.12)',
+      surface: '#000000',
     },
   },
   {
@@ -942,9 +956,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     ],
     features: [{ es: 'Arquitectura modular', en: 'Modular architecture' }, { es: 'i18n y theming', en: 'i18n and theming' }, { es: 'Contenido centralizado', en: 'Centralized content' }, { es: 'CI con GitHub Actions', en: 'CI with GitHub Actions' }],
     actions: [
-      { id: 'home', type: 'internal', primary: true, label: { es: 'Ver inicio', en: 'View home' }, routerLink: '/' },
-      { id: 'skills', type: 'internal', label: { es: 'Ver skills', en: 'View skills' }, routerLink: '/skills' },
-      { id: 'contact', type: 'internal', label: { es: 'Ir a contacto', en: 'Go to contact' }, routerLink: '/contact' },
+      { id: 'repo', type: 'external', primary: true, label: { es: 'Código', en: 'Code' }, url: 'https://github.com/fernandogferreyra/portfolio-profesional.git' },
     ],
   },
 ];

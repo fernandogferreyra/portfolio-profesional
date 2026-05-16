@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { PublicContentBlock, PublicContentBlockUpdatePayload } from './public-content.service';
+import { PublicContentBlock, PublicContentBlockCreatePayload, PublicContentBlockUpdatePayload } from './public-content.service';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -18,6 +18,10 @@ export class PublicContentAdminService {
 
   listContentBlocks(): Observable<ApiResponse<PublicContentBlock[]>> {
     return this.http.get<ApiResponse<PublicContentBlock[]>>('/api/admin/content-blocks');
+  }
+
+  createContentBlock(payload: PublicContentBlockCreatePayload): Observable<ApiResponse<PublicContentBlock>> {
+    return this.http.post<ApiResponse<PublicContentBlock>>('/api/admin/content-blocks', payload);
   }
 
   updateContentBlock(id: string, payload: PublicContentBlockUpdatePayload): Observable<ApiResponse<PublicContentBlock>> {

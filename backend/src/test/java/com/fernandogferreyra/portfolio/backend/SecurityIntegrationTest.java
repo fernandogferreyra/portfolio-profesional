@@ -2,6 +2,7 @@ package com.fernandogferreyra.portfolio.backend;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -93,6 +94,22 @@ class SecurityIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data").value("ok"));
+    }
+
+    @Test
+    void securityHeadersAllowSameOriginFramesForDocumentPreviews() throws Exception {
+        mockMvc.perform(get("/api/health"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("X-Frame-Options", "SAMEORIGIN"));
+    }
+
+    @Test
+    void publicProjectAssetRoutesDoNotRequireAuthentication() throws Exception {
+        mockMvc.perform(get("/api/projects/missing-project/icon"))
+            .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/projects/missing-project/documents/00000000-0000-0000-0000-000000000000"))
+            .andExpect(status().isNotFound());
     }
 
     @RestController

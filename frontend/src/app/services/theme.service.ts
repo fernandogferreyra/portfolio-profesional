@@ -12,6 +12,7 @@ export class ThemeService {
   private readonly storageKey = 'portfolio-theme';
   private readonly availableThemes: ThemeId[] = [
     'themeNeon',
+    'themeBlueGrid',
     'themeEX',
     'themeLightWorkbench',
     'themeLinuxTerminal',

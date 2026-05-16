@@ -1,9 +1,30 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
+import { SkillCategoryResponse } from '../../models/skills.models';
+import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
 import { MotionService } from '../../services/motion.service';
+import {
+  PublicContentBlock,
+  PublicContentBlockCreatePayload,
+  PublicContentBlockUpdatePayload,
+  PublicContentService,
+} from '../../services/public-content.service';
+import { PublicContentAdminService } from '../../services/public-content-admin.service';
+import { SkillService } from '../../services/skill.service';
 
-type TechnicalBaseCategoryId = 'electronics' | 'it' | 'development';
+type TechnicalBaseCategoryId = string;
+
+interface TechnicalBaseCategory {
+  id: TechnicalBaseCategoryId;
+  key: string;
+  label: string;
+  description: string;
+  items: string[];
+  block: PublicContentBlock | null;
+}
 
 interface WorkArea {
   label: string;
@@ -20,26 +41,66 @@ interface WorkArea {
 export class HomeComponent {
   private readonly languageService = inject(LanguageService);
   private readonly motionService = inject(MotionService);
+  private readonly publicContentService = inject(PublicContentService);
+  private readonly publicContentAdminService = inject(PublicContentAdminService);
+  private readonly skillService = inject(SkillService);
 
+  readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly activeBaseCategoryId = signal<TechnicalBaseCategoryId>('electronics');
   readonly profileImageAvailable = signal(true);
   readonly profileImageUrl = 'images/profile-photo.jpg';
+  readonly contentBlocks = signal<PublicContentBlock[]>([]);
+  readonly skillCatalog = signal<SkillCategoryResponse[]>([]);
+  readonly savingBlockId = signal<string | null>(null);
+  readonly editFeedback = signal<string | null>(null);
+  readonly editError = signal<string | null>(null);
+  readonly heroBlock = computed(() => this.contentBlock('home.hero'));
+  readonly aboutBlock = computed(() => this.contentBlock('home.about'));
+  readonly editLabels = computed(() =>
+    this.currentLanguage() === 'es'
+      ? {
+          mode: 'EditMode Inicio',
+          titleLabel: 'Titulo',
+          bodyLabel: 'Cuerpo',
+          itemLabel: 'Detalle',
+          newItemLabel: 'Nuevo detalle',
+          addItemLabel: 'Agregar detalle',
+          removeItemLabel: 'Quitar',
+          saveLabel: 'Guardar bloque',
+          savingLabel: 'Guardando...',
+          addTechnicalLabel: 'Nueva experiencia tecnica',
+        }
+      : {
+          mode: 'Home EditMode',
+          titleLabel: 'Title',
+          bodyLabel: 'Body',
+          itemLabel: 'Detail',
+          newItemLabel: 'New detail',
+          addItemLabel: 'Add detail',
+          removeItemLabel: 'Remove',
+          saveLabel: 'Save block',
+          savingLabel: 'Saving...',
+          addTechnicalLabel: 'New technical experience',
+        },
+  );
 
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Fernando G. Ferreyra',
-          title: 'Fullstack Developer',
-          subtitle: 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
+          title: this.contentBlock('home.hero')?.title ?? 'Fullstack Developer',
+          subtitle: this.contentBlock('home.hero')?.items?.[1] ?? 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
           lead:
+            this.contentBlock('home.hero')?.body ??
             'Desarrollo aplicaciones de punta a punta, con especial foco en backend, arquitectura y diseño de APIs escalables.',
         }
       : {
           eyebrow: 'Fernando G. Ferreyra',
-          title: 'Fullstack Developer',
-          subtitle: 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
+          title: this.contentBlock('home.hero')?.title ?? 'Fullstack Developer',
+          subtitle: this.contentBlock('home.hero')?.items?.[1] ?? 'Backend-focused | Java \u00B7 Spring Boot \u00B7 .NET \u00B7 APIs',
           lead:
+            this.contentBlock('home.hero')?.body ??
             'I build end-to-end applications with a strong focus on backend development, architecture, and scalable API design.',
         },
   );
@@ -60,25 +121,27 @@ export class HomeComponent {
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Sobre mí',
-          title: 'Recorrido y perfil actual',
+          title: this.contentBlock('home.about')?.title ?? 'Recorrido y perfil actual',
           lead:
+            this.contentBlock('home.about')?.body ??
             'Más de 15 años de experiencia técnica en electrónica e informática me dieron una base práctica para diagnosticar fallas, reparar equipos y resolver problemas complejos. Esa trayectoria hoy se complementa con mi formación como desarrollador y un perfil orientado al desarrollo fullstack.',
-          paragraphs: [
+          paragraphs: this.blockItems(this.contentBlock('home.about'), [
             'Durante más de una década trabajé de forma hands-on en electrónica e informática, interviniendo equipos, analizando fallas y resolviendo problemas reales en hardware, audio, video y entornos de PC.',
             'Con el tiempo trasladé esa experiencia al software, completé la Tecnicatura Universitaria en Programación en UTN FRC y comencé a desarrollar aplicaciones web con frontend, backend, APIs y bases de datos.',
             'Hoy consolido un perfil técnico integral: combino criterio de diagnóstico, trabajo práctico y una formación reciente en desarrollo para aportar en proyectos con una mirada completa del problema.',
-          ],
+          ]),
         }
       : {
           eyebrow: 'About',
-          title: 'Background and current profile',
+          title: this.contentBlock('home.about')?.title ?? 'Background and current profile',
           lead:
+            this.contentBlock('home.about')?.body ??
             'More than 15 years of technical experience in electronics and IT gave me a practical foundation to diagnose failures, repair equipment, and solve complex problems. Today that path is complemented by my software training and a profile oriented toward fullstack development.',
-          paragraphs: [
+          paragraphs: this.blockItems(this.contentBlock('home.about'), [
             'For more than a decade I worked hands-on in electronics and IT, intervening equipment, analyzing failures, and solving real problems across hardware, audio, video, and PC environments.',
             'Over time I brought that experience into software, completed the University Programming Technician degree at UTN FRC, and started building web applications across frontend, backend, APIs, and databases.',
             'Today I am consolidating a well-rounded technical profile: I combine diagnostic judgment, practical execution, and recent software training to contribute to projects with a complete view of the problem.',
-          ],
+          ]),
         },
   );
 
@@ -89,9 +152,10 @@ export class HomeComponent {
           title: 'Experiencia técnica',
           description: '',
           ariaLabel: 'Categorías de experiencia técnica',
-          categories: [
+          categories: this.technicalCategories([
             {
-              id: 'electronics' as const,
+              id: 'electronics',
+              key: 'home.technical.electronics',
               label: 'Electrónica',
               description:
                 'Experiencia práctica en audio y video, hardware de videojuegos, consolas, PC, monitores y arcades, con trabajo directo en diagnóstico, reparación y programación de memorias.',
@@ -104,10 +168,10 @@ export class HomeComponent {
               ],
             },
             {
-              id: 'it' as const,
+              id: 'it',
+              key: 'home.technical.it',
               label: 'Informática',
-              description:
-                'Soporte técnico, instalación, mantenimiento y puesta a punto de equipos y entornos de trabajo, con criterio para resolver fallas de hardware, software y conectividad.',
+              description: 'Soporte técnico, instalación, mantenimiento y puesta a punto de equipos y entornos de trabajo, con criterio para resolver fallas de hardware, software y conectividad.',
               items: [
                 'Instalación y configuración',
                 'Sistemas operativos',
@@ -117,10 +181,10 @@ export class HomeComponent {
               ],
             },
             {
-              id: 'development' as const,
+              id: 'development',
+              key: 'home.technical.development',
               label: 'Desarrollo',
-              description:
-                'Desarrollo de aplicaciones web fullstack, trabajando tanto en frontend como en backend, con experiencia en APIs, bases de datos y buenas prácticas de desarrollo. Actualmente en etapa de consolidación profesional, ampliando experiencia en proyectos reales.',
+              description: 'Desarrollo de aplicaciones web fullstack, trabajando tanto en frontend como en backend, con experiencia en APIs, bases de datos y buenas prácticas de desarrollo. Actualmente en etapa de consolidación profesional, ampliando experiencia en proyectos reales.',
               items: [
                 'Frontend + Backend',
                 'APIs',
@@ -129,19 +193,19 @@ export class HomeComponent {
                 'Aprendizaje continuo',
               ],
             },
-          ],
+          ]),
         }
       : {
           eyebrow: 'Technical background',
           title: 'Technical experience',
           description: '',
           ariaLabel: 'Technical experience categories',
-          categories: [
+          categories: this.technicalCategories([
             {
-              id: 'electronics' as const,
+              id: 'electronics',
+              key: 'home.technical.electronics',
               label: 'Electronics',
-              description:
-                'Hands-on experience in audio and video equipment, gaming hardware, consoles, PCs, monitors, and arcade systems, including diagnostics, repair, and memory programming.',
+              description: 'Hands-on experience in audio and video equipment, gaming hardware, consoles, PCs, monitors, and arcade systems, including diagnostics, repair, and memory programming.',
               items: [
                 'Audio and video',
                 'Consoles and gaming hardware',
@@ -151,10 +215,10 @@ export class HomeComponent {
               ],
             },
             {
-              id: 'it' as const,
+              id: 'it',
+              key: 'home.technical.it',
               label: 'IT',
-              description:
-                'Technical support, installation, maintenance, and workstation setup with a practical approach to hardware, software, and connectivity issues.',
+              description: 'Technical support, installation, maintenance, and workstation setup with a practical approach to hardware, software, and connectivity issues.',
               items: [
                 'Installation and setup',
                 'Operating systems',
@@ -164,10 +228,10 @@ export class HomeComponent {
               ],
             },
             {
-              id: 'development' as const,
+              id: 'development',
+              key: 'home.technical.development',
               label: 'Development',
-              description:
-                'Fullstack web application development across frontend and backend, with experience in APIs, databases, and development practices while building real-project experience.',
+              description: 'Fullstack web application development across frontend and backend, with experience in APIs, databases, and development practices while building real-project experience.',
               items: [
                 'Frontend + Backend',
                 'APIs',
@@ -176,43 +240,7 @@ export class HomeComponent {
                 'Continuous learning',
               ],
             },
-          ],
-        },
-  );
-
-  readonly credentials = computed(() =>
-    this.currentLanguage() === 'es'
-      ? {
-          eyebrow: 'Formación y credenciales',
-          title: 'Base académica y credenciales técnicas',
-          description: '',
-          highlights: [
-            {
-              label: 'Formación profesional',
-              value: 'Técnico Universitario en Programación - UTN FRC',
-            },
-            {
-              label: 'Perfil actual',
-              value: 'Desarrollo de software, APIs y arquitectura backend.',
-            },
-          ],
-          actionLabel: 'Ver formación y credenciales',
-        }
-      : {
-          eyebrow: 'Education and certifications',
-          title: 'Academic foundation and technical credentials',
-          description: '',
-          highlights: [
-            {
-              label: 'Professional training',
-              value: 'University Programming Technician - UTN FRC',
-            },
-            {
-              label: 'Current profile',
-              value: 'Software development, APIs, and backend architecture.',
-            },
-          ],
-          actionLabel: 'View education and certifications',
+          ]),
         },
   );
 
@@ -232,61 +260,7 @@ export class HomeComponent {
         },
   );
 
-  readonly workAreas = computed<WorkArea[]>(() =>
-    this.currentLanguage() === 'es'
-      ? [
-          {
-            label: 'Backend',
-            level: 88,
-            description:
-              'Java, Spring Boot, .NET, diseño de APIs, seguridad y lógica de negocio para servicios mantenibles.',
-          },
-          {
-            label: 'Frontend',
-            level: 74,
-            description:
-              'Angular, TypeScript, componentes reutilizables, consumo de APIs y resolución visual orientada a producto.',
-          },
-          {
-            label: 'Data',
-            level: 70,
-            description:
-              'Modelado relacional, consultas SQL, PostgreSQL y persistencia para flujos transaccionales y operativos.',
-          },
-          {
-            label: 'Herramientas',
-            level: 76,
-            description:
-              'Docker, Git, Maven, Postman y tooling de desarrollo para entornos reproducibles y trabajo diario.',
-          },
-        ]
-      : [
-          {
-            label: 'Backend',
-            level: 88,
-            description:
-              'Java, Spring Boot, .NET, API design, security, and business logic for maintainable services.',
-          },
-          {
-            label: 'Frontend',
-            level: 74,
-            description:
-              'Angular, TypeScript, reusable components, API consumption, and product-oriented visual execution.',
-          },
-          {
-            label: 'Data',
-            level: 70,
-            description:
-              'Relational modeling, SQL querying, PostgreSQL, and persistence for transactional and operational flows.',
-          },
-          {
-            label: 'Tools',
-            level: 76,
-            description:
-              'Docker, Git, Maven, Postman, and daily development tooling for reproducible environments.',
-          },
-        ],
-  );
+  readonly workAreas = computed<WorkArea[]>(() => this.skillDerivedWorkAreas());
 
   readonly activeBaseCategory = computed(() => {
     const selectedCategoryId = this.activeBaseCategoryId();
@@ -295,6 +269,15 @@ export class HomeComponent {
       this.technicalBase().categories[0]
     );
   });
+
+  constructor() {
+    effect(() => {
+      const editModeEnabled = this.editModeService.isEnabled();
+      const language = this.currentLanguage();
+      void this.loadContentBlocks(editModeEnabled);
+      void this.loadSkillCatalog(language);
+    });
+  }
 
   setBaseCategory(categoryId: TechnicalBaseCategoryId): void {
     if (categoryId === this.activeBaseCategoryId()) {
@@ -312,5 +295,201 @@ export class HomeComponent {
 
   onProfileImageError(): void {
     this.profileImageAvailable.set(false);
+  }
+
+  updateBlockTitle(id: string, value: string): void {
+    this.updateBlock(id, (block) => ({ ...block, title: value }));
+  }
+
+  updateBlockBody(id: string, value: string): void {
+    this.updateBlock(id, (block) => ({ ...block, body: value }));
+  }
+
+  updateBlockItem(id: string, index: number, value: string): void {
+    this.updateBlock(id, (block) => {
+      const items = [...block.items];
+      items[index] = value;
+      return { ...block, items };
+    });
+  }
+
+  addBlockItem(id: string): void {
+    this.updateBlock(id, (block) => ({ ...block, items: [...block.items, this.editLabels().newItemLabel] }));
+  }
+
+  removeBlockItem(id: string, index: number): void {
+    this.updateBlock(id, (block) => ({ ...block, items: block.items.filter((_, itemIndex) => itemIndex !== index) }));
+  }
+
+  async createTechnicalBlock(): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingBlockId()) {
+      return;
+    }
+
+    this.savingBlockId.set('new-technical');
+    this.editFeedback.set(null);
+    this.editError.set(null);
+
+    const timestamp = Date.now();
+    const language = this.currentLanguage();
+    const payload: PublicContentBlockCreatePayload = {
+      key: `home.technical.custom-${timestamp}`,
+      language,
+      title: language === 'es' ? 'Nueva experiencia' : 'New experience',
+      body: language === 'es' ? 'Describe la experiencia tecnica.' : 'Describe the technical experience.',
+      items: [language === 'es' ? 'Nuevo detalle' : 'New detail'],
+      documentId: null,
+      published: true,
+      displayOrder: this.nextTechnicalDisplayOrder(),
+    };
+
+    try {
+      const response = await firstValueFrom(this.publicContentAdminService.createContentBlock(payload));
+      if (response?.data) {
+        this.contentBlocks.update((blocks) => [...blocks, response.data]);
+        this.activeBaseCategoryId.set(this.technicalIdFromKey(response.data.key));
+      }
+      this.editFeedback.set(language === 'es' ? 'Experiencia creada.' : 'Experience created.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingBlockId.set(null);
+    }
+  }
+
+  async saveHomeBlock(block: PublicContentBlock): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingBlockId()) {
+      return;
+    }
+
+    this.savingBlockId.set(block.id);
+    this.editFeedback.set(null);
+    this.editError.set(null);
+
+    try {
+      const response = await firstValueFrom(this.publicContentAdminService.updateContentBlock(block.id, this.toBlockPayload(block)));
+      if (response?.data) {
+        this.replaceContentBlock(response.data);
+      }
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Bloque actualizado.' : 'Block updated.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingBlockId.set(null);
+    }
+  }
+
+  private async loadContentBlocks(includeDrafts = false): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        includeDrafts ? this.publicContentAdminService.listContentBlocks() : this.publicContentService.listPublicContentBlocks(),
+      );
+      this.contentBlocks.set(response?.data ?? []);
+    } catch {
+      this.contentBlocks.set([]);
+    }
+  }
+
+  private async loadSkillCatalog(language: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.skillService.listSkills(language));
+      this.skillCatalog.set(response?.data ?? []);
+    } catch {
+      this.skillCatalog.set([]);
+    }
+  }
+
+  private contentBlock(key: string): PublicContentBlock | null {
+    const language = this.currentLanguage();
+    return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
+  }
+
+  private blockItems(block: PublicContentBlock | null, fallback: string[]): string[] {
+    return block?.items?.length ? block.items : fallback;
+  }
+
+  private technicalCategories(fallbacks: Omit<TechnicalBaseCategory, 'block'>[]): TechnicalBaseCategory[] {
+    const language = this.currentLanguage();
+    const fallbackKeys = new Set(fallbacks.map((category) => category.key));
+    const fallbackCategories = fallbacks.map((category) => {
+      const block = this.contentBlocks().find((candidate) => candidate.key === category.key && candidate.language === language) ?? null;
+      return {
+        ...category,
+        label: block?.title ?? category.label,
+        description: block?.body ?? category.description,
+        items: block?.items?.length ? block.items : category.items,
+        block,
+      };
+    });
+    const customCategories = this.contentBlocks()
+      .filter((block) => block.language === language && block.key.startsWith('home.technical.') && !fallbackKeys.has(block.key))
+      .sort((left, right) => left.displayOrder - right.displayOrder || left.title.localeCompare(right.title))
+      .map((block) => ({
+        id: this.technicalIdFromKey(block.key),
+        key: block.key,
+        label: block.title,
+        description: block.body,
+        items: block.items,
+        block,
+      }));
+
+    return [...fallbackCategories, ...customCategories];
+  }
+
+  private skillDerivedWorkAreas(): WorkArea[] {
+    return this.skillCatalog()
+      .filter((category) => category.skills.length > 0)
+      .map((category, index) => ({
+        label: category.label,
+        level: this.skillCategoryLevel(index, category.skills.length),
+        description: category.skills
+          .slice(0, 4)
+          .map((skill) => skill.name)
+          .join(' · '),
+      }));
+  }
+
+  private skillCategoryLevel(index: number, skillCount: number): number {
+    const baseLevel = Math.max(56, 88 - index * 6);
+    return Math.min(96, Math.max(48, baseLevel + Math.min(skillCount, 4)));
+  }
+
+  private technicalIdFromKey(key: string): string {
+    return key.replace('home.technical.', '');
+  }
+
+  private nextTechnicalDisplayOrder(): number {
+    const language = this.currentLanguage();
+    const lastOrder = this.contentBlocks()
+      .filter((block) => block.language === language && block.key.startsWith('home.technical.'))
+      .reduce((max, block) => Math.max(max, block.displayOrder), 220);
+    return Math.min(999, lastOrder + 1);
+  }
+
+  private updateBlock(id: string, updater: (block: PublicContentBlock) => PublicContentBlock): void {
+    this.contentBlocks.update((blocks) => blocks.map((block) => (block.id === id ? updater(block) : block)));
+  }
+
+  private replaceContentBlock(updated: PublicContentBlock): void {
+    this.contentBlocks.update((blocks) => blocks.map((block) => (block.id === updated.id ? updated : block)));
+  }
+
+  private toBlockPayload(block: PublicContentBlock): PublicContentBlockUpdatePayload {
+    return {
+      title: block.title.trim(),
+      body: block.body.trim(),
+      items: block.items.map((item) => item.trim()).filter((item) => item.length > 0),
+      documentId: block.documentId,
+      published: block.published,
+      displayOrder: block.displayOrder,
+    };
+  }
+
+  private resolveEditErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string' && error.error.message.trim()) {
+      return error.error.message;
+    }
+
+    return this.currentLanguage() === 'es' ? 'No se pudo guardar el cambio.' : 'The change could not be saved.';
   }
 }

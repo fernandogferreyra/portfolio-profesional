@@ -26,8 +26,32 @@ public class DocumentStorageProperties {
     public Path getBasePath() {
         String configuredBasePath = basePath == null ? "" : basePath.trim();
         String effectiveBasePath = configuredBasePath.isEmpty() ? "./runtime/documents" : configuredBasePath;
+        Path configuredPath = Paths.get(effectiveBasePath);
 
-        return Paths.get(effectiveBasePath).toAbsolutePath().normalize();
+        if (configuredPath.isAbsolute()) {
+            return configuredPath.normalize();
+        }
+
+        return resolveWorkspaceRoot().resolve(configuredPath).toAbsolutePath().normalize();
+    }
+
+    private Path resolveWorkspaceRoot() {
+        Path currentDirectory = Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
+
+        if (isWorkspaceRoot(currentDirectory)) {
+            return currentDirectory;
+        }
+
+        Path parentDirectory = currentDirectory.getParent();
+        if (parentDirectory != null && "backend".equals(currentDirectory.getFileName().toString()) && isWorkspaceRoot(parentDirectory)) {
+            return parentDirectory;
+        }
+
+        return currentDirectory;
+    }
+
+    private boolean isWorkspaceRoot(Path path) {
+        return Files.isDirectory(path.resolve("backend")) && Files.isDirectory(path.resolve("frontend"));
     }
 
     @PostConstruct

@@ -6,6 +6,7 @@ import { PORTFOLIO_THEMES } from '../../data/portfolio.data';
 import { ThemeId, localizeText } from '../../data/portfolio.models';
 import { translations } from '../../i18n/translations';
 import { AuthService } from '../../services/auth.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
 import { ThemeService } from '../../services/theme.service';
 
@@ -25,6 +26,7 @@ export class HeaderComponent {
   @Output() readonly privateAccessRequested = new EventEmitter<void>();
 
   readonly authService = inject(AuthService);
+  readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly activeTheme = this.themeService.activeTheme;
   readonly brandAvatarUrl = 'images/profile-photo.jpg';
@@ -53,15 +55,18 @@ export class HeaderComponent {
     this.currentLanguage() === 'es' ? 'Ir al inicio' : 'Go home',
   );
   readonly privateAccessLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Acceso privado' : 'Private access',
+    this.currentLanguage() === 'es' ? 'Panel de control' : 'Control panel',
   );
   readonly privateAccessAriaLabel = computed(() =>
     this.currentLanguage() === 'es'
-      ? 'Abrir acceso privado para administrador'
-      : 'Open private admin access',
+      ? 'Abrir panel de control para administrador'
+      : 'Open admin control panel',
   );
   readonly controlCenterLabel = computed(() =>
-    this.currentLanguage() === 'es' ? 'Privado' : 'Private',
+    this.currentLanguage() === 'es' ? 'Panel de control' : 'Control panel',
+  );
+  readonly editModeLabel = computed(() =>
+    this.editModeService.isEnabled() ? 'EditMode Enabled' : 'EditMode Disabled',
   );
   readonly adminStatusLabel = computed(() =>
     this.currentLanguage() === 'es' ? 'Privado activo' : 'Private active',
@@ -115,11 +120,17 @@ export class HeaderComponent {
   }
 
   logout(): void {
+    this.editModeService.disable();
     this.authService.logout();
 
     if (this.router.url.startsWith('/control-center')) {
       void this.router.navigate(['/'], { fragment: 'home-top' });
     }
+  }
+
+  toggleEditMode(): void {
+    this.closeThemeMenu();
+    this.editModeService.toggle();
   }
 
   goToHome(event?: Event): void {

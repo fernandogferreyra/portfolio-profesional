@@ -1,36 +1,30 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
-import { PORTFOLIO_SKILLS, SKILL_CATEGORIES, SKILL_ICONS, SKILL_LEVELS } from '../../data/portfolio.data';
-import {
-  SkillCategoryId,
-  SkillIconDefinition,
-  SkillLevelId,
-  localizeText,
-} from '../../data/portfolio.models';
+import { SKILL_ICONS } from '../../data/portfolio.data';
+import { SkillIconDefinition } from '../../data/portfolio.models';
+import { SkillCategoryResponse, SkillItemResponse, SkillUpdatePayload } from '../../models/skills.models';
+import { DocumentAdminService } from '../../services/document-admin.service';
+import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
+import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
+import { SkillAdminService } from '../../services/skill-admin.service';
+import { SkillService } from '../../services/skill.service';
 
 type ShowcaseLaneDirection = 'left' | 'right';
 
-interface SkillView {
-  id: string;
-  icon: SkillIconDefinition;
-  name: string;
-  description: string;
-  tags: string[];
-  level?: SkillLevelId;
+interface SkillView extends SkillItemResponse {
+  iconDefinition: SkillIconDefinition;
   levelLabel?: string;
-  showLevel: boolean;
 }
 
-interface CategoryView {
-  id: SkillCategoryId;
-  label: string;
-  description: string;
+interface CategoryView extends SkillCategoryResponse {
   skills: SkillView[];
 }
 
 interface FocusAreaView {
-  id: SkillCategoryId;
+  id: string;
   label: string;
   width: string;
 }
@@ -43,35 +37,11 @@ interface ShowcaseLaneView {
   skills: SkillView[];
 }
 
-const TECHNICAL_FOCUS_IDS: SkillCategoryId[] = ['backend', 'frontend', 'data', 'tools', 'ai'];
-const LANE_ORDER: SkillCategoryId[] = ['backend', 'frontend', 'data', 'tools', 'ai', 'soft'];
+type DeleteTarget =
+  | { type: 'skill'; id: string; label: string }
+  | { type: 'category'; id: string; label: string };
 
-const LANE_DIRECTION: Record<SkillCategoryId, ShowcaseLaneDirection> = {
-  backend: 'left',
-  frontend: 'right',
-  data: 'left',
-  tools: 'right',
-  ai: 'left',
-  soft: 'right',
-};
-
-const LANE_DURATION: Record<SkillCategoryId, string> = {
-  backend: '78s',
-  frontend: '72s',
-  data: '74s',
-  tools: '84s',
-  ai: '76s',
-  soft: '88s',
-};
-
-const FOCUS_WIDTH: Record<SkillCategoryId, string> = {
-  backend: '96%',
-  frontend: '74%',
-  data: '64%',
-  tools: '82%',
-  ai: '68%',
-  soft: '0%',
-};
+const LANE_DURATIONS = ['78s', '72s', '74s', '84s', '76s', '88s', '82s'];
 
 @Component({
   selector: 'app-skills',
@@ -81,88 +51,171 @@ const FOCUS_WIDTH: Record<SkillCategoryId, string> = {
 })
 export class SkillsComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly publicContentService = inject(PublicContentService);
+  private readonly documentAdminService = inject(DocumentAdminService);
+  private readonly skillService = inject(SkillService);
+  private readonly skillAdminService = inject(SkillAdminService);
 
+  readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly laneCopies = [0, 1] as const;
   readonly showAllSkills = signal(false);
+  readonly contentBlocks = signal<PublicContentBlock[]>([]);
+  readonly skillCatalog = signal<SkillCategoryResponse[]>([]);
+  readonly savingSkillId = signal<string | null>(null);
+  readonly savingCategoryId = signal<string | null>(null);
+  readonly uploadingSkillId = signal<string | null>(null);
+  readonly selectedSkillId = signal<string | null>(null);
+  readonly selectedCategoryId = signal<string | null>(null);
+  readonly deleteTarget = signal<DeleteTarget | null>(null);
+  readonly editFeedback = signal<string | null>(null);
+  readonly editError = signal<string | null>(null);
+  readonly iconOptions = Object.keys(SKILL_ICONS).sort();
 
   readonly ui = computed(() =>
     this.currentLanguage() === 'es'
       ? {
           eyebrow: 'Skills',
-          title: 'Stack técnico organizado por áreas clave.',
+          title: this.contentBlock('skills.hero')?.title ?? 'Stack técnico organizado por áreas clave.',
           intro:
+            this.contentBlock('skills.hero')?.body ??
             'Tecnologías, herramientas y capacidades de trabajo organizadas en un flujo visual continuo, claro y profesional.',
-          focusTitle: 'Enfoque técnico',
-          lanesTitle: 'Stack por áreas',
+          focusTitle: this.contentBlock('skills.hero')?.items?.[0] ?? 'Enfoque técnico',
+          lanesTitle: this.contentBlock('skills.hero')?.items?.[1] ?? 'Stack por áreas',
           toggleShowAll: 'Ver todas',
           toggleShowAnimated: 'Skills',
           expandedTitle: 'Todas las skills por categoría',
           lanesDescription:
+            this.contentBlock('skills.hero')?.items?.[2] ??
             'Cada fila reúne tecnologías o habilidades relacionadas dentro del mismo lenguaje visual, con movimiento suave y lectura rápida.',
+          editModeLabel: 'EditMode Skills',
+          editBodyLabel: 'Descripcion',
+          editAddItemLabel: 'Agregar detalle',
+          editRemoveLabel: 'Quitar',
+          editSavingLabel: 'Guardando...',
+          editDraftLabel: 'Oculta',
+          editActionLabel: 'Editar',
+          newSkillLabel: 'Nueva skill',
+          newCategoryLabel: 'Nueva categoria',
+          editCategoryLabel: 'Editar categoria',
+          deleteCategoryLabel: 'Eliminar categoria',
+          slugLabel: 'Slug',
+          nameLabel: 'Nombre',
+          categoryLabel: 'Categoria',
+          iconLabel: 'Icono',
+          uploadIconLabel: 'Subir icono propio',
+          uploadingIconLabel: 'Subiendo icono...',
+          colorLabel: 'Color',
+          levelLabel: 'Nivel',
+          tagsLabel: 'Tags',
+          showLevelLabel: 'Mostrar nivel',
+          publishedLabel: 'Publicado',
+          orderLabel: 'Orden',
+          basicLabel: 'Basico',
+          intermediateLabel: 'Intermedio',
+          advancedLabel: 'Avanzado',
+          saveSkillLabel: 'Guardar skill',
+          saveCategoryLabel: 'Guardar categoria',
+          deleteSkillLabel: 'Eliminar skill',
+          confirmTitle: 'Confirmar eliminacion',
+          confirmSkillMessage: 'Esta skill se va a eliminar del catalogo. Esta accion no borra documentos subidos.',
+          confirmCategoryMessage: 'La categoria se va a eliminar y sus skills pasaran a Otras.',
+          confirmDeleteLabel: 'Si, eliminar',
+          cancelDeleteLabel: 'Cancelar',
         }
       : {
           eyebrow: 'Skills',
-          title: 'Technical stack organized by core areas.',
+          title: this.contentBlock('skills.hero')?.title ?? 'Technical stack organized by core areas.',
           intro:
+            this.contentBlock('skills.hero')?.body ??
             'Technologies, tools, and working capabilities organized in a continuous, clear, and professional visual flow.',
-          focusTitle: 'Technical focus',
-          lanesTitle: 'Stack by area',
+          focusTitle: this.contentBlock('skills.hero')?.items?.[0] ?? 'Technical focus',
+          lanesTitle: this.contentBlock('skills.hero')?.items?.[1] ?? 'Stack by area',
           toggleShowAll: 'View all',
           toggleShowAnimated: 'Skills',
           expandedTitle: 'All skills by category',
           lanesDescription:
+            this.contentBlock('skills.hero')?.items?.[2] ??
             'Each lane groups related technologies or capabilities within the same visual language, with subtle motion and quick scanning.',
+          editModeLabel: 'Skills EditMode',
+          editBodyLabel: 'Description',
+          editAddItemLabel: 'Add detail',
+          editRemoveLabel: 'Remove',
+          editSavingLabel: 'Saving...',
+          editDraftLabel: 'Hidden',
+          editActionLabel: 'Edit',
+          newSkillLabel: 'New skill',
+          newCategoryLabel: 'New category',
+          editCategoryLabel: 'Edit category',
+          deleteCategoryLabel: 'Delete category',
+          slugLabel: 'Slug',
+          nameLabel: 'Name',
+          categoryLabel: 'Category',
+          iconLabel: 'Icon',
+          uploadIconLabel: 'Upload custom icon',
+          uploadingIconLabel: 'Uploading icon...',
+          colorLabel: 'Color',
+          levelLabel: 'Level',
+          tagsLabel: 'Tags',
+          showLevelLabel: 'Show level',
+          publishedLabel: 'Published',
+          orderLabel: 'Order',
+          basicLabel: 'Basic',
+          intermediateLabel: 'Intermediate',
+          advancedLabel: 'Advanced',
+          saveSkillLabel: 'Save skill',
+          saveCategoryLabel: 'Save category',
+          deleteSkillLabel: 'Delete skill',
+          confirmTitle: 'Confirm deletion',
+          confirmSkillMessage: 'This skill will be removed from the catalog. Uploaded documents are not deleted.',
+          confirmCategoryMessage: 'This category will be removed and its skills will move to Other.',
+          confirmDeleteLabel: 'Yes, delete',
+          cancelDeleteLabel: 'Cancel',
         },
   );
 
-  readonly categories = computed<CategoryView[]>(() => {
-    const language = this.currentLanguage();
-
-    return SKILL_CATEGORIES.map((category) => ({
-      id: category.id,
-      label: localizeText(category.label, language),
-      description: localizeText(category.description, language),
-      skills: PORTFOLIO_SKILLS.filter((skill) => skill.category === category.id).map((skill) => {
-        const level = SKILL_LEVELS[skill.id];
-
-        return {
-          id: skill.id,
-          icon: SKILL_ICONS[skill.icon],
-          name: skill.name,
-          description: localizeText(skill.description, language),
-          tags: (skill.tags ?? []).map((tag) => localizeText(tag, language)),
-          level,
-          levelLabel: level ? this.localizeLevel(level, language) : undefined,
-          showLevel: skill.showLevel !== false && Boolean(level),
-        };
-      }),
-    }));
-  });
+  readonly categories = computed<CategoryView[]>(() =>
+    this.skillCatalog().map((category) => ({
+      ...category,
+      skills: category.skills.map((skill) => this.toSkillView(skill)),
+    })),
+  );
 
   readonly focusAreas = computed<FocusAreaView[]>(() =>
     this.categories()
-      .filter((category) => TECHNICAL_FOCUS_IDS.includes(category.id))
+      .filter((category) => category.skills.some((skill) => skill.published || this.editModeService.isEnabled()))
       .map((category) => ({
         id: category.id,
         label: category.label,
-        width: FOCUS_WIDTH[category.id],
+        width: this.focusWidth(category.skills.length),
       })),
   );
 
-  readonly showcaseLanes = computed<ShowcaseLaneView[]>(() => {
-    const categoriesById = new Map(this.categories().map((category) => [category.id, category] as const));
-
-    return LANE_ORDER.map((categoryId) => categoriesById.get(categoryId))
-      .filter((category): category is CategoryView => Boolean(category))
-      .map((category) => ({
+  readonly showcaseLanes = computed<ShowcaseLaneView[]>(() =>
+    this.categories()
+      .filter((category) => category.skills.length > 0 || this.editModeService.isEnabled())
+      .map((category, index) => ({
         id: `lane-${category.id}`,
         label: category.label,
-        direction: LANE_DIRECTION[category.id],
-        duration: LANE_DURATION[category.id],
+        direction: index % 2 === 0 ? 'left' : 'right',
+        duration: LANE_DURATIONS[index % LANE_DURATIONS.length],
         skills: category.skills,
-      }));
-  });
+      })),
+  );
+
+  readonly categoryOptions = computed(() => this.categories().map((category) => ({ id: category.id, label: category.label })));
+
+  constructor() {
+    effect(() => {
+      const editModeEnabled = this.editModeService.isEnabled();
+      const language = this.currentLanguage();
+      if (editModeEnabled) {
+        this.showAllSkills.set(true);
+      }
+      void this.loadContentBlocks();
+      void this.loadSkillCatalog(language, editModeEnabled);
+    });
+  }
 
   trackBySkillId(_index: number, skill: SkillView): string {
     return skill.id;
@@ -172,23 +225,379 @@ export class SkillsComponent {
     return lane.id;
   }
 
-  trackByFocusId(_index: number, item: FocusAreaView): SkillCategoryId {
+  trackByFocusId(_index: number, item: FocusAreaView): string {
     return item.id;
   }
 
-  trackByCategoryId(_index: number, item: CategoryView): SkillCategoryId {
+  trackByCategoryId(_index: number, item: CategoryView): string {
     return item.id;
+  }
+
+  trackByIcon(_index: number, icon: string): string {
+    return icon;
   }
 
   toggleSkillPresentation(): void {
     this.showAllSkills.update((current) => !current);
   }
 
-  private localizeLevel(level: SkillLevelId, language: 'es' | 'en'): string {
-    if (language === 'es') {
+  selectSkill(skillId: string): void {
+    this.selectedSkillId.set(this.selectedSkillId() === skillId ? null : skillId);
+  }
+
+  selectCategory(categoryId: string): void {
+    this.selectedCategoryId.set(this.selectedCategoryId() === categoryId ? null : categoryId);
+  }
+
+  updateSkillField(id: string, field: keyof SkillUpdatePayload, value: string | boolean | number | null): void {
+    this.skillCatalog.update((categories) =>
+      categories.map((category) => ({
+        ...category,
+        skills: category.skills.map((skill) => (skill.id === id ? { ...skill, [field]: value } : skill)),
+      })),
+    );
+  }
+
+  updateSkillTag(id: string, index: number, value: string): void {
+    this.updateSkill(id, (skill) => {
+      const tags = [...skill.tags];
+      tags[index] = value;
+      return { ...skill, tags };
+    });
+  }
+
+  addSkillTag(id: string): void {
+    this.updateSkill(id, (skill) => ({ ...skill, tags: [...skill.tags, this.currentLanguage() === 'es' ? 'Nuevo tag' : 'New tag'] }));
+  }
+
+  removeSkillTag(id: string, index: number): void {
+    this.updateSkill(id, (skill) => ({ ...skill, tags: skill.tags.filter((_, tagIndex) => tagIndex !== index) }));
+  }
+
+  updateCategoryField(id: string, field: 'slug' | 'label' | 'description' | 'published' | 'displayOrder', value: string | boolean | number): void {
+    this.skillCatalog.update((categories) => categories.map((category) => (category.id === id ? { ...category, [field]: value } : category)));
+  }
+
+  async createSkill(): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingSkillId()) {
+      return;
+    }
+
+    this.savingSkillId.set('new');
+    this.showAllSkills.set(true);
+    this.resetFeedback();
+
+    try {
+      const response = await firstValueFrom(
+        this.skillAdminService.createSkill({
+          language: this.currentLanguage(),
+          slug: '',
+          name: this.currentLanguage() === 'es' ? 'Nueva skill' : 'New skill',
+          description: '',
+          categoryId: this.categoryOptions()[0]?.id ?? null,
+          icon: 'frontend',
+          iconDocumentId: null,
+          accentColor: '#2dd4bf',
+          level: 'basic',
+          tags: [],
+          showLevel: true,
+          published: false,
+          displayOrder: this.nextSkillOrder(),
+        }),
+      );
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedSkillId.set(response.data.id);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Skill creada como borrador.' : 'Skill created as draft.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingSkillId.set(null);
+    }
+  }
+
+  async saveSkill(skill: SkillView): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingSkillId()) {
+      return;
+    }
+
+    this.savingSkillId.set(skill.id);
+    this.resetFeedback();
+
+    try {
+      await firstValueFrom(this.skillAdminService.updateSkill(skill.id, this.toSkillPayload(skill)));
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Skill actualizada.' : 'Skill updated.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingSkillId.set(null);
+    }
+  }
+
+  async createCategory(): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingCategoryId()) {
+      return;
+    }
+
+    const pendingCategory = this.categories().find((category) => this.isPendingNewCategory(category));
+    if (pendingCategory) {
+      this.showAllSkills.set(true);
+      this.selectedCategoryId.set(pendingCategory.id);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Completa la categoria pendiente.' : 'Complete the pending category.');
+      return;
+    }
+
+    this.savingCategoryId.set('new');
+    this.showAllSkills.set(true);
+    this.resetFeedback();
+
+    try {
+      const response = await firstValueFrom(
+        this.skillAdminService.createCategory({
+          language: this.currentLanguage(),
+          slug: '',
+          label: this.currentLanguage() === 'es' ? 'Nueva categoria' : 'New category',
+          description: '',
+          published: true,
+          displayOrder: this.nextCategoryOrder(),
+        }),
+      );
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedCategoryId.set(response.data.id);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Categoria creada.' : 'Category created.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingCategoryId.set(null);
+    }
+  }
+
+  async saveCategory(category: CategoryView): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingCategoryId()) {
+      return;
+    }
+
+    this.savingCategoryId.set(category.id);
+    this.resetFeedback();
+
+    try {
+      await firstValueFrom(
+        this.skillAdminService.updateCategory(category.id, {
+          slug: category.slug,
+          label: category.label,
+          description: category.description,
+          published: category.published,
+          displayOrder: category.displayOrder,
+        }),
+      );
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Categoria actualizada.' : 'Category updated.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingCategoryId.set(null);
+    }
+  }
+
+  requestDeleteSkill(skill: SkillView): void {
+    this.deleteTarget.set({ type: 'skill', id: skill.id, label: skill.name });
+  }
+
+  requestDeleteCategory(category: CategoryView): void {
+    this.deleteTarget.set({ type: 'category', id: category.id, label: category.label });
+  }
+
+  cancelDelete(): void {
+    this.deleteTarget.set(null);
+  }
+
+  async confirmDelete(): Promise<void> {
+    const target = this.deleteTarget();
+    if (!target) {
+      return;
+    }
+
+    if (target.type === 'skill') {
+      await this.deleteSkill(target.id);
+      return;
+    }
+
+    await this.deleteCategory(target.id);
+  }
+
+  async onSkillIconSelected(skill: SkillView, event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    if (!file || !this.editModeService.isEnabled() || this.uploadingSkillId()) {
+      return;
+    }
+
+    this.uploadingSkillId.set(skill.id);
+    this.resetFeedback();
+
+    try {
+      const uploadResponse = await firstValueFrom(this.documentAdminService.uploadDocument(file, 'skill-icon'));
+      const updatedSkill = { ...skill, iconDocumentId: uploadResponse.data.id };
+      await firstValueFrom(this.skillAdminService.updateSkill(skill.id, this.toSkillPayload(updatedSkill)));
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedSkillId.set(skill.id);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Icono actualizado.' : 'Icon updated.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.uploadingSkillId.set(null);
+      if (input) {
+        input.value = '';
+      }
+    }
+  }
+
+  private async deleteSkill(id: string): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingSkillId()) {
+      return;
+    }
+
+    this.savingSkillId.set(id);
+    this.resetFeedback();
+
+    try {
+      await firstValueFrom(this.skillAdminService.deleteSkill(id));
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedSkillId.set(null);
+      this.deleteTarget.set(null);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Skill eliminada.' : 'Skill deleted.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingSkillId.set(null);
+    }
+  }
+
+  private async deleteCategory(id: string): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingCategoryId()) {
+      return;
+    }
+
+    this.savingCategoryId.set(id);
+    this.resetFeedback();
+
+    try {
+      await firstValueFrom(this.skillAdminService.deleteCategory(id));
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedCategoryId.set(null);
+      this.deleteTarget.set(null);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Categoria eliminada.' : 'Category deleted.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingCategoryId.set(null);
+    }
+  }
+
+  private async loadContentBlocks(): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.publicContentService.listPublicContentBlocks());
+      this.contentBlocks.set(response?.data ?? []);
+    } catch {
+      this.contentBlocks.set([]);
+    }
+  }
+
+  private async loadSkillCatalog(language: string, includeDrafts = false): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        includeDrafts ? this.skillAdminService.listSkills(language) : this.skillService.listSkills(language),
+      );
+      this.skillCatalog.set(response?.data ?? []);
+    } catch {
+      this.skillCatalog.set([]);
+    }
+  }
+
+  private contentBlock(key: string): PublicContentBlock | null {
+    const language = this.currentLanguage();
+    return this.contentBlocks().find((block) => block.key === key && block.language === language) ?? null;
+  }
+
+  private focusWidth(skillCount: number): string {
+    const maxSkillCount = Math.max(1, ...this.categories().map((category) => category.skills.length));
+    const width = Math.round((skillCount / maxSkillCount) * 100);
+    return `${Math.max(36, Math.min(100, width))}%`;
+  }
+
+  private updateSkill(id: string, updater: (skill: SkillItemResponse) => SkillItemResponse): void {
+    this.skillCatalog.update((categories) =>
+      categories.map((category) => ({
+        ...category,
+        skills: category.skills.map((skill) => (skill.id === id ? updater(skill) : skill)),
+      })),
+    );
+  }
+
+  private toSkillPayload(skill: SkillView): SkillUpdatePayload {
+    return {
+      slug: skill.slug,
+      name: skill.name.trim(),
+      description: skill.description.trim(),
+      categoryId: skill.categoryId,
+      icon: skill.icon,
+      iconDocumentId: skill.iconDocumentId,
+      accentColor: skill.accentColor,
+      level: skill.level,
+      tags: skill.tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0),
+      showLevel: skill.showLevel,
+      published: skill.published,
+      displayOrder: Number(skill.displayOrder) || 0,
+    };
+  }
+
+  private toSkillView(skill: SkillItemResponse): SkillView {
+    const icon = SKILL_ICONS[skill.icon as keyof typeof SKILL_ICONS] ?? SKILL_ICONS.frontend;
+    const accentColor = skill.accentColor || icon.accent;
+    return {
+      ...skill,
+      accentColor,
+      iconDefinition: {
+        ...icon,
+        accent: accentColor,
+        surface: `color-mix(in srgb, ${accentColor} 14%, transparent)`,
+        border: `color-mix(in srgb, ${accentColor} 32%, transparent)`,
+      },
+      levelLabel: this.localizeLevel(skill.level),
+    };
+  }
+
+  private resetFeedback(): void {
+    this.editFeedback.set(null);
+    this.editError.set(null);
+  }
+
+  private nextSkillOrder(): number {
+    return Math.max(0, ...this.categories().flatMap((category) => category.skills.map((skill) => skill.displayOrder))) + 10;
+  }
+
+  private nextCategoryOrder(): number {
+    return Math.max(0, ...this.categories().map((category) => category.displayOrder)) + 10;
+  }
+
+  private isPendingNewCategory(category: CategoryView): boolean {
+    const label = category.label.trim().toLowerCase();
+    return category.skills.length === 0 && (label === 'nueva categoria' || label === 'new category');
+  }
+
+  private resolveEditErrorMessage(error: unknown): string {
+    if (error instanceof HttpErrorResponse && typeof error.error?.message === 'string' && error.error.message.trim()) {
+      return error.error.message;
+    }
+
+    return this.currentLanguage() === 'es' ? 'No se pudo guardar el cambio.' : 'The change could not be saved.';
+  }
+
+  private localizeLevel(level: string): string {
+    if (this.currentLanguage() === 'es') {
       switch (level) {
         case 'basic':
-          return 'Básico';
+          return 'Basico';
         case 'intermediate':
           return 'Intermedio';
         default:

@@ -5,7 +5,7 @@
   <span class="app-ambient-orb app-ambient-orb--three"></span>
 </div>
 
-<div class="app-shell">
+<div class="app-shell" [class.is-edit-mode]="editModeService.isEnabled()">
   <app-header (privateAccessRequested)="openLoginModal()"></app-header>
 
   <main class="app-main">
