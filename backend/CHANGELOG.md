@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.1](https://github.com/fernandogferreyra/portfolio-profesional/compare/backend-v0.5.0...backend-v0.5.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* avoid duplicate profile photo seed ids ([5e5992b](https://github.com/fernandogferreyra/portfolio-profesional/commit/5e5992bfd40e7e06e365bc0b1f1961a20bee09fc))
+* deploy CV replacement and profile photo editing ([f6182e3](https://github.com/fernandogferreyra/portfolio-profesional/commit/f6182e30d80aa3ac7498b79c44da83b853c64bbb))
+* deploy durable document downloads ([5b7cb41](https://github.com/fernandogferreyra/portfolio-profesional/commit/5b7cb41b1c5fc1e4304b0f4b642090b27ce9aae5))
+* make document downloads durable ([99a74b9](https://github.com/fernandogferreyra/portfolio-profesional/commit/99a74b9fd6765168798c6ccdc4ec4ce933c74f2f))
+* make document downloads durable ([261b3be](https://github.com/fernandogferreyra/portfolio-profesional/commit/261b3be978cd9b35c82a546eb2c411e1baf2f7ba))
+* replace stale CV and profile photo ([e7cd590](https://github.com/fernandogferreyra/portfolio-profesional/commit/e7cd5907cff378efe2a89190a8ac5dd076328642))
+* replace stale CV and profile photo ([aa8c0f6](https://github.com/fernandogferreyra/portfolio-profesional/commit/aa8c0f65aaa5d6d2b81cb5dbdb32885e5060cb5a))
+
 ## [0.5.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/backend-v0.4.0...backend-v0.5.0) (2026-05-16)
 
 

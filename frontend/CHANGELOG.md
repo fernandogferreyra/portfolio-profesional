@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1](https://github.com/fernandogferreyra/portfolio-profesional/compare/frontend-v0.3.0...frontend-v0.3.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* deploy CV replacement and profile photo editing ([f6182e3](https://github.com/fernandogferreyra/portfolio-profesional/commit/f6182e30d80aa3ac7498b79c44da83b853c64bbb))
+* replace stale CV and profile photo ([e7cd590](https://github.com/fernandogferreyra/portfolio-profesional/commit/e7cd5907cff378efe2a89190a8ac5dd076328642))
+* replace stale CV and profile photo ([aa8c0f6](https://github.com/fernandogferreyra/portfolio-profesional/commit/aa8c0f65aaa5d6d2b81cb5dbdb32885e5060cb5a))
+
 ## [0.3.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/frontend-v0.2.0...frontend-v0.3.0) (2026-05-16)
 
 
