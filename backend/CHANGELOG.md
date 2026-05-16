@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.5.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/backend-v0.4.0...backend-v0.5.0) (2026-05-16)
+
+
+### Features
+
+* add editable skills catalog ([ce88894](https://github.com/fernandogferreyra/portfolio-profesional/commit/ce88894dbf594951ea7f1fe8d7da561e4f4902e1))
+* add mistral admin ai backend ([0e314e6](https://github.com/fernandogferreyra/portfolio-profesional/commit/0e314e614681adfc225666bb3276353c1170d09e))
+* add mistral admin ai backend ([34dcd7b](https://github.com/fernandogferreyra/portfolio-profesional/commit/34dcd7bd58f0eb5039d871b8855df74a3d55795b))
+* extend edit mode content editing ([e9a866f](https://github.com/fernandogferreyra/portfolio-profesional/commit/e9a866fddf3107db0bb97f5817f0244d8d8664a3))
+* extend edit mode content editing ([8ee15d7](https://github.com/fernandogferreyra/portfolio-profesional/commit/8ee15d77f8010fa2cafb99cbb712f1d49f4f4ba3))
+* extend edit mode public content editing ([8f6775f](https://github.com/fernandogferreyra/portfolio-profesional/commit/8f6775fc0c12bbf015171827848a03af932613a8))
+* extend edit mode public content editing ([e16402f](https://github.com/fernandogferreyra/portfolio-profesional/commit/e16402f87805cf7e0b5734156b4514e18d083aba))
+* finish skills edit mode and visual polish ([1514e97](https://github.com/fernandogferreyra/portfolio-profesional/commit/1514e97017da0efe99c29908f9326c18a958f512))
+* link cms blocks to documents ([c7dd4c5](https://github.com/fernandogferreyra/portfolio-profesional/commit/c7dd4c56438580ef748a49c0e2b087251849f612))
+* link cms blocks to documents ([01a4c6e](https://github.com/fernandogferreyra/portfolio-profesional/commit/01a4c6e17487ef01760a834822284f423d4bf62a))
+
+
+### Bug Fixes
+
+* align contact cms and ai editing ([19abb09](https://github.com/fernandogferreyra/portfolio-profesional/commit/19abb0928389371d5a56b932b7c2cd92c571c876))
+* clean up linked documents for CV ([10a419f](https://github.com/fernandogferreyra/portfolio-profesional/commit/10a419fbb91dd2cea07489db346904ce32b98bb9))
+* clean up linked documents for CV ([bc31337](https://github.com/fernandogferreyra/portfolio-profesional/commit/bc313372342037ef7b7a7407207f84365c6b3bc1))
+* keep cms controls visible while projects load ([ef46027](https://github.com/fernandogferreyra/portfolio-profesional/commit/ef460277e01108033f075010e0ad5998896ff569))
+* stabilize local document storage path ([cb951c8](https://github.com/fernandogferreyra/portfolio-profesional/commit/cb951c86f8247984c93ecddedf402a402e755e9a))
+
+
+### Documentation
+
+* add local build troubleshooting agent ([ff8e970](https://github.com/fernandogferreyra/portfolio-profesional/commit/ff8e970f7f4bd143bcf90c7083463ca9102e5e10))
+* add sdd agent operating model ([7e12fb0](https://github.com/fernandogferreyra/portfolio-profesional/commit/7e12fb08fab07a0bc13ed987bfe0526c22b7f833))
+* improve Maven target repair verification ([cdb2d8d](https://github.com/fernandogferreyra/portfolio-profesional/commit/cdb2d8dc0f71bd7d51f067a82ca047123e0a896b))
+
 ## [0.4.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/backend-v0.3.0...backend-v0.4.0) (2026-05-11)
 
 
