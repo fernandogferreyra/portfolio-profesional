@@ -1,6 +1,7 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, ElementRef, EventEmitter, HostListener, Output, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Output, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { PORTFOLIO_THEMES } from '../../data/portfolio.data';
 import { ThemeId, localizeText } from '../../data/portfolio.models';
@@ -8,6 +9,8 @@ import { translations } from '../../i18n/translations';
 import { AuthService } from '../../services/auth.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
+import { ProfilePhotoService } from '../../services/profile-photo.service';
+import { PublicContentService } from '../../services/public-content.service';
 import { ThemeService } from '../../services/theme.service';
 
 @Component({
@@ -22,6 +25,8 @@ export class HeaderComponent {
   private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly viewportScroller = inject(ViewportScroller);
+  private readonly profilePhotoService = inject(ProfilePhotoService);
+  private readonly publicContentService = inject(PublicContentService);
 
   @Output() readonly privateAccessRequested = new EventEmitter<void>();
 
@@ -29,8 +34,9 @@ export class HeaderComponent {
   readonly editModeService = inject(EditModeService);
   readonly currentLanguage = this.languageService.language;
   readonly activeTheme = this.themeService.activeTheme;
-  readonly brandAvatarUrl = 'images/profile-photo.jpg';
-  readonly brandAvatarVisible = signal(true);
+  readonly brandAvatarUrl = this.profilePhotoService.profilePhotoUrl;
+  readonly failedBrandAvatarUrl = signal<string | null>(null);
+  readonly brandAvatarVisible = computed(() => this.failedBrandAvatarUrl() !== this.brandAvatarUrl());
   readonly themeMenuOpen = signal(false);
   readonly content = computed(() => translations[this.currentLanguage()].header);
   readonly themes = computed(() =>
@@ -83,6 +89,13 @@ export class HeaderComponent {
         ? 'Offline'
         : 'Offline',
   );
+
+  constructor() {
+    effect(() => {
+      const language = this.currentLanguage();
+      void this.loadProfilePhoto(language);
+    });
+  }
 
   toggleLanguage(): void {
     this.languageService.toggleLanguage();
@@ -141,7 +154,16 @@ export class HeaderComponent {
   }
 
   onBrandAvatarError(): void {
-    this.brandAvatarVisible.set(false);
+    this.failedBrandAvatarUrl.set(this.brandAvatarUrl());
+  }
+
+  private async loadProfilePhoto(language: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(this.publicContentService.listPublicContentBlocks());
+      this.profilePhotoService.setFromBlocks(response?.data ?? [], language);
+    } catch {
+      this.profilePhotoService.setFromBlocks([], language);
+    }
   }
 
   @HostListener('document:click', ['$event'])

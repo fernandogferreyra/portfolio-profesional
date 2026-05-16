@@ -10,6 +10,7 @@ import com.fernandogferreyra.portfolio.backend.mapper.publiccontent.PublicConten
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
 import com.fernandogferreyra.portfolio.backend.service.DocumentFileService;
+import com.fernandogferreyra.portfolio.backend.service.DocumentService;
 import com.fernandogferreyra.portfolio.backend.service.PublicContentBlockService;
 import java.util.List;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
     private final PublicContentBlockRepository publicContentBlockRepository;
     private final DocumentRepository documentRepository;
     private final DocumentFileService documentFileService;
+    private final DocumentService documentService;
 
     @Override
     @Transactional(readOnly = true)
@@ -71,8 +73,15 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Linked document not found");
         }
 
+        UUID previousDocumentId = entity.getDocumentId();
+        String contentKey = entity.getContentKey();
+
         publicContentBlockMapper.applyUpdate(entity, request);
-        return publicContentBlockMapper.toResponse(publicContentBlockRepository.save(entity));
+        PublicContentBlockResponse response = publicContentBlockMapper.toResponse(publicContentBlockRepository.save(entity));
+
+        deletePreviousDocumentIfReplaced(contentKey, previousDocumentId, request.documentId());
+
+        return response;
     }
 
     @Override
@@ -89,5 +98,24 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document not found"));
 
         return documentFileService.download(document, "Linked document file not found");
+    }
+
+    private void deletePreviousDocumentIfReplaced(String contentKey, UUID previousDocumentId, UUID nextDocumentId) {
+        if (!shouldDeletePreviousDocument(contentKey, previousDocumentId, nextDocumentId)) {
+            return;
+        }
+
+        if (!documentRepository.existsById(previousDocumentId)) {
+            return;
+        }
+
+        documentService.deleteDocument(previousDocumentId);
+    }
+
+    private boolean shouldDeletePreviousDocument(String contentKey, UUID previousDocumentId, UUID nextDocumentId) {
+        return previousDocumentId != null
+            && nextDocumentId != null
+            && !previousDocumentId.equals(nextDocumentId)
+            && ("contact.cv".equals(contentKey) || "site.profile-photo".equals(contentKey));
     }
 }

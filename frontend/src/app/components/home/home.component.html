@@ -29,7 +29,7 @@
       <div class="home-hero__portrait motion-panel">
         <img
           *ngIf="profileImageAvailable()"
-          [src]="profileImageUrl"
+          [src]="profileImageUrl()"
           [alt]="profile().alt"
           loading="lazy"
           (error)="onProfileImageError()"
@@ -38,6 +38,11 @@
         <div class="home-hero__portrait-fallback" *ngIf="!profileImageAvailable()" aria-hidden="true">
           <span>{{ profile().fallbackLabel }}</span>
         </div>
+
+        <label class="home-hero__photo-upload motion-control" *ngIf="editModeService.isEnabled() && profilePhotoBlocks().length > 0">
+          <input type="file" accept="image/png,image/jpeg,image/webp" [disabled]="uploadingProfilePhoto()" (change)="onProfilePhotoSelected($event)" />
+          <span>{{ uploadingProfilePhoto() ? editLabels().uploadingProfilePhotoLabel : editLabels().uploadProfilePhotoLabel }}</span>
+        </label>
       </div>
     </aside>
   </section>
