@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.3.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/frontend-v0.2.0...frontend-v0.3.0) (2026-05-16)
+
+
+### Features
+
+* add cms ai translation frontend ([2fbec04](https://github.com/fernandogferreyra/portfolio-profesional/commit/2fbec047ad6eabcab383fa2a719690db0b10dd6c))
+* add cms ai translation frontend ([0b303ee](https://github.com/fernandogferreyra/portfolio-profesional/commit/0b303ee977faedd2d1fe027e22d6a5a56f84d9b2))
+* add edit mode foundation ([d2a462b](https://github.com/fernandogferreyra/portfolio-profesional/commit/d2a462b5db54d9bd339cb81ccd87d70350fc5870))
+* add editable skills catalog ([ce88894](https://github.com/fernandogferreyra/portfolio-profesional/commit/ce88894dbf594951ea7f1fe8d7da561e4f4902e1))
+* extend edit mode content editing ([e9a866f](https://github.com/fernandogferreyra/portfolio-profesional/commit/e9a866fddf3107db0bb97f5817f0244d8d8664a3))
+* extend edit mode content editing ([8ee15d7](https://github.com/fernandogferreyra/portfolio-profesional/commit/8ee15d77f8010fa2cafb99cbb712f1d49f4f4ba3))
+* extend edit mode public content editing ([8f6775f](https://github.com/fernandogferreyra/portfolio-profesional/commit/8f6775fc0c12bbf015171827848a03af932613a8))
+* extend edit mode public content editing ([e16402f](https://github.com/fernandogferreyra/portfolio-profesional/commit/e16402f87805cf7e0b5734156b4514e18d083aba))
+* finish skills edit mode and visual polish ([1514e97](https://github.com/fernandogferreyra/portfolio-profesional/commit/1514e97017da0efe99c29908f9326c18a958f512))
+* improve cms document linking ux ([6905b8a](https://github.com/fernandogferreyra/portfolio-profesional/commit/6905b8a0fc2165623e1b8f24150326f574b9048b))
+* improve cms document linking ux ([175c4c4](https://github.com/fernandogferreyra/portfolio-profesional/commit/175c4c4eb782bfd4fd12f534d247a915903bad73))
+* link cms blocks to documents ([c7dd4c5](https://github.com/fernandogferreyra/portfolio-profesional/commit/c7dd4c56438580ef748a49c0e2b087251849f612))
+* link cms blocks to documents ([01a4c6e](https://github.com/fernandogferreyra/portfolio-profesional/commit/01a4c6e17487ef01760a834822284f423d4bf62a))
+
+
+### Bug Fixes
+
+* align contact cms and ai editing ([19abb09](https://github.com/fernandogferreyra/portfolio-profesional/commit/19abb0928389371d5a56b932b7c2cd92c571c876))
+* clean up linked documents for CV ([10a419f](https://github.com/fernandogferreyra/portfolio-profesional/commit/10a419fbb91dd2cea07489db346904ce32b98bb9))
+* clean up linked documents for CV ([bc31337](https://github.com/fernandogferreyra/portfolio-profesional/commit/bc313372342037ef7b7a7407207f84365c6b3bc1))
+* keep cms controls visible while projects load ([ef46027](https://github.com/fernandogferreyra/portfolio-profesional/commit/ef460277e01108033f075010e0ad5998896ff569))
+* keep cms controls visible while projects load ([a53f271](https://github.com/fernandogferreyra/portfolio-profesional/commit/a53f2710d11b2d5d5e7c8b87ebde0747be216bf8))
+* refine skills edit mode ux ([df2d558](https://github.com/fernandogferreyra/portfolio-profesional/commit/df2d558fa7aa17ade2acf5ed7d524c6529c8418d))
+
 ## [0.2.0](https://github.com/fernandogferreyra/portfolio-profesional/compare/frontend-v0.1.0...frontend-v0.2.0) (2026-05-11)
 
 
