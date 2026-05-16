@@ -129,7 +129,6 @@
           >
             <span class="theme-menu__option-copy">
               <span class="theme-menu__option-name">{{ theme.label }}</span>
-              <span class="theme-menu__option-note">{{ theme.description }}</span>
             </span>
 
             <span class="theme-menu__palette" aria-hidden="true">
@@ -152,24 +151,5 @@
         <span [class.is-active]="currentLanguage() === 'en'">EN</span>
       </button>
     </div>
-
-    <nav class="site-social" [attr.aria-label]="content().socialAriaLabel">
-      <a
-        class="motion-control"
-        href="https://github.com/fernandogferreyra"
-        target="_blank"
-        rel="noopener"
-      >
-        GitHub
-      </a>
-      <a
-        class="motion-control"
-        href="https://www.linkedin.com/in/fernando-ferreyra-40a126328"
-        target="_blank"
-        rel="noopener"
-      >
-        LinkedIn
-      </a>
-    </nav>
   </div>
 </header>

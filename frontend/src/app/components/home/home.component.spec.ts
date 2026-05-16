@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { EditModeService } from '../../services/edit-mode.service';
 import { PublicContentAdminService } from '../../services/public-content-admin.service';
 import { PublicContentService } from '../../services/public-content.service';
+import { SkillService } from '../../services/skill.service';
 import { HomeComponent } from './home.component';
 
 describe('HomeComponent', () => {
@@ -39,6 +40,44 @@ describe('HomeComponent', () => {
             updateContentBlock: (_id: string, payload: unknown) => of({ data: payload }),
           },
         },
+        {
+          provide: SkillService,
+          useValue: {
+            listSkills: () => of({
+              data: [
+                {
+                  id: 'backend-category',
+                  language: 'es',
+                  slug: 'backend',
+                  label: 'Backend',
+                  description: 'Servicios',
+                  published: true,
+                  displayOrder: 10,
+                  skills: [
+                    {
+                      id: 'java-id',
+                      language: 'es',
+                      slug: 'java',
+                      name: 'Java',
+                      description: 'Backend real',
+                      categoryId: 'backend-category',
+                      categorySlug: 'backend',
+                      icon: 'java',
+                      iconDocumentId: null,
+                      iconUrl: null,
+                      accentColor: '#f89820',
+                      level: 'advanced',
+                      tags: ['Spring'],
+                      showLevel: true,
+                      published: true,
+                      displayOrder: 10,
+                    },
+                  ],
+                },
+              ],
+            }),
+          },
+        },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
@@ -50,5 +89,42 @@ describe('HomeComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('derives work areas from backend skills', () => {
+    component.skillCatalog.set([
+      {
+        id: 'backend-category',
+        language: 'es',
+        slug: 'backend',
+        label: 'Backend',
+        description: 'Servicios',
+        published: true,
+        displayOrder: 10,
+        skills: [
+          {
+            id: 'java-id',
+            language: 'es',
+            slug: 'java',
+            name: 'Java',
+            description: 'Backend real',
+            categoryId: 'backend-category',
+            categorySlug: 'backend',
+            icon: 'java',
+            iconDocumentId: null,
+            iconUrl: null,
+            accentColor: '#f89820',
+            level: 'advanced',
+            tags: ['Spring'],
+            showLevel: true,
+            published: true,
+            displayOrder: 10,
+          },
+        ],
+      },
+    ]);
+
+    expect(component.workAreas()[0].label).toBe('Backend');
+    expect(component.workAreas()[0].description).toBe('Java');
   });
 });

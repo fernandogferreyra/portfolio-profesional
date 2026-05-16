@@ -221,6 +221,25 @@
   text-transform: uppercase;
 }
 
+.skills-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+.skills-admin-actions .motion-control {
+  min-height: 2.3rem;
+  padding: 0.5rem 0.78rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.skills-action-danger {
+  border-color: color-mix(in srgb, #ef4444 56%, var(--glass-border));
+  background: color-mix(in srgb, #ef4444 14%, var(--color-surface-elevated));
+}
+
 .skills-lane {
   display: grid;
   gap: 0.58rem;
@@ -463,6 +482,15 @@
   height: 26px;
 }
 
+.skill-card__icon img {
+  position: relative;
+  z-index: 1;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--skill-accent, var(--color-primary)) 42%, transparent));
+}
+
 .skill-card__copy {
   display: grid;
   gap: 0.42rem;
@@ -538,6 +566,63 @@
 
 .skill-card--no-level .skill-card__top {
   justify-content: flex-start;
+}
+
+.skills-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 34%),
+    rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(14px);
+}
+
+.skills-confirm {
+  position: relative;
+  display: grid;
+  gap: 0.9rem;
+  width: min(460px, 100%);
+  padding: 1.35rem;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--color-primary) 42%, var(--glass-border));
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.42),
+    0 0 48px -30px var(--color-primary-glow);
+}
+
+.skills-confirm p {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+}
+
+.skills-confirm__orb {
+  position: absolute;
+  top: -80px;
+  right: -70px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-primary) 34%, transparent), transparent 68%);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.skills-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.skills-confirm__danger {
+  border-color: color-mix(in srgb, #ef4444 62%, var(--glass-border));
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.22), color-mix(in srgb, var(--color-primary-soft) 54%, transparent));
+  color: var(--color-text);
 }
 
 @media (hover: hover) and (pointer: fine) {
