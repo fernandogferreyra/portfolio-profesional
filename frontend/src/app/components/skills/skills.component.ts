@@ -7,12 +7,7 @@ import { SkillIconDefinition } from '../../data/portfolio.models';
 import { SkillCategoryResponse, SkillItemResponse, SkillUpdatePayload } from '../../models/skills.models';
 import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
-import {
-  PublicContentBlock,
-  PublicContentBlockUpdatePayload,
-  PublicContentService,
-} from '../../services/public-content.service';
-import { PublicContentAdminService } from '../../services/public-content-admin.service';
+import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
 import { SkillAdminService } from '../../services/skill-admin.service';
 import { SkillService } from '../../services/skill.service';
 
@@ -52,7 +47,6 @@ const LANE_DURATIONS = ['78s', '72s', '74s', '84s', '76s', '88s', '82s'];
 export class SkillsComponent {
   private readonly languageService = inject(LanguageService);
   private readonly publicContentService = inject(PublicContentService);
-  private readonly publicContentAdminService = inject(PublicContentAdminService);
   private readonly skillService = inject(SkillService);
   private readonly skillAdminService = inject(SkillAdminService);
 
@@ -62,7 +56,6 @@ export class SkillsComponent {
   readonly showAllSkills = signal(false);
   readonly contentBlocks = signal<PublicContentBlock[]>([]);
   readonly skillCatalog = signal<SkillCategoryResponse[]>([]);
-  readonly savingBlockId = signal<string | null>(null);
   readonly savingSkillId = signal<string | null>(null);
   readonly savingCategoryId = signal<string | null>(null);
   readonly selectedSkillId = signal<string | null>(null);
@@ -88,13 +81,9 @@ export class SkillsComponent {
             this.contentBlock('skills.hero')?.items?.[2] ??
             'Cada fila reúne tecnologías o habilidades relacionadas dentro del mismo lenguaje visual, con movimiento suave y lectura rápida.',
           editModeLabel: 'EditMode Skills',
-          editTitleLabel: 'Titulo',
           editBodyLabel: 'Descripcion',
-          editItemLabel: 'Detalle',
-          editNewItemLabel: 'Nuevo detalle',
           editAddItemLabel: 'Agregar detalle',
           editRemoveLabel: 'Quitar',
-          editSaveLabel: 'Guardar bloque',
           editSavingLabel: 'Guardando...',
           editDraftLabel: 'Oculta',
           editActionLabel: 'Editar',
@@ -132,13 +121,9 @@ export class SkillsComponent {
             this.contentBlock('skills.hero')?.items?.[2] ??
             'Each lane groups related technologies or capabilities within the same visual language, with subtle motion and quick scanning.',
           editModeLabel: 'Skills EditMode',
-          editTitleLabel: 'Title',
           editBodyLabel: 'Description',
-          editItemLabel: 'Detail',
-          editNewItemLabel: 'New detail',
           editAddItemLabel: 'Add detail',
           editRemoveLabel: 'Remove',
-          editSaveLabel: 'Save block',
           editSavingLabel: 'Saving...',
           editDraftLabel: 'Hidden',
           editActionLabel: 'Edit',
@@ -192,14 +177,16 @@ export class SkillsComponent {
       })),
   );
 
-  readonly heroBlock = computed(() => this.contentBlock('skills.hero'));
   readonly categoryOptions = computed(() => this.categories().map((category) => ({ id: category.id, label: category.label })));
 
   constructor() {
     effect(() => {
       const editModeEnabled = this.editModeService.isEnabled();
       const language = this.currentLanguage();
-      void this.loadContentBlocks(editModeEnabled);
+      if (editModeEnabled) {
+        this.showAllSkills.set(true);
+      }
+      void this.loadContentBlocks();
       void this.loadSkillCatalog(language, editModeEnabled);
     });
   }
@@ -271,6 +258,7 @@ export class SkillsComponent {
     }
 
     this.savingSkillId.set('new');
+    this.showAllSkills.set(true);
     this.resetFeedback();
 
     try {
@@ -323,7 +311,16 @@ export class SkillsComponent {
       return;
     }
 
+    const pendingCategory = this.categories().find((category) => this.isPendingNewCategory(category));
+    if (pendingCategory) {
+      this.showAllSkills.set(true);
+      this.selectedCategoryId.set(pendingCategory.id);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Completa la categoria pendiente.' : 'Complete the pending category.');
+      return;
+    }
+
     this.savingCategoryId.set('new');
+    this.showAllSkills.set(true);
     this.resetFeedback();
 
     try {
@@ -403,56 +400,9 @@ export class SkillsComponent {
     }
   }
 
-  updateBlockTitle(id: string, value: string): void {
-    this.updateBlock(id, (block) => ({ ...block, title: value }));
-  }
-
-  updateBlockBody(id: string, value: string): void {
-    this.updateBlock(id, (block) => ({ ...block, body: value }));
-  }
-
-  updateBlockItem(id: string, index: number, value: string): void {
-    this.updateBlock(id, (block) => {
-      const items = [...block.items];
-      items[index] = value;
-      return { ...block, items };
-    });
-  }
-
-  addBlockItem(id: string, value: string): void {
-    this.updateBlock(id, (block) => ({ ...block, items: [...block.items, value] }));
-  }
-
-  removeBlockItem(id: string, index: number): void {
-    this.updateBlock(id, (block) => ({ ...block, items: block.items.filter((_, itemIndex) => itemIndex !== index) }));
-  }
-
-  async saveSkillBlock(block: PublicContentBlock): Promise<void> {
-    if (!this.editModeService.isEnabled() || this.savingBlockId()) {
-      return;
-    }
-
-    this.savingBlockId.set(block.id);
-    this.resetFeedback();
-
+  private async loadContentBlocks(): Promise<void> {
     try {
-      const response = await firstValueFrom(this.publicContentAdminService.updateContentBlock(block.id, this.toBlockPayload(block)));
-      if (response?.data) {
-        this.replaceContentBlock(response.data);
-      }
-      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Bloque actualizado.' : 'Block updated.');
-    } catch (error) {
-      this.editError.set(this.resolveEditErrorMessage(error));
-    } finally {
-      this.savingBlockId.set(null);
-    }
-  }
-
-  private async loadContentBlocks(includeDrafts = false): Promise<void> {
-    try {
-      const response = await firstValueFrom(
-        includeDrafts ? this.publicContentAdminService.listContentBlocks() : this.publicContentService.listPublicContentBlocks(),
-      );
+      const response = await firstValueFrom(this.publicContentService.listPublicContentBlocks());
       this.contentBlocks.set(response?.data ?? []);
     } catch {
       this.contentBlocks.set([]);
@@ -490,25 +440,6 @@ export class SkillsComponent {
     );
   }
 
-  private updateBlock(id: string, updater: (block: PublicContentBlock) => PublicContentBlock): void {
-    this.contentBlocks.update((blocks) => blocks.map((block) => (block.id === id ? updater(block) : block)));
-  }
-
-  private replaceContentBlock(updated: PublicContentBlock): void {
-    this.contentBlocks.update((blocks) => blocks.map((block) => (block.id === updated.id ? updated : block)));
-  }
-
-  private toBlockPayload(block: PublicContentBlock): PublicContentBlockUpdatePayload {
-    return {
-      title: block.title.trim(),
-      body: block.body.trim(),
-      items: block.items.map((item) => item.trim()).filter((item) => item.length > 0),
-      documentId: block.documentId,
-      published: block.published,
-      displayOrder: block.displayOrder,
-    };
-  }
-
   private toSkillPayload(skill: SkillView): SkillUpdatePayload {
     return {
       slug: skill.slug,
@@ -544,6 +475,11 @@ export class SkillsComponent {
 
   private nextCategoryOrder(): number {
     return Math.max(0, ...this.categories().map((category) => category.displayOrder)) + 10;
+  }
+
+  private isPendingNewCategory(category: CategoryView): boolean {
+    const label = category.label.trim().toLowerCase();
+    return category.skills.length === 0 && (label === 'nueva categoria' || label === 'new category');
   }
 
   private resolveEditErrorMessage(error: unknown): string {

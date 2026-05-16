@@ -27,6 +27,14 @@
   - Resultado: OK (`5 SUCCESS`).
 - `cmd.exe /c "npm run build:ci"`
   - Resultado: OK con warnings de budget conocidos.
+- `npx tsc -p tsconfig.app.json --noEmit` despues del ajuste UX
+  - Resultado: OK.
+- `npx tsc -p tsconfig.spec.json --noEmit` despues del ajuste UX
+  - Resultado: OK.
+- `cmd.exe /c "npm test -- --watch=false --browsers=ChromeHeadless --include src/app/components/skills/skills.component.spec.ts --include src/app/components/home/home.component.spec.ts"` despues del ajuste UX
+  - Resultado: OK (`5 SUCCESS`).
+- `cmd.exe /c "npm run build:ci"` despues del ajuste UX
+  - Resultado: OK con warnings de budget conocidos.
 
 ## Tests
 
@@ -36,8 +44,8 @@
 
 ## Verificacion Manual
 
-- Flujo: pendiente en navegador con backend dev migrado a V19.
-- Resultado: pendiente.
+- Flujo: revision visual reportada por usuario sobre `EditMode` de Skills.
+- Resultado: se ajusto para que el hero no sea editable, el foco tecnico sea automatico y la creacion de categorias abra la vista expandida/editor visible.
 - Evidencia: no aplica todavia.
 
 ## Estado De Datos
