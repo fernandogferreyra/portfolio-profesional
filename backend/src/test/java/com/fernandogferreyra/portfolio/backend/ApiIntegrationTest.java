@@ -10,12 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
+import com.fernandogferreyra.portfolio.backend.config.DocumentStorageProperties;
 import com.fernandogferreyra.portfolio.backend.domain.enums.ContactMessageStatus;
 import com.fernandogferreyra.portfolio.backend.domain.enums.EventType;
 import com.fernandogferreyra.portfolio.backend.repository.analytics.EventLogRepository;
 import com.fernandogferreyra.portfolio.backend.repository.contact.ContactMessageRepository;
+import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentContentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
+import java.nio.file.Files;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,12 +50,19 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     private DocumentRepository documentRepository;
 
     @Autowired
+    private DocumentContentRepository documentContentRepository;
+
+    @Autowired
+    private DocumentStorageProperties documentStorageProperties;
+
+    @Autowired
     private PublicContentBlockRepository publicContentBlockRepository;
 
     @BeforeEach
     void cleanMutableTables() {
         contactMessageRepository.deleteAll();
         eventLogRepository.deleteAll();
+        documentContentRepository.deleteAll();
         documentRepository.deleteAll();
     }
 
@@ -318,7 +328,7 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void adminCanLinkDocumentToPublicContentBlockAndPublicCanDownloadIt() throws Exception {
+    void adminCanLinkDocumentToPublicContentBlockAndPublicCanDownloadItWithoutFilesystemCache() throws Exception {
         String accessToken = loginAsAdmin();
         MockMultipartFile file = new MockMultipartFile(
             "file",
@@ -377,6 +387,9 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.documentId").value(documentId))
             .andExpect(jsonPath("$.data.documentUrl").value("/api/content-blocks/contact.cv/es/document"));
+
+        var document = documentRepository.findById(UUID.fromString(documentId)).orElseThrow();
+        Files.deleteIfExists(documentStorageProperties.getBasePath().resolve(document.getStoragePath()));
 
         mockMvc.perform(get("/api/content-blocks/contact.cv/es/document"))
             .andExpect(status().isOk())
@@ -554,12 +567,16 @@ class ApiIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.documentId").value(documentId));
 
+        var document = documentRepository.findById(UUID.fromString(documentId)).orElseThrow();
+        Files.deleteIfExists(documentStorageProperties.getBasePath().resolve(document.getStoragePath()));
+
         mockMvc.perform(delete("/api/admin/documents/{id}", documentId)
                 .header(org.springframework.http.HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.message").value("Document deleted"));
 
         org.junit.jupiter.api.Assertions.assertFalse(documentRepository.existsById(UUID.fromString(documentId)));
+        org.junit.jupiter.api.Assertions.assertFalse(documentContentRepository.existsById(UUID.fromString(documentId)));
         org.junit.jupiter.api.Assertions.assertTrue(publicContentBlockRepository.findAllByDocumentId(UUID.fromString(documentId)).isEmpty());
 
         mockMvc.perform(get("/api/content-blocks/contact.cv/es/document"))

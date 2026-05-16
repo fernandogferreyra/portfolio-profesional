@@ -11,9 +11,8 @@ import com.fernandogferreyra.portfolio.backend.domain.projects.entity.ProjectEnt
 import com.fernandogferreyra.portfolio.backend.mapper.projects.ProjectMapper;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.projects.ProjectRepository;
+import com.fernandogferreyra.portfolio.backend.service.DocumentFileService;
 import com.fernandogferreyra.portfolio.backend.service.ProjectService;
-import com.fernandogferreyra.portfolio.backend.service.StorageService;
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -30,7 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final ProjectMapper projectMapper;
     private final DocumentRepository documentRepository;
     private final ProjectRepository projectRepository;
-    private final StorageService storageService;
+    private final DocumentFileService documentFileService;
 
     @Override
     @Transactional(readOnly = true)
@@ -121,15 +120,7 @@ public class ProjectServiceImpl implements ProjectService {
         DocumentEntity document = documentRepository.findById(project.getIconDocumentId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked project icon not found"));
 
-        try {
-            return new DocumentDownload(
-                storageService.load(document.getStoragePath()),
-                document.getOriginalFilename(),
-                document.getContentType(),
-                document.getSizeBytes());
-        } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked project icon file not found");
-        }
+        return documentFileService.download(document, "Linked project icon file not found");
     }
 
     @Override
@@ -148,15 +139,7 @@ public class ProjectServiceImpl implements ProjectService {
         DocumentEntity document = documentRepository.findById(documentId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked project document not found"));
 
-        try {
-            return new DocumentDownload(
-                storageService.load(document.getStoragePath()),
-                document.getOriginalFilename(),
-                document.getContentType(),
-                document.getSizeBytes());
-        } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked project document file not found");
-        }
+        return documentFileService.download(document, "Linked project document file not found");
     }
 
     private void validateLinkedDocuments(List<UUID> documentIds, String message) {

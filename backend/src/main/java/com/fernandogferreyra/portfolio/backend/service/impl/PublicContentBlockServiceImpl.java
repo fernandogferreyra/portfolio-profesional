@@ -9,9 +9,8 @@ import com.fernandogferreyra.portfolio.backend.dto.publiccontent.PublicContentBl
 import com.fernandogferreyra.portfolio.backend.mapper.publiccontent.PublicContentBlockMapper;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.publiccontent.PublicContentBlockRepository;
+import com.fernandogferreyra.portfolio.backend.service.DocumentFileService;
 import com.fernandogferreyra.portfolio.backend.service.PublicContentBlockService;
-import com.fernandogferreyra.portfolio.backend.service.StorageService;
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,7 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
     private final PublicContentBlockMapper publicContentBlockMapper;
     private final PublicContentBlockRepository publicContentBlockRepository;
     private final DocumentRepository documentRepository;
-    private final StorageService storageService;
+    private final DocumentFileService documentFileService;
 
     @Override
     @Transactional(readOnly = true)
@@ -89,14 +88,6 @@ public class PublicContentBlockServiceImpl implements PublicContentBlockService 
         DocumentEntity document = documentRepository.findById(block.getDocumentId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document not found"));
 
-        try {
-            return new DocumentDownload(
-                storageService.load(document.getStoragePath()),
-                document.getOriginalFilename(),
-                document.getContentType(),
-                document.getSizeBytes());
-        } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document file not found");
-        }
+        return documentFileService.download(document, "Linked document file not found");
     }
 }

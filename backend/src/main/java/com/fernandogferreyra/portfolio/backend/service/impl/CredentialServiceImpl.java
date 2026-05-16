@@ -10,8 +10,7 @@ import com.fernandogferreyra.portfolio.backend.mapper.credentials.CredentialMapp
 import com.fernandogferreyra.portfolio.backend.repository.credentials.CredentialRepository;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.service.CredentialService;
-import com.fernandogferreyra.portfolio.backend.service.StorageService;
-import java.io.IOException;
+import com.fernandogferreyra.portfolio.backend.service.DocumentFileService;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -28,7 +27,7 @@ public class CredentialServiceImpl implements CredentialService {
     private final CredentialMapper credentialMapper;
     private final CredentialRepository credentialRepository;
     private final DocumentRepository documentRepository;
-    private final StorageService storageService;
+    private final DocumentFileService documentFileService;
 
     @Override
     @Transactional(readOnly = true)
@@ -109,15 +108,7 @@ public class CredentialServiceImpl implements CredentialService {
         DocumentEntity document = documentRepository.findById(credential.getDocumentId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document not found"));
 
-        try {
-            return new DocumentDownload(
-                storageService.load(document.getStoragePath()),
-                document.getOriginalFilename(),
-                document.getContentType(),
-                document.getSizeBytes());
-        } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked document file not found");
-        }
+        return documentFileService.download(document, "Linked document file not found");
     }
 
     private int resolveNextDisplayOrder() {
