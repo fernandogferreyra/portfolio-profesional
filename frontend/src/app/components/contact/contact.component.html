@@ -114,7 +114,7 @@
 
           <div class="contact-channel-editor__actions contact-channel-editor__field--full">
             <label class="contact-channel-editor__upload motion-control" *ngIf="block.key === 'contact.cv'">
-              <input type="file" [disabled]="uploadingCv()" (change)="onCvSelected(block, $event)" />
+              <input type="file" accept="application/pdf" [disabled]="uploadingCv()" (change)="onCvSelected(block, $event)" />
               <span>{{ uploadingCv() ? ui().editUploadingCvLabel : ui().editUploadCvLabel }}</span>
             </label>
 
