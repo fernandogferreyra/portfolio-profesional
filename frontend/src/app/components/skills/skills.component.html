@@ -77,16 +77,19 @@
               >
                 <div class="skill-card__top">
                   <span class="skill-card__icon" aria-hidden="true">
-                    <svg
-                      [attr.viewBox]="skill.iconDefinition.viewBox"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path *ngFor="let path of skill.iconDefinition.paths" [attr.d]="path"></path>
-                    </svg>
+                    <img *ngIf="skill.iconUrl; else laneBuiltinSkillIcon" [src]="skill.iconUrl" [alt]="skill.name" />
+                    <ng-template #laneBuiltinSkillIcon>
+                      <svg
+                        [attr.viewBox]="skill.iconDefinition.viewBox"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path *ngFor="let path of skill.iconDefinition.paths" [attr.d]="path"></path>
+                      </svg>
+                    </ng-template>
                   </span>
 
                   <span
@@ -130,7 +133,7 @@
 
             <div class="skills-admin-actions" *ngIf="editModeService.isEnabled()">
               <button type="button" class="motion-control" (click)="selectCategory(category.id)">{{ ui().editCategoryLabel }}</button>
-              <button type="button" class="motion-control" (click)="deleteCategory(category)" [disabled]="savingCategoryId() === category.id">
+              <button type="button" class="motion-control" (click)="requestDeleteCategory(category)" [disabled]="savingCategoryId() === category.id">
                 {{ ui().deleteCategoryLabel }}
               </button>
             </div>
@@ -153,16 +156,19 @@
             >
               <div class="skill-card__top">
                 <span class="skill-card__icon" aria-hidden="true">
-                  <svg
-                    [attr.viewBox]="skill.iconDefinition.viewBox"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path *ngFor="let path of skill.iconDefinition.paths" [attr.d]="path"></path>
-                  </svg>
+                  <img *ngIf="skill.iconUrl; else builtinSkillIcon" [src]="skill.iconUrl" [alt]="skill.name" />
+                  <ng-template #builtinSkillIcon>
+                    <svg
+                      [attr.viewBox]="skill.iconDefinition.viewBox"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path *ngFor="let path of skill.iconDefinition.paths" [attr.d]="path"></path>
+                    </svg>
+                  </ng-template>
                 </span>
 
                 <span
@@ -193,6 +199,9 @@
 
               <div class="skills-edit-card__actions" *ngIf="editModeService.isEnabled()">
                 <button type="button" class="motion-control" (click)="selectSkill(skill.id)">{{ ui().editActionLabel }}</button>
+                <button type="button" class="motion-control skills-action-danger" (click)="requestDeleteSkill(skill)" [disabled]="savingSkillId() === skill.id">
+                  {{ ui().deleteSkillLabel }}
+                </button>
               </div>
 
               <ng-container *ngIf="editModeService.isEnabled() && selectedSkillId() === skill.id">
@@ -242,6 +251,16 @@
       </label>
 
       <label>
+        {{ ui().uploadIconLabel }}
+        <input type="file" accept="image/*" (change)="onSkillIconSelected(skill, $event)" [disabled]="uploadingSkillId() === skill.id" />
+      </label>
+
+      <label>
+        {{ ui().colorLabel }}
+        <input type="color" [value]="skill.accentColor" (input)="updateSkillField(skill.id, 'accentColor', $any($event.target).value)" />
+      </label>
+
+      <label>
         {{ ui().levelLabel }}
         <select [value]="skill.level" (change)="updateSkillField(skill.id, 'level', $any($event.target).value)">
           <option value="basic">{{ ui().basicLabel }}</option>
@@ -278,7 +297,7 @@
       <div class="skills-edit-card__actions">
         <button type="button" class="motion-control" (click)="addSkillTag(skill.id)">{{ ui().editAddItemLabel }}</button>
         <button type="button" class="motion-control" (click)="saveSkill(skill)" [disabled]="savingSkillId() === skill.id">
-          {{ savingSkillId() === skill.id ? ui().editSavingLabel : ui().saveSkillLabel }}
+          {{ savingSkillId() === skill.id || uploadingSkillId() === skill.id ? ui().editSavingLabel : ui().saveSkillLabel }}
         </button>
       </div>
     </article>
@@ -320,4 +339,20 @@
       </div>
     </article>
   </ng-template>
+
+  <section class="skills-confirm-backdrop" *ngIf="deleteTarget() as target" role="presentation" (click)="cancelDelete()">
+    <article class="skills-confirm motion-panel portfolio-subcard" role="dialog" aria-modal="true" [attr.aria-label]="ui().confirmTitle" (click)="$event.stopPropagation()">
+      <span class="skills-confirm__orb" aria-hidden="true"></span>
+      <p class="section-eyebrow">{{ ui().confirmTitle }}</p>
+      <h2 class="portfolio-section-title">{{ target.label }}</h2>
+      <p>{{ target.type === 'skill' ? ui().confirmSkillMessage : ui().confirmCategoryMessage }}</p>
+
+      <div class="skills-confirm__actions">
+        <button type="button" class="motion-control" (click)="cancelDelete()">{{ ui().cancelDeleteLabel }}</button>
+        <button type="button" class="motion-control skills-confirm__danger" (click)="confirmDelete()">
+          {{ ui().confirmDeleteLabel }}
+        </button>
+      </div>
+    </article>
+  </section>
 </section>

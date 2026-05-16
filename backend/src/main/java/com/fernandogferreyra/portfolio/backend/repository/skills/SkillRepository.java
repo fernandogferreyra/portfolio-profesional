@@ -14,5 +14,7 @@ public interface SkillRepository extends JpaRepository<SkillEntity, UUID> {
 
     List<SkillEntity> findByCategory(SkillCategoryEntity category);
 
+    List<SkillEntity> findAllByIconDocumentId(UUID iconDocumentId);
+
     boolean existsByLanguageAndSlug(String language, String slug);
 }

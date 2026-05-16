@@ -22,7 +22,10 @@ Convertir `Skills` en un catalogo backend-first editable desde `EditMode`, con c
 - Endpoints admin para crear/editar skills y crear/editar/eliminar categorias.
 - UI contextual en `Skills` con acciones simples: `Nueva skill`, `Editar`, `Nueva categoria`, `Editar categoria`, `Eliminar categoria`.
 - Edicion de nivel, icono, nombre, descripcion, categoria, tags, orden y publicacion.
+- Edicion de color principal por skill e icono propio subido por documento con `purpose=skill-icon`.
+- Baja de skills con confirmacion visual antes de eliminar.
 - Al eliminar una categoria, sus skills pasan a `Otras`.
+- Evitar que clicks repetidos en `Nueva categoria` creen multiples categorias pendientes sin editar.
 - `Enfoque tecnico` incluye categorias reales publicadas, tambien `Soft skills` si corresponde.
 
 ## No-goals
@@ -37,6 +40,10 @@ Convertir `Skills` en un catalogo backend-first editable desde `EditMode`, con c
 - Dado un visitante sin `EditMode`, cuando entra en `Skills`, entonces ve solo categorias y skills publicadas desde backend.
 - Dado un admin con `EditMode`, cuando crea una skill, entonces se crea como borrador y puede completar nivel, icono, nombre, descripcion, categoria, tags, orden y publicacion.
 - Dado un admin con `EditMode`, cuando elimina una categoria, entonces las skills asociadas no se borran y quedan en `Otras`.
+- Dado un admin con `EditMode`, cuando elimina una skill, entonces se pide confirmacion visual y luego la skill desaparece del catalogo.
+- Dado un admin con `EditMode`, cuando sube un icono de skill, entonces el archivo se guarda como documento `skill-icon` y se usa como icono de esa skill.
+- Dado un admin con `EditMode`, cuando cambia el color de una skill, entonces la card usa ese color en icono, borde y acentos.
+- Dado que existe una categoria pendiente con nombre default, cuando el admin vuelve a tocar `Nueva categoria`, entonces se selecciona esa categoria en vez de crear duplicados.
 - Dado que existe `Soft skills` con skills publicadas, cuando se renderiza `Enfoque tecnico`, entonces aparece en el recuadro.
 - Dado `Home`, cuando renderiza `Stack y enfoque`, entonces usa categorias/skills publicadas reales y no una lista hardcodeada incompleta.
 
@@ -46,6 +53,8 @@ Convertir `Skills` en un catalogo backend-first editable desde `EditMode`, con c
 - Mitigacion: `Skills` usa el nuevo catalogo para entidad/copy/tags; CMS queda solo para hero y bloques de Home.
 - Riesgo: borrar categorias puede dejar skills huerfanas.
 - Mitigacion: backend garantiza categoria `Otras` y reasigna antes de borrar.
+- Riesgo: documentos usados como iconos queden referenciados por skills.
+- Mitigacion: al borrar un documento, el backend desvincula skills que lo usen como icono.
 
 ## Validacion Esperada
 
@@ -53,7 +62,7 @@ Convertir `Skills` en un catalogo backend-first editable desde `EditMode`, con c
 - Comando/test: `npx tsc -p tsconfig.spec.json --noEmit`
 - Comando/test: `mvnw.cmd -DskipTests clean test-compile`
 - Comando/test: `git diff --check`
-- Prueba manual: crear skill borrador, editarla, publicar, eliminar categoria y confirmar reasignacion a `Otras`.
+- Prueba manual: crear skill borrador, editarla, subir icono, cambiar color, publicar, eliminar skill, eliminar categoria y confirmar reasignacion a `Otras`.
 
 ## Impacto En Documentacion
 

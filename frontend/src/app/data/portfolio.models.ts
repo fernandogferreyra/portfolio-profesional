@@ -5,6 +5,7 @@ export type LocalizedText = Record<Language, string>;
 
 export type ThemeId =
   | 'themeNeon'
+  | 'themeBlueGrid'
   | 'themeEX'
   | 'themeLightWorkbench'
   | 'themeLinuxTerminal'

@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { SKILL_ICONS } from '../../data/portfolio.data';
 import { SkillIconDefinition } from '../../data/portfolio.models';
 import { SkillCategoryResponse, SkillItemResponse, SkillUpdatePayload } from '../../models/skills.models';
+import { DocumentAdminService } from '../../services/document-admin.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { LanguageService } from '../../services/language.service';
 import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
@@ -36,6 +37,10 @@ interface ShowcaseLaneView {
   skills: SkillView[];
 }
 
+type DeleteTarget =
+  | { type: 'skill'; id: string; label: string }
+  | { type: 'category'; id: string; label: string };
+
 const LANE_DURATIONS = ['78s', '72s', '74s', '84s', '76s', '88s', '82s'];
 
 @Component({
@@ -47,6 +52,7 @@ const LANE_DURATIONS = ['78s', '72s', '74s', '84s', '76s', '88s', '82s'];
 export class SkillsComponent {
   private readonly languageService = inject(LanguageService);
   private readonly publicContentService = inject(PublicContentService);
+  private readonly documentAdminService = inject(DocumentAdminService);
   private readonly skillService = inject(SkillService);
   private readonly skillAdminService = inject(SkillAdminService);
 
@@ -58,8 +64,10 @@ export class SkillsComponent {
   readonly skillCatalog = signal<SkillCategoryResponse[]>([]);
   readonly savingSkillId = signal<string | null>(null);
   readonly savingCategoryId = signal<string | null>(null);
+  readonly uploadingSkillId = signal<string | null>(null);
   readonly selectedSkillId = signal<string | null>(null);
   readonly selectedCategoryId = signal<string | null>(null);
+  readonly deleteTarget = signal<DeleteTarget | null>(null);
   readonly editFeedback = signal<string | null>(null);
   readonly editError = signal<string | null>(null);
   readonly iconOptions = Object.keys(SKILL_ICONS).sort();
@@ -95,6 +103,9 @@ export class SkillsComponent {
           nameLabel: 'Nombre',
           categoryLabel: 'Categoria',
           iconLabel: 'Icono',
+          uploadIconLabel: 'Subir icono propio',
+          uploadingIconLabel: 'Subiendo icono...',
+          colorLabel: 'Color',
           levelLabel: 'Nivel',
           tagsLabel: 'Tags',
           showLevelLabel: 'Mostrar nivel',
@@ -105,6 +116,12 @@ export class SkillsComponent {
           advancedLabel: 'Avanzado',
           saveSkillLabel: 'Guardar skill',
           saveCategoryLabel: 'Guardar categoria',
+          deleteSkillLabel: 'Eliminar skill',
+          confirmTitle: 'Confirmar eliminacion',
+          confirmSkillMessage: 'Esta skill se va a eliminar del catalogo. Esta accion no borra documentos subidos.',
+          confirmCategoryMessage: 'La categoria se va a eliminar y sus skills pasaran a Otras.',
+          confirmDeleteLabel: 'Si, eliminar',
+          cancelDeleteLabel: 'Cancelar',
         }
       : {
           eyebrow: 'Skills',
@@ -135,6 +152,9 @@ export class SkillsComponent {
           nameLabel: 'Name',
           categoryLabel: 'Category',
           iconLabel: 'Icon',
+          uploadIconLabel: 'Upload custom icon',
+          uploadingIconLabel: 'Uploading icon...',
+          colorLabel: 'Color',
           levelLabel: 'Level',
           tagsLabel: 'Tags',
           showLevelLabel: 'Show level',
@@ -145,6 +165,12 @@ export class SkillsComponent {
           advancedLabel: 'Advanced',
           saveSkillLabel: 'Save skill',
           saveCategoryLabel: 'Save category',
+          deleteSkillLabel: 'Delete skill',
+          confirmTitle: 'Confirm deletion',
+          confirmSkillMessage: 'This skill will be removed from the catalog. Uploaded documents are not deleted.',
+          confirmCategoryMessage: 'This category will be removed and its skills will move to Other.',
+          confirmDeleteLabel: 'Yes, delete',
+          cancelDeleteLabel: 'Cancel',
         },
   );
 
@@ -270,6 +296,8 @@ export class SkillsComponent {
           description: '',
           categoryId: this.categoryOptions()[0]?.id ?? null,
           icon: 'frontend',
+          iconDocumentId: null,
+          accentColor: '#2dd4bf',
           level: 'basic',
           tags: [],
           showLevel: true,
@@ -371,27 +399,93 @@ export class SkillsComponent {
     }
   }
 
-  async deleteCategory(category: CategoryView): Promise<void> {
+  requestDeleteSkill(skill: SkillView): void {
+    this.deleteTarget.set({ type: 'skill', id: skill.id, label: skill.name });
+  }
+
+  requestDeleteCategory(category: CategoryView): void {
+    this.deleteTarget.set({ type: 'category', id: category.id, label: category.label });
+  }
+
+  cancelDelete(): void {
+    this.deleteTarget.set(null);
+  }
+
+  async confirmDelete(): Promise<void> {
+    const target = this.deleteTarget();
+    if (!target) {
+      return;
+    }
+
+    if (target.type === 'skill') {
+      await this.deleteSkill(target.id);
+      return;
+    }
+
+    await this.deleteCategory(target.id);
+  }
+
+  async onSkillIconSelected(skill: SkillView, event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0) ?? null;
+    if (!file || !this.editModeService.isEnabled() || this.uploadingSkillId()) {
+      return;
+    }
+
+    this.uploadingSkillId.set(skill.id);
+    this.resetFeedback();
+
+    try {
+      const uploadResponse = await firstValueFrom(this.documentAdminService.uploadDocument(file, 'skill-icon'));
+      const updatedSkill = { ...skill, iconDocumentId: uploadResponse.data.id };
+      await firstValueFrom(this.skillAdminService.updateSkill(skill.id, this.toSkillPayload(updatedSkill)));
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedSkillId.set(skill.id);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Icono actualizado.' : 'Icon updated.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.uploadingSkillId.set(null);
+      if (input) {
+        input.value = '';
+      }
+    }
+  }
+
+  private async deleteSkill(id: string): Promise<void> {
+    if (!this.editModeService.isEnabled() || this.savingSkillId()) {
+      return;
+    }
+
+    this.savingSkillId.set(id);
+    this.resetFeedback();
+
+    try {
+      await firstValueFrom(this.skillAdminService.deleteSkill(id));
+      await this.loadSkillCatalog(this.currentLanguage(), true);
+      this.selectedSkillId.set(null);
+      this.deleteTarget.set(null);
+      this.editFeedback.set(this.currentLanguage() === 'es' ? 'Skill eliminada.' : 'Skill deleted.');
+    } catch (error) {
+      this.editError.set(this.resolveEditErrorMessage(error));
+    } finally {
+      this.savingSkillId.set(null);
+    }
+  }
+
+  private async deleteCategory(id: string): Promise<void> {
     if (!this.editModeService.isEnabled() || this.savingCategoryId()) {
       return;
     }
 
-    const confirmed = window.confirm(
-      this.currentLanguage() === 'es'
-        ? `Eliminar categoria "${category.label}"? Las skills pasaran a Otras.`
-        : `Delete category "${category.label}"? Skills will move to Other.`,
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    this.savingCategoryId.set(category.id);
+    this.savingCategoryId.set(id);
     this.resetFeedback();
 
     try {
-      await firstValueFrom(this.skillAdminService.deleteCategory(category.id));
+      await firstValueFrom(this.skillAdminService.deleteCategory(id));
       await this.loadSkillCatalog(this.currentLanguage(), true);
       this.selectedCategoryId.set(null);
+      this.deleteTarget.set(null);
       this.editFeedback.set(this.currentLanguage() === 'es' ? 'Categoria eliminada.' : 'Category deleted.');
     } catch (error) {
       this.editError.set(this.resolveEditErrorMessage(error));
@@ -447,6 +541,8 @@ export class SkillsComponent {
       description: skill.description.trim(),
       categoryId: skill.categoryId,
       icon: skill.icon,
+      iconDocumentId: skill.iconDocumentId,
+      accentColor: skill.accentColor,
       level: skill.level,
       tags: skill.tags.map((tag) => tag.trim()).filter((tag) => tag.length > 0),
       showLevel: skill.showLevel,
@@ -457,9 +553,16 @@ export class SkillsComponent {
 
   private toSkillView(skill: SkillItemResponse): SkillView {
     const icon = SKILL_ICONS[skill.icon as keyof typeof SKILL_ICONS] ?? SKILL_ICONS.frontend;
+    const accentColor = skill.accentColor || icon.accent;
     return {
       ...skill,
-      iconDefinition: icon,
+      accentColor,
+      iconDefinition: {
+        ...icon,
+        accent: accentColor,
+        surface: `color-mix(in srgb, ${accentColor} 14%, transparent)`,
+        border: `color-mix(in srgb, ${accentColor} 32%, transparent)`,
+      },
       levelLabel: this.localizeLevel(skill.level),
     };
   }

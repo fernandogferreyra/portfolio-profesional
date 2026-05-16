@@ -37,6 +37,10 @@ export class SkillAdminService {
     return this.http.patch<ApiResponse<SkillItemResponse>>(`/api/admin/skills/${id}`, payload);
   }
 
+  deleteSkill(id: string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`/api/admin/skills/${id}`);
+  }
+
   createCategory(payload: SkillCategoryCreatePayload): Observable<ApiResponse<SkillCategoryResponse>> {
     return this.http.post<ApiResponse<SkillCategoryResponse>>('/api/admin/skill-categories', payload);
   }

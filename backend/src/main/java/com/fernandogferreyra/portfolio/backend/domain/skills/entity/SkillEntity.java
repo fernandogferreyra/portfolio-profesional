@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,6 +39,12 @@ public class SkillEntity extends BaseEntity {
 
     @Column(nullable = false, length = 80)
     private String icon;
+
+    @Column(name = "icon_document_id")
+    private UUID iconDocumentId;
+
+    @Column(name = "accent_color", nullable = false, length = 32)
+    private String accentColor;
 
     @Column(nullable = false, length = 40)
     private String level;

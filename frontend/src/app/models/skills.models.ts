@@ -7,6 +7,9 @@ export interface SkillItemResponse {
   categoryId: string | null;
   categorySlug: string | null;
   icon: string;
+  iconDocumentId: string | null;
+  iconUrl: string | null;
+  accentColor: string;
   level: string;
   tags: string[];
   showLevel: boolean;
@@ -31,6 +34,8 @@ export interface SkillUpdatePayload {
   description: string;
   categoryId: string | null;
   icon: string;
+  iconDocumentId: string | null;
+  accentColor: string;
   level: string;
   tags: string[];
   showLevel: boolean;

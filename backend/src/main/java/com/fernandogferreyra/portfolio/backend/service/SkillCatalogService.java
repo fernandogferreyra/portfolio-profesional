@@ -6,6 +6,7 @@ import com.fernandogferreyra.portfolio.backend.dto.skills.SkillCategoryUpdateReq
 import com.fernandogferreyra.portfolio.backend.dto.skills.SkillCreateRequest;
 import com.fernandogferreyra.portfolio.backend.dto.skills.SkillResponse;
 import com.fernandogferreyra.portfolio.backend.dto.skills.SkillUpdateRequest;
+import com.fernandogferreyra.portfolio.backend.domain.documents.model.DocumentDownload;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +19,10 @@ public interface SkillCatalogService {
     SkillResponse createSkill(SkillCreateRequest request);
 
     SkillResponse updateSkill(UUID id, SkillUpdateRequest request);
+
+    void deleteSkill(UUID id);
+
+    DocumentDownload downloadSkillIcon(UUID id);
 
     SkillCategoryResponse createCategory(SkillCategoryCreateRequest request);
 

@@ -2,6 +2,7 @@ import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
+import { DocumentAdminService } from '../../services/document-admin.service';
 import { EditModeService } from '../../services/edit-mode.service';
 import { PublicContentAdminService } from '../../services/public-content-admin.service';
 import { PublicContentBlock, PublicContentService } from '../../services/public-content.service';
@@ -40,6 +41,12 @@ describe('SkillsComponent', () => {
           },
         },
         {
+          provide: DocumentAdminService,
+          useValue: {
+            uploadDocument: () => of({ data: { id: 'document-id' } }),
+          },
+        },
+        {
           provide: SkillService,
           useValue: {
             listSkills: () => of({ data: skillCatalog() }),
@@ -51,6 +58,7 @@ describe('SkillsComponent', () => {
             listSkills: () => of({ data: skillCatalog() }),
             createSkill: () => of({ data: skillCatalog()[0].skills[0] }),
             updateSkill: (_id: string, payload: unknown) => of({ data: payload }),
+            deleteSkill: () => of({ data: null }),
             createCategory: () => of({ data: skillCatalog()[0] }),
             updateCategory: (_id: string, payload: unknown) => of({ data: payload }),
             deleteCategory: () => of({ data: null }),
@@ -107,6 +115,9 @@ describe('SkillsComponent', () => {
             categoryId: 'backend-category',
             categorySlug: 'backend',
             icon: 'java',
+            iconDocumentId: null,
+            iconUrl: null,
+            accentColor: '#f89820',
             level: 'advanced',
             tags: ['Spring'],
             showLevel: true,
@@ -133,6 +144,9 @@ describe('SkillsComponent', () => {
             categoryId: 'soft-category',
             categorySlug: 'soft',
             icon: 'teamwork',
+            iconDocumentId: null,
+            iconUrl: null,
+            accentColor: '#60a5fa',
             level: 'basic',
             tags: [],
             showLevel: false,

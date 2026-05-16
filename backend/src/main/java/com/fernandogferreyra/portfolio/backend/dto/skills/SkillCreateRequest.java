@@ -11,6 +11,8 @@ public record SkillCreateRequest(
     String description,
     UUID categoryId,
     String icon,
+    UUID iconDocumentId,
+    String accentColor,
     String level,
     List<String> tags,
     Boolean showLevel,

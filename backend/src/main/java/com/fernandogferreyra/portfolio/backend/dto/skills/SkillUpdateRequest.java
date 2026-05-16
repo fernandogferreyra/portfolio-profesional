@@ -10,6 +10,8 @@ public record SkillUpdateRequest(
     String description,
     UUID categoryId,
     String icon,
+    UUID iconDocumentId,
+    String accentColor,
     String level,
     List<String> tags,
     boolean showLevel,

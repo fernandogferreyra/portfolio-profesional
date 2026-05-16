@@ -77,11 +77,10 @@
 
 .contact-card--channels {
   position: relative;
-  min-height: 31rem;
+  min-height: 27rem;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 56%, color-mix(in srgb, var(--color-primary-glow) 48%, transparent), transparent 28%),
-    radial-gradient(circle at 16% 16%, color-mix(in srgb, var(--color-accent-glow) 36%, transparent), transparent 26%),
+    radial-gradient(circle at 50% 58%, color-mix(in srgb, var(--color-primary-glow) 42%, transparent), transparent 32%),
     linear-gradient(145deg, color-mix(in srgb, var(--color-surface-strong) 92%, transparent), var(--color-surface));
 }
 
@@ -90,11 +89,11 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 42px 42px;
-  mask-image: radial-gradient(circle at 50% 56%, black, transparent 72%);
-  opacity: 0.42;
+    linear-gradient(color-mix(in srgb, var(--color-primary) 26%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 24%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.58;
+  animation: contact-grid-drift 22s linear infinite;
   pointer-events: none;
 }
 
@@ -105,74 +104,28 @@
 
 .contact-social-menu {
   position: relative;
-  min-height: 22rem;
-  margin-top: 0.35rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+  min-height: 0;
+  margin-top: 0.2rem;
 }
 
 .contact-social-menu__orbit,
 .contact-social-menu__center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
+  display: none;
   pointer-events: none;
-}
-
-.contact-social-menu__orbit {
-  border-radius: 999px;
-  border: 1px dashed color-mix(in srgb, var(--color-primary) 26%, transparent);
-  transform: translate(-50%, -50%);
-}
-
-.contact-social-menu__orbit--outer {
-  width: min(21rem, 88%);
-  height: min(21rem, 88%);
-  animation: contact-orbit-spin 18s linear infinite;
-}
-
-.contact-social-menu__orbit--inner {
-  width: min(13rem, 56%);
-  height: min(13rem, 56%);
-  border-style: solid;
-  border-color: color-mix(in srgb, var(--color-accent) 16%, transparent);
-  animation: contact-orbit-spin 12s linear infinite reverse;
 }
 
 .contact-social-menu::before,
 .contact-social-menu::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 999px;
-  pointer-events: none;
-}
-
-.contact-social-menu::before {
-  width: 8.5rem;
-  height: 8.5rem;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 34%, transparent);
-  background:
-    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--color-primary) 28%, transparent), transparent 58%),
-    color-mix(in srgb, var(--color-bg-elevated) 68%, transparent);
-  box-shadow:
-    inset 0 0 28px color-mix(in srgb, var(--color-primary-glow) 38%, transparent),
-    0 0 52px color-mix(in srgb, var(--color-primary-glow) 34%, transparent);
-  animation: contact-hub-pulse 2.8s ease-in-out infinite;
-}
-
-.contact-social-menu::after {
-  content: '';
-  width: 5.6rem;
-  height: 5.6rem;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
-  background: transparent;
-  animation: contact-hub-pop 3.6s var(--ease-spring) infinite;
+  display: none;
 }
 
 .contact-social-menu__center {
   z-index: 1;
-  display: grid;
+  display: none;
   place-items: center;
   width: 4.8rem;
   height: 4.8rem;
@@ -192,39 +145,35 @@
 
 .contact-social-node {
   --channel-glow: color-mix(in srgb, var(--channel-accent) 48%, transparent);
-  position: absolute;
+  position: relative;
   z-index: 2;
+  display: grid;
+  gap: 0.7rem;
+  justify-items: center;
   animation: contact-node-float 4.4s ease-in-out infinite;
 }
 
 .contact-social-node:nth-of-type(1) {
-  top: 0.4rem;
-  left: 50%;
-  transform: translateX(-50%);
-  animation-delay: 0s;
+  order: 3;
 }
 
 .contact-social-node:nth-of-type(2) {
-  top: 34%;
-  right: 0;
+  order: 4;
   animation-delay: 0.35s;
 }
 
 .contact-social-node:nth-of-type(3) {
-  right: 15%;
-  bottom: 0.4rem;
+  order: 2;
   animation-delay: 0.7s;
 }
 
 .contact-social-node:nth-of-type(4) {
-  left: 15%;
-  bottom: 0.4rem;
+  order: 1;
   animation-delay: 1.05s;
 }
 
 .contact-social-node:nth-of-type(5) {
-  top: 34%;
-  left: 0;
+  order: 5;
   animation-delay: 1.4s;
 }
 
@@ -232,17 +181,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 4.5rem;
-  height: 4.5rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--channel-accent) 48%, transparent);
+  width: min(8.8rem, 100%);
+  min-width: 6rem;
+  height: 5.8rem;
+  border-radius: 1.45rem;
+  border: 1px solid color-mix(in srgb, var(--channel-accent) 46%, var(--glass-border));
   background:
-    radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.24), transparent 28%),
-    color-mix(in srgb, var(--channel-accent) 15%, var(--color-surface-strong) 85%);
-  color: color-mix(in srgb, var(--channel-accent) 88%, white 12%);
+    radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.24), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--channel-accent) 24%, #020817 76%), color-mix(in srgb, var(--color-surface-strong) 88%, #020817 12%));
+  color: #ffffff;
   text-decoration: none;
   box-shadow:
-    0 20px 44px -34px var(--channel-glow),
+    0 24px 48px -30px var(--channel-glow),
+    inset 0 -24px 44px rgba(0, 0, 0, 0.16),
     inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   animation: contact-button-breathe 3.4s ease-in-out infinite;
   transition:
@@ -252,8 +203,9 @@
 }
 
 .contact-social-node__button svg {
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 2.45rem;
+  height: 2.45rem;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.26));
 }
 
 .contact-social-node:hover,
@@ -267,26 +219,21 @@
   box-shadow:
     0 24px 54px -28px var(--channel-glow),
     0 0 28px -8px var(--channel-glow);
-  transform: translateY(-5px) scale(1.06);
+  transform: translateY(-6px) scale(1.04);
 }
 
 .contact-social-node__bubble {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 0.65rem);
-  z-index: 20;
-  width: min(18rem, 74vw);
-  padding: 0.85rem 0.95rem;
-  border: 1px solid color-mix(in srgb, var(--channel-accent) 48%, var(--glass-border));
-  border-radius: 1rem;
-  background: color-mix(in srgb, var(--color-bg-elevated) 96%, #000 4%);
-  box-shadow:
-    0 22px 48px -28px rgba(0, 0, 0, 0.86),
-    0 0 28px -16px var(--channel-glow);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, -0.25rem) scale(0.96);
-  transform-origin: top center;
+  position: static;
+  width: min(11rem, 100%);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  text-align: center;
   transition:
     opacity var(--motion-fast) var(--ease-out),
     transform var(--motion-base) var(--ease-out);
@@ -305,58 +252,16 @@
   display: block;
   margin-top: 0.3rem;
   color: var(--color-text);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   overflow-wrap: anywhere;
 }
 
 .contact-social-node__bubble p {
+  display: none;
   margin: 0.35rem 0 0;
   color: var(--color-text-muted);
   font-size: 0.82rem;
   line-height: 1.45;
-}
-
-.contact-social-node:hover .contact-social-node__bubble,
-.contact-social-node:focus-within .contact-social-node__bubble {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-.contact-social-node:nth-of-type(2) .contact-social-node__bubble {
-  top: 50%;
-  right: calc(100% + 0.75rem);
-  left: auto;
-  transform: translate(0.25rem, -50%) scale(0.96);
-}
-
-.contact-social-node:nth-of-type(2):hover .contact-social-node__bubble,
-.contact-social-node:nth-of-type(2):focus-within .contact-social-node__bubble {
-  transform: translate(0, -50%) scale(1);
-}
-
-.contact-social-node:nth-of-type(5) .contact-social-node__bubble {
-  top: 50%;
-  left: calc(100% + 0.75rem);
-  transform: translate(-0.25rem, -50%) scale(0.96);
-}
-
-.contact-social-node:nth-of-type(5):hover .contact-social-node__bubble,
-.contact-social-node:nth-of-type(5):focus-within .contact-social-node__bubble {
-  transform: translate(0, -50%) scale(1);
-}
-
-.contact-social-node:nth-of-type(3) .contact-social-node__bubble,
-.contact-social-node:nth-of-type(4) .contact-social-node__bubble {
-  top: auto;
-  bottom: calc(100% + 0.65rem);
-  transform: translate(-50%, 0.25rem) scale(0.96);
-}
-
-.contact-social-node:nth-of-type(3):hover .contact-social-node__bubble,
-.contact-social-node:nth-of-type(3):focus-within .contact-social-node__bubble,
-.contact-social-node:nth-of-type(4):hover .contact-social-node__bubble,
-.contact-social-node:nth-of-type(4):focus-within .contact-social-node__bubble {
-  transform: translate(-50%, 0) scale(1);
 }
 
 .contact-channel-editor {
@@ -541,6 +446,16 @@
   }
 }
 
+@keyframes contact-grid-drift {
+  from {
+    background-position: 0 0, 0 0;
+  }
+
+  to {
+    background-position: 72px 72px, 72px 72px;
+  }
+}
+
 .contact-form-shell {
   display: grid;
   gap: 1rem;
@@ -706,9 +621,8 @@
   }
 
   .contact-social-menu {
-    display: grid;
-    gap: 0.75rem;
-    min-height: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
   }
 
   .contact-social-menu::before,
@@ -719,37 +633,24 @@
   }
 
   .contact-social-node {
-    position: relative;
-    inset: auto;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.75rem;
-    transform: none !important;
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
     animation: none;
   }
 
   .contact-social-node__button {
-    width: 3.35rem;
-    height: 3.35rem;
+    width: 100%;
+    height: 4.8rem;
     animation: none;
   }
 
   .contact-social-node__button svg {
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .contact-social-node__bubble {
-    position: static;
     width: auto;
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-
-  .contact-social-node:nth-of-type(2) .contact-social-node__bubble,
-  .contact-social-node:nth-of-type(5) .contact-social-node__bubble {
-    transform: none;
   }
 
   .contact-channel-editor__card {
@@ -777,6 +678,10 @@
   .contact-social-menu__center,
   .contact-social-node,
   .contact-social-node__button {
+    animation: none;
+  }
+
+  .contact-card--channels::before {
     animation: none;
   }
 }

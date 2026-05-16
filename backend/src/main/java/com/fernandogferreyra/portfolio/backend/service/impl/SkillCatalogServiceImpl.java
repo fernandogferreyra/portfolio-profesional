@@ -1,5 +1,7 @@
 package com.fernandogferreyra.portfolio.backend.service.impl;
 
+import com.fernandogferreyra.portfolio.backend.domain.documents.entity.DocumentEntity;
+import com.fernandogferreyra.portfolio.backend.domain.documents.model.DocumentDownload;
 import com.fernandogferreyra.portfolio.backend.domain.skills.entity.SkillCategoryEntity;
 import com.fernandogferreyra.portfolio.backend.domain.skills.entity.SkillEntity;
 import com.fernandogferreyra.portfolio.backend.dto.skills.SkillCategoryCreateRequest;
@@ -9,9 +11,12 @@ import com.fernandogferreyra.portfolio.backend.dto.skills.SkillCreateRequest;
 import com.fernandogferreyra.portfolio.backend.dto.skills.SkillResponse;
 import com.fernandogferreyra.portfolio.backend.dto.skills.SkillUpdateRequest;
 import com.fernandogferreyra.portfolio.backend.mapper.skills.SkillCatalogMapper;
+import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.skills.SkillCategoryRepository;
 import com.fernandogferreyra.portfolio.backend.repository.skills.SkillRepository;
 import com.fernandogferreyra.portfolio.backend.service.SkillCatalogService;
+import com.fernandogferreyra.portfolio.backend.service.StorageService;
+import java.io.IOException;
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.List;
@@ -34,8 +39,10 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
     private static final List<String> ALLOWED_LEVELS = List.of("basic", "intermediate", "advanced");
 
     private final SkillCatalogMapper skillCatalogMapper;
+    private final DocumentRepository documentRepository;
     private final SkillCategoryRepository skillCategoryRepository;
     private final SkillRepository skillRepository;
+    private final StorageService storageService;
 
     @Override
     @Transactional(readOnly = true)
@@ -71,6 +78,8 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
         entity.setDescription(normalizeNullableText(request.description()));
         entity.setCategory(resolveCategory(language, request.categoryId()));
         entity.setIcon(normalizeIcon(request.icon()));
+        entity.setIconDocumentId(resolveIconDocumentId(request.iconDocumentId()));
+        entity.setAccentColor(normalizeAccentColor(request.accentColor()));
         entity.setLevel(normalizeLevel(request.level()));
         entity.setTagsJson(skillCatalogMapper.writeTags(request.tags()));
         entity.setShowLevel(request.showLevel() == null || request.showLevel());
@@ -94,6 +103,8 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
         entity.setDescription(normalizeNullableText(request.description()));
         entity.setCategory(resolveCategory(entity.getLanguage(), request.categoryId()));
         entity.setIcon(normalizeIcon(request.icon()));
+        entity.setIconDocumentId(resolveIconDocumentId(request.iconDocumentId()));
+        entity.setAccentColor(normalizeAccentColor(request.accentColor()));
         entity.setLevel(normalizeLevel(request.level()));
         entity.setTagsJson(skillCatalogMapper.writeTags(request.tags()));
         entity.setShowLevel(request.showLevel());
@@ -105,8 +116,46 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
 
     @Override
     @Transactional
+    public void deleteSkill(UUID id) {
+        SkillEntity entity = skillRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found"));
+
+        skillRepository.delete(entity);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DocumentDownload downloadSkillIcon(UUID id) {
+        SkillEntity skill = skillRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill not found"));
+
+        if (skill.getIconDocumentId() == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Skill has no linked icon");
+        }
+
+        DocumentEntity document = documentRepository.findById(skill.getIconDocumentId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked skill icon not found"));
+
+        try {
+            return new DocumentDownload(
+                storageService.load(document.getStoragePath()),
+                document.getOriginalFilename(),
+                document.getContentType(),
+                document.getSizeBytes());
+        } catch (IOException exception) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked skill icon file not found");
+        }
+    }
+
+    @Override
+    @Transactional
     public SkillCategoryResponse createCategory(SkillCategoryCreateRequest request) {
         String language = normalizeLanguage(request.language());
+        SkillCategoryEntity pendingCategory = resolvePendingCategory(language, request.label());
+        if (pendingCategory != null) {
+            return skillCatalogMapper.toCategoryResponse(pendingCategory, List.of());
+        }
+
         SkillCategoryEntity entity = new SkillCategoryEntity();
         entity.setLanguage(language);
         entity.setLabel(normalizeText(request.label(), "Category label is required"));
@@ -232,6 +281,32 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
         return icon.trim();
     }
 
+    private UUID resolveIconDocumentId(UUID iconDocumentId) {
+        if (iconDocumentId == null) {
+            return null;
+        }
+
+        DocumentEntity document = documentRepository.findById(iconDocumentId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Linked skill icon not found"));
+        String contentType = document.getContentType() == null ? "" : document.getContentType().toLowerCase(Locale.ROOT);
+        if (!contentType.startsWith("image/")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Skill icon must be an image");
+        }
+        return iconDocumentId;
+    }
+
+    private String normalizeAccentColor(String accentColor) {
+        if (accentColor == null || accentColor.isBlank()) {
+            return "#2dd4bf";
+        }
+
+        String normalized = accentColor.trim();
+        if (!normalized.matches("#[0-9a-fA-F]{6}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid skill accent color");
+        }
+        return normalized;
+    }
+
     private String normalizeLevel(String level) {
         String normalized = level == null || level.isBlank() ? DEFAULT_LEVEL : level.trim().toLowerCase(Locale.ROOT);
         if (!ALLOWED_LEVELS.contains(normalized)) {
@@ -280,5 +355,21 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
             .mapToInt(SkillCategoryEntity::getDisplayOrder)
             .max()
             .orElse(0) + 10;
+    }
+
+    private SkillCategoryEntity resolvePendingCategory(String language, String label) {
+        String normalizedLabel = label == null ? "" : label.trim().toLowerCase(Locale.ROOT);
+        boolean isDefaultDraftLabel = ("es".equals(language) && "nueva categoria".equals(normalizedLabel))
+            || ("en".equals(language) && "new category".equals(normalizedLabel));
+        if (!isDefaultDraftLabel) {
+            return null;
+        }
+
+        return skillCategoryRepository.findByLanguageOrderByDisplayOrderAscLabelAsc(language)
+            .stream()
+            .filter(category -> category.getLabel().trim().equalsIgnoreCase(label.trim()))
+            .filter(category -> skillRepository.findByCategory(category).isEmpty())
+            .findFirst()
+            .orElse(null);
     }
 }
