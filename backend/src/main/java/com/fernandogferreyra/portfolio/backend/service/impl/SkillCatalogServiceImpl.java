@@ -14,9 +14,8 @@ import com.fernandogferreyra.portfolio.backend.mapper.skills.SkillCatalogMapper;
 import com.fernandogferreyra.portfolio.backend.repository.documents.DocumentRepository;
 import com.fernandogferreyra.portfolio.backend.repository.skills.SkillCategoryRepository;
 import com.fernandogferreyra.portfolio.backend.repository.skills.SkillRepository;
+import com.fernandogferreyra.portfolio.backend.service.DocumentFileService;
 import com.fernandogferreyra.portfolio.backend.service.SkillCatalogService;
-import com.fernandogferreyra.portfolio.backend.service.StorageService;
-import java.io.IOException;
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.List;
@@ -42,7 +41,7 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
     private final DocumentRepository documentRepository;
     private final SkillCategoryRepository skillCategoryRepository;
     private final SkillRepository skillRepository;
-    private final StorageService storageService;
+    private final DocumentFileService documentFileService;
 
     @Override
     @Transactional(readOnly = true)
@@ -136,15 +135,7 @@ public class SkillCatalogServiceImpl implements SkillCatalogService {
         DocumentEntity document = documentRepository.findById(skill.getIconDocumentId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked skill icon not found"));
 
-        try {
-            return new DocumentDownload(
-                storageService.load(document.getStoragePath()),
-                document.getOriginalFilename(),
-                document.getContentType(),
-                document.getSizeBytes());
-        } catch (IOException exception) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Linked skill icon file not found");
-        }
+        return documentFileService.download(document, "Linked skill icon file not found");
     }
 
     @Override
